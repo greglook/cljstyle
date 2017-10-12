@@ -211,21 +211,29 @@
 
 (deftest test-options
   (is (= "(foo)\n\n\n(bar)"
-         (reformat-string "(foo)\n\n\n(bar)" {:remove-consecutive-blank-lines? false})))
+         (reformat-string "(foo)\n\n\n(bar)"
+                          {:remove-consecutive-blank-lines? false})))
   (is (= "(  foo  )"
-         (reformat-string "(  foo  )" {:remove-surrounding-whitespace? false})))
+         (reformat-string "(  foo  )"
+                          {:remove-surrounding-whitespace? false})))
   (is (= "(foo(bar))"
-         (reformat-string "(foo(bar))" {:insert-missing-whitespace? false})))
+         (reformat-string "(foo(bar))"
+                          {:insert-missing-whitespace? false})))
   (is (= "(foo\n  bar)"
-         (reformat-string "(foo\nbar)" {:indents '{foo [[:block 0]]}})))
+         (reformat-string "(foo\nbar)"
+                          {:indents '{foo [[:block 0]]}})))
   (is (= "(do\n foo\n bar)"
-         (reformat-string "(do\nfoo\nbar)" {:indents {}})))
+         (reformat-string "(do\nfoo\nbar)"
+                          {:indents {}})))
   (is (= "(do\nfoo\nbar)"
-         (reformat-string "(do\nfoo\nbar)" {:indentation? false})))
+         (reformat-string "(do\nfoo\nbar)"
+                          {:indentation? false})))
   (is (= "(foo bar) \n(foo baz)"
-         (reformat-string "(foo bar) \n(foo baz)" {:remove-trailing-whitespace? false})))
+         (reformat-string "(foo bar) \n(foo baz)"
+                          {:remove-trailing-whitespace? false})))
   (is (= "(foo bar) \n"
-         (reformat-string "(foo bar) \n" {:remove-trailing-whitespace? false}))))
+         (reformat-string "(foo bar) \n"
+                          {:remove-trailing-whitespace? false}))))
 
 (deftest test-parsing
   (is (= ";foo" (reformat-string ";foo")))
