@@ -8,8 +8,8 @@
   (testing "list indentation"
     (is (= "(foo bar\n     baz\n     quz)"
            (reformat-string "(foo bar\nbaz\nquz)")))
-    (is (= "(foo\n bar\n baz)"
-           (reformat-string "(foo\nbar\nbaz)"))))
+    (is (= "(foo\n  bar\n  baz)"
+           (reformat-string "(foo\n bar\nbaz)"))))
 
   (testing "block indentation"
     (is (= "(if (= x 1)\n  :foo\n  :bar)"
@@ -18,7 +18,7 @@
            (reformat-string "(do\n(foo)\n(bar))")))
     (is (= "(do (foo)\n    (bar))"
            (reformat-string "(do (foo)\n(bar))")))
-    (is (= "(deftype Foo\n         [x]\n  Bar)"
+    (is (= "(deftype Foo\n  [x]\n  Bar)"
            (reformat-string "(deftype Foo\n[x]\nBar)")))
     (is (= "(cond->> x\n  a? a\n  b? b)"
            (reformat-string "(cond->> x\na? a\nb? b)"))))
@@ -222,7 +222,7 @@
   (is (= "(foo\n  bar)"
          (reformat-string "(foo\nbar)"
                           {:indents '{foo [[:block 0]]}})))
-  (is (= "(do\n foo\n bar)"
+  (is (= "(do\n  foo\n  bar)"
          (reformat-string "(do\nfoo\nbar)"
                           {:indents {}})))
   (is (= "(do\nfoo\nbar)"
@@ -240,7 +240,7 @@
   (is (= "::foo" (reformat-string "::foo")))
   (is (= "::foo/bar" (reformat-string "::foo/bar")))
   (is (= "foo:bar" (reformat-string "foo:bar")))
-  (is (= "#_(foo\n   bar)" (reformat-string "#_(foo\nbar)")))
+  (is (= "#_(foo\n    bar)" (reformat-string "#_(foo\nbar)")))
   (is (= "(juxt +' -')" (reformat-string "(juxt +' -')")))
   (is (= "#\"(?i)foo\"" (reformat-string "#\"(?i)foo\"")))
   (is (= "#\"a\nb\"" (reformat-string "#\"a\nb\""))))

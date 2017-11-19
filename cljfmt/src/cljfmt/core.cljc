@@ -281,15 +281,18 @@
        (dec)))
 
 
+(def indent-size 2)
+
+
 (defn- list-indent
   "Determine how indented a list at the current location should be."
   [zloc]
-  (if (> (index-of zloc) 1)
-    (-> zloc zip/leftmost z/right margin)
-    (coll-indent zloc)))
-
-
-(def indent-size 2)
+  (if (and (some-> zloc zip/leftmost zip/right skip-whitespace z/linebreak?)
+           (-> zloc z/leftmost z/tag (= :token)))
+    (+ (-> zloc zip/up margin) indent-size)
+    (if (> (index-of zloc) 1)
+      (-> zloc zip/leftmost z/right margin)
+      (coll-indent zloc))))
 
 
 (defn- indent-width
