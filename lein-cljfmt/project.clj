@@ -8,6 +8,6 @@
   :eval-in-leiningen true
 
   :dependencies
-  [[mvxcvi/cljfmt "0.5.6"]
+  [[mvxcvi/cljfmt "0.5.6-SNAPSHOT"]
    [meta-merge "0.1.1"]
    [com.googlecode.java-diff-utils/diffutils "1.2.1"]])
