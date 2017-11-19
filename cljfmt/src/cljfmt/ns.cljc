@@ -197,7 +197,7 @@
 
 (defn- sort-requires
   [elements]
-  (sort-by (fn [e] (str/split (name (n/sexpr (first (n/children e)))) #"\."))
+  (sort-by (fn [e] (n/sexpr (first (n/children e))))
            elements))
 
 
