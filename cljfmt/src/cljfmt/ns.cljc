@@ -60,10 +60,7 @@
           (recur (assoc ns-data
                         (keyword (z/sexpr (zip/down zloc)))
                         (-> zloc zip/down zip/right parse-list-elements))
-                 (z/right zloc))
-        :else
-          (throw (IllegalStateException.
-                   (str "Unrecognized ns form: " (z/string zloc)))))
+                 (z/right zloc)))
       ; No more nodes.
       ns-data)))
 
@@ -76,11 +73,7 @@
     (= :token (n/tag element))
       (n/vector-node [element])
     (= :vector (n/tag element))
-      element
-    :else
-      (throw (IllegalArgumentException.
-               (str "Not a valid require element: "
-                    (n/string element))))))
+      element))
 
 
 (defn- expand-require-group
@@ -105,9 +98,7 @@
                                   (vary-meta
                                     (n/vector-node (cons ns-sym more))
                                     assoc ::comments comments))
-                            []])
-                       (throw (Exception. (str "Illegal require group form: "
-                                               (n/string el))))))
+                            []])))
                    [[] []])
            (first)))
     [(vectorize-require-symbol element)]))
@@ -185,13 +176,32 @@
        (n/list-node)))
 
 
+(defn- strip-whitespace-and-newlines
+  [elements]
+  (remove (comp #{:whitespace :newline} n/tag) elements))
+
+
+(defn- combine-comment-metadata
+  [elements]
+  (->> elements
+       (strip-whitespace-and-newlines)
+       (reduce
+         (fn [[elements comments] el]
+           (if (n/comment? el)
+             [elements (conj comments (chomp-comment el))]
+             [(conj elements (vary-meta el assoc ::comments comments))
+              []]))
+         [[] []])
+       (first)))
+
+
 (defn- sort-requires
   [elements]
   (sort-by (fn [e] (str/split (name (n/sexpr (first (n/children e)))) #"\."))
            elements))
 
 
-(defn- render-require-comments
+(defn- expand-comments
   [element]
   (concat (::comments (meta element)) [element]))
 
@@ -202,20 +212,78 @@
     (let [elements (-> elements
                        (->> (mapcat expand-require-group))
                        (sort-requires)
-                       (->> (mapcat render-require-comments)))]
+                       (->> (mapcat expand-comments)))]
       [(n/spaces indent-size)
        (render-block :require elements)])))
 
 
+(defn- expand-imports
+  [imports]
+  (->> imports
+       (reduce (fn [[elements comments] el]
+                 (case (n/tag el)
+                   :comment
+                     [elements (conj comments (chomp-comment el))]
+                   :token
+                     [(conj elements (vary-meta el assoc ::comments comments))
+                      []]
+                   :list
+                     [(let [[package & classes] (n/children el)]
+                        (into elements
+                              (map #(with-meta (n/token-node (symbol (str package \. (n/sexpr %))))
+                                               (meta %)))
+                               (combine-comment-metadata classes)))
+                      comments]))
+               [[] []])
+       (first)))
+
+
+(defn- split-import-package
+  [import-class]
+  (-> (n/sexpr import-class)
+      (name)
+      (str/split #"\.")
+      (vec)
+      (as-> parts
+        [(symbol (str/join "." (pop parts)))
+         (with-meta (symbol (peek parts)) (meta import-class))])))
+
+
+(defn- group-imports
+  [imports]
+  (->> imports
+       (map split-import-package)
+       (reduce
+         (fn [groups [package class-name]]
+           (update groups package (fnil conj []) class-name))
+         {})))
+
+
 (defn- render-imports
   [elements]
-  ; - Newline after keyword, indent two spaces.
-  ; - Use parentheses to group class imports from the same Java package.
-  ; - If there is only one class, it may be collapsed onto one line or expanded.
-  ; - Sort imports lexicographically.
   (when (seq elements)
-    [(n/spaces indent-size)
-     (render-block :import elements)]))
+    (let [elements (->> elements
+                        (strip-whitespace-and-newlines)
+                        (expand-imports)
+                        (group-imports)
+                        (sort-by key)
+                        (mapcat
+                          (fn [[package class-names]]
+                            (if (= 1 (count class-names))
+                              (-> (n/token-node (symbol (str package \. (first class-names))))
+                                  (with-meta (meta (first class-names)))
+                                  (expand-comments))
+                              [(n/list-node
+                                 (->> (sort class-names)
+                                      (map (fn [class-name]
+                                             (concat (::comments (meta class-name))
+                                                     [(n/token-node class-name)])))
+                                      (mapcat (partial list*
+                                                       (n/newlines 1)
+                                                       (n/spaces (* 3 indent-size))))
+                                      (cons (n/token-node package))))]))))]
+      [(n/spaces indent-size)
+       (render-block :import elements)])))
 
 
 (defn- render-ns-form
