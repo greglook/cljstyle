@@ -82,7 +82,7 @@
            (reformat-string ";foo\n(def x 1)")))
     (is (= "(ns foo.core)\n\n;; foo\n(defn foo [x]\n  (inc x))"
            (reformat-string "(ns foo.core)\n\n;; foo\n(defn foo [x]\n(inc x))")))
-    (is (= ";; foo\n(ns foo\n  (:require bar))"
+    (is (= ";; foo\n(ns foo\n  (:require\n    [bar]))"
            (reformat-string ";; foo\n(ns foo\n(:require bar))")))
     (is (= "(defn foo [x]\n  ;; +1\n  (inc x))"
            (reformat-string "(defn foo [x]\n  ;; +1\n(inc x))")))
@@ -131,6 +131,70 @@
            (reformat-string "#?(:clj foo\n:cljs bar)")))
     (is (= "#?@(:clj foo\n    :cljs bar)"
            (reformat-string "#?@(:clj foo\n:cljs bar)")))))
+
+(deftest ns-reformatting
+  (testing "namespace forms"
+    (is (= "(ns foo.bar.baz)"
+           (reformat-string "(  ns\n  foo.bar.baz\n)")))
+    (is (= "(ns foo.bar.baz\n  \"ns-level docstring\")"
+           (reformat-string "(ns foo.bar.baz\n \"ns-level docstring\"\n)")))
+    (is (= "(ns foo.bar.baz\n  \"ns-level docstring\"\n  (:require\n    [foo.bar.qux :refer :all]))"
+           (reformat-string "(ns foo.bar.baz\n \"ns-level docstring\"\n (:use foo.bar.qux)\n)")))
+    (is (=
+"(ns foo.bar
+  \"Functions for working with bars.\"
+  (:refer-clojure :exclude [keys])
+  (:require
+    [clojure.spec :as s]
+    [clojure.string :as str]))"
+         (reformat-string
+"(ns foo.bar
+  \"Functions for working with bars.\"
+  (:refer-clojure :exclude [keys])
+  (:require [clojure.string :as str]
+            [clojure.spec :as s]))"
+)))
+    (is (=
+"(ns abc.def
+  (:require
+    [clojure.string]))"
+         (reformat-string "(ns abc.def (:load clojure.string))")))
+    (is (=
+"(ns abc.def
+  (:gen-class))"
+         (reformat-string "(ns abc.def (:gen-class))")))
+    (is (=
+"(ns abc.def
+  (:require
+    [abc.nop]
+    [abc.qrs]))"
+         (reformat-string "(ns abc.def (:require (abc qrs nop)))")))
+    (is (=
+"(ns abc.xyz
+  (:require
+    [abc.def :as def]
+    [clojure.pprint :refer [pp]]
+    [clojure.set :as set]
+    [clojure.string :as str]))"
+         (reformat-string
+"(ns abc.xyz (:require (clojure [set :as set]
+[string :as str]
+[pprint :refer [pp]]) [abc.def :as def]))")))
+    (is (=
+"(ns abc.xyz
+  (:require
+    ; about def
+    [abc.def :as def]
+    ; about set
+    [clojure.set :as set]))"
+         (reformat-string
+"(ns abc.xyz (:require
+  (clojure ; about set
+    [set :as set])
+  ; about def
+  [abc.def :as def]))")))
+    ; TODO: more cases
+    ,,,))
 
 (deftest test-surrounding-whitespace
   (testing "surrounding spaces"

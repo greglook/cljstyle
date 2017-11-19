@@ -2,6 +2,7 @@
   #?@(:clj
       [(:refer-clojure :exclude [reader-conditional?])
        (:require
+         [cljfmt.ns :as ns]
          [clojure.java.io :as io]
          [clojure.string :as str]
          [clojure.zip :as zip]
@@ -13,6 +14,7 @@
          java.util.regex.Pattern)]
       :cljs
       [(:require
+         [cljfmt.ns :as ns]
          [cljs.reader :as reader]
          [clojure.zip :as zip]
          [clojure.string :as str]
@@ -504,20 +506,28 @@
   (transform form edit-all trailing-whitespace? zip/remove))
 
 
+(defn rewrite-namespaces
+  "Transform this form by rewriting any namespace forms."
+  [form]
+  (transform form edit-all ns/ns-node? ns/rewrite-ns-form))
+
+
 (defn reformat-form
   "Transform this form by applying formatting rules to it."
   [form & [{:as opts}]]
-  (-> form
-      (cond-> (:remove-consecutive-blank-lines? opts true)
-        remove-consecutive-blank-lines)
-      (cond-> (:remove-surrounding-whitespace? opts true)
-        remove-surrounding-whitespace)
-      (cond-> (:insert-missing-whitespace? opts true)
-        insert-missing-whitespace)
-      (cond-> (:indentation? opts true)
-        (reindent (:indents opts default-indents)))
-      (cond-> (:remove-trailing-whitespace? opts true)
-        remove-trailing-whitespace)))
+  (cond-> form
+    (:remove-consecutive-blank-lines? opts true)
+      remove-consecutive-blank-lines
+    (:remove-surrounding-whitespace? opts true)
+      remove-surrounding-whitespace
+    (:insert-missing-whitespace? opts true)
+      insert-missing-whitespace
+    (:indentation? opts true)
+      (reindent (:indents opts default-indents))
+    (:rewrite-namespaces? opts true)
+      rewrite-namespaces
+    (:remove-trailing-whitespace? opts true)
+      remove-trailing-whitespace))
 
 
 (defn reformat-string

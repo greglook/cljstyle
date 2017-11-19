@@ -22,7 +22,7 @@
  defrecord       [[:block 2] [:inner 1]]
  defstruct       [[:block 1]]
  deftest         [[:inner 0]]
- deftype         [[:block 2] [:inner 1]]
+ deftype         [[:block 1] [:inner 1]]
  do              [[:block 0]]
  doseq           [[:block 1]]
  dotimes         [[:block 1]]
