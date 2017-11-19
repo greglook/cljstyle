@@ -51,6 +51,7 @@
  struct-map      [[:block 1]]
  testing         [[:block 1]]
  thread          [[:block 0]]
+ thrown?         [[:block 1]]
  try             [[:block 0]]
  use-fixtures    [[:inner 0]]
  when            [[:block 1]]
