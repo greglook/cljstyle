@@ -262,19 +262,19 @@
 
 
 (defn- render-imports
-  [elements]
+  [opts elements]
   (when (seq elements)
     [(n/spaces indent-size)
      (->> elements
           (expand-imports)
           (group-imports)
           (sort-by key)
-          (mapcat (partial apply format-import-group {}))
+          (mapcat (partial apply format-import-group opts))
           (render-block :import)) ]))
 
 
 (defn- render-ns-form
-  [ns-data]
+  [ns-data opts]
   (n/list-node
     (concat
       [(n/token-node 'ns)
@@ -289,13 +289,13 @@
          (render-gen-class (:gen-class ns-data))
          (render-requires :require (:require ns-data))
          (render-requires :require-macros (:require-macros ns-data))
-         (render-imports (:import ns-data))]))))
+         (render-imports opts (:import ns-data))]))))
 
 
 (defn rewrite-ns-form
   "Insert appropriate line breaks and indentation before each ns child form."
-  [zloc]
+  [zloc opts]
   (let [ns-data (-> (parse-ns-node zloc)
                     (replace-loads)
                     (replace-uses))]
-    (zip/replace zloc (render-ns-form ns-data))))
+    (zip/replace zloc (render-ns-form ns-data opts))))

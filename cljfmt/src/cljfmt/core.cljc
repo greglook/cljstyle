@@ -289,7 +289,7 @@
 (defn- list-indent
   "Determine how indented a list at the current location should be."
   [zloc]
-  (if (and (some-> zloc zip/leftmost zip/right skip-whitespace z/linebreak?)
+  (if (and (some-> zloc zip/leftmost zip/right skip-whitespace zlinebreak?)
            (-> zloc z/leftmost z/tag (= :token)))
     (+ (-> zloc zip/up margin) indent-size)
     (if (> (index-of zloc) 1)
@@ -508,8 +508,8 @@
 
 (defn rewrite-namespaces
   "Transform this form by rewriting any namespace forms."
-  [form]
-  (transform form edit-all ns/ns-node? ns/rewrite-ns-form))
+  [form opts]
+  (transform form edit-all ns/ns-node? #(ns/rewrite-ns-form % opts)))
 
 
 (defn reformat-form
@@ -525,7 +525,7 @@
     (:indentation? opts true)
       (reindent (:indents opts default-indents))
     (:rewrite-namespaces? opts true)
-      rewrite-namespaces
+      (rewrite-namespaces opts)
     (:remove-trailing-whitespace? opts true)
       remove-trailing-whitespace))
 
