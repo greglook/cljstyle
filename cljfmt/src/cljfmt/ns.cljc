@@ -21,28 +21,39 @@
   (-> node n/string (subs 1) (str/replace #"\n+$" "") n/comment-node))
 
 
-(defn- parse-list-elements
-  "Parse the elements in a namespace definition list."
-  [zloc]
-  (loop [elements []
-         comments []
-         zloc zloc]
-    (cond
-      (and zloc (n/comment? (z/node zloc)))
-        (recur elements
-               (conj comments (chomp-comment (z/node zloc)))
-               (zip/right zloc))
-      (and zloc (not (or (= :whitespace (z/tag zloc))
-                         (= :newline (z/tag zloc))
-                         (n/comment? (z/node zloc)))))
-        (recur (conj elements (vary-meta (z/node zloc)
-                                         assoc ::comments comments))
-               []
-               (zip/right zloc))
-      zloc ; ignore
-        (recur elements comments (zip/right zloc))
-      :else
-        elements)))
+(defn- strip-whitespace-and-newlines
+  [elements]
+  (remove (comp #{:whitespace :newline} n/tag) elements))
+
+
+(defn- parse-list-with-comments
+  "Parse a sequential syntax node, returning a list with the first token,
+  followed by the child elements with preceding comments attached as metadata."
+  [list-node]
+  (when-let [[header & elements] (and list-node (n/children list-node))]
+    (->> elements
+         (strip-whitespace-and-newlines)
+         (reduce
+           (fn [[elements comments] el]
+             (case (n/tag el)
+               :comment
+                 [elements (conj comments (chomp-comment el))]
+               (:vector :token)
+                 [(conj elements (vary-meta el assoc ::comments comments))
+                  []]
+               :list
+                 [(conj elements (vary-meta
+                                   (parse-list-with-comments el)
+                                   assoc ::comments comments))
+                  []]))
+           [[header] []])
+         (first)
+         (n/list-node))))
+
+
+(defn- expand-comments
+  [element]
+  (concat (::comments (meta element)) [element]))
 
 
 (defn- parse-ns-node
@@ -57,23 +68,30 @@
           (recur (assoc ns-data :doc (z/node zloc))
                  (z/right zloc))
         (z/list? zloc)
-          (recur (assoc ns-data
-                        (keyword (z/sexpr (zip/down zloc)))
-                        (-> zloc zip/down zip/right parse-list-elements))
-                 (z/right zloc)))
+          (let [[header & elements] (n/children (parse-list-with-comments (z/node zloc)))]
+            (recur (assoc ns-data (keyword (n/sexpr header)) (or elements []))
+                   (z/right zloc))))
       ; No more nodes.
       ns-data)))
 
+
+;; ## Namespace Docstring
+
+(defn- render-docstring
+  [docstr]
+  (when docstr
+    [(n/spaces indent-size) docstr]))
+
+
+;; ## Required Namespaces
 
 (defn- vectorize-require-symbol
   "If the given element node is a symbol, wrap it in a vector node. If it's a
   vector, return as-is."
   [element]
-  (cond
-    (= :token (n/tag element))
-      (n/vector-node [element])
-    (= :vector (n/tag element))
-      element))
+  (case (n/tag element)
+    :token (n/vector-node [element])
+    :vector element))
 
 
 (defn- expand-require-group
@@ -83,25 +101,24 @@
   (if (= :list (n/tag element))
     (let [[prefix & elements] (n/children element)
           prefix (name (n/sexpr prefix))]
-      (->> elements
-           (remove (comp #{:whitespace :newline} n/tag))
-           (reduce (fn [[elements comments] el]
-                     (case (n/tag el)
-                       :comment
-                         [elements (conj comments (chomp-comment el))]
-                       (:token :vector)
-                         (let [[ns-sym & more] (if (= :vector (n/tag el))
-                                                 (n/children el)
-                                                 [el])
-                               ns-sym (symbol (str prefix \. (n/sexpr ns-sym)))]
-                           [(conj elements
-                                  (vary-meta
-                                    (n/vector-node (cons ns-sym more))
-                                    assoc ::comments comments))
-                            []])))
-                   [[] []])
-           (first)))
+      (into []
+            (map
+              (fn [el]
+                (let [[ns-sym & more] (if (= :vector (n/tag el))
+                                        (n/children el)
+                                        [el])]
+                  (-> (symbol (str prefix \. (n/sexpr ns-sym)))
+                      (cons more)
+                      (n/vector-node)
+                      (with-meta (meta el))))))
+            elements))
     [(vectorize-require-symbol element)]))
+
+
+(defn- sort-requires
+  [elements]
+  (sort-by (fn [e] (n/sexpr (first (n/children e))))
+           elements))
 
 
 (defn- replace-loads
@@ -136,106 +153,20 @@
     ns-data))
 
 
-(defn- render-docstring
-  [docstr]
-  (when docstr
-    [(n/spaces indent-size) docstr]))
-
-
-(defn- render-inline
-  [kw elements]
-  (->> elements
-       (cons (n/keyword-node kw))
-       (interpose (n/spaces 1))
-       (n/list-node)))
-
-
-(defn- render-refer-clojure
-  [elements]
-  (when (seq elements)
-    ; collapse onto one line?
-    [(n/spaces indent-size)
-     (render-inline :refer-clojure elements)]))
-
-
-(defn- render-gen-class
-  [elements]
-  (when elements
-    ; TODO: line formatting
-    [(n/spaces indent-size)
-     (render-inline :gen-class elements)]))
-
-
-(defn- render-block
-  [kw elements]
-  (->> elements
-       (mapcat (partial vector
-                        (n/newlines 1)
-                        (n/spaces (* 2 indent-size))))
-       (list* (n/keyword-node kw))
-       (n/list-node)))
-
-
-(defn- strip-whitespace-and-newlines
-  [elements]
-  (remove (comp #{:whitespace :newline} n/tag) elements))
-
-
-(defn- combine-comment-metadata
-  [elements]
-  (->> elements
-       (strip-whitespace-and-newlines)
-       (reduce
-         (fn [[elements comments] el]
-           (if (n/comment? el)
-             [elements (conj comments (chomp-comment el))]
-             [(conj elements (vary-meta el assoc ::comments comments))
-              []]))
-         [[] []])
-       (first)))
-
-
-(defn- sort-requires
-  [elements]
-  (sort-by (fn [e] (n/sexpr (first (n/children e))))
-           elements))
-
-
-(defn- expand-comments
-  [element]
-  (concat (::comments (meta element)) [element]))
-
-
-(defn- render-requires
-  [elements]
-  (when (seq elements)
-    (let [elements (-> elements
-                       (->> (mapcat expand-require-group))
-                       (sort-requires)
-                       (->> (mapcat expand-comments)))]
-      [(n/spaces indent-size)
-       (render-block :require elements)])))
-
+;; ## Class Imports
 
 (defn- expand-imports
   [imports]
-  (->> imports
-       (reduce (fn [[elements comments] el]
-                 (case (n/tag el)
-                   :comment
-                     [elements (conj comments (chomp-comment el))]
-                   :token
-                     [(conj elements (vary-meta el assoc ::comments comments))
-                      []]
-                   :list
-                     [(let [[package & classes] (n/children el)]
-                        (into elements
-                              (map #(with-meta (n/token-node (symbol (str package \. (n/sexpr %))))
-                                               (meta %)))
-                               (combine-comment-metadata classes)))
-                      comments]))
-               [[] []])
-       (first)))
+  (mapcat
+    (fn [el]
+      (if (contains? #{:list :vector} (n/tag el))
+        (let [[package & classes] (n/children el)]
+          (map #(-> (symbol (str (n/sexpr package) \. (n/sexpr %)))
+                    (n/token-node)
+                    (with-meta (meta %)))
+               classes))
+        [el]))
+    imports))
 
 
 (defn- split-import-package
@@ -255,35 +186,91 @@
        (map split-import-package)
        (reduce
          (fn [groups [package class-name]]
-           (update groups package (fnil conj []) class-name))
+           (update groups package (fnil conj #{}) class-name))
          {})))
+
+
+(defn- format-import-group*
+  [package class-names]
+  (n/list-node
+    (->> (sort class-names)
+         (mapcat expand-comments)
+         (mapcat (partial list (n/newlines 1) (n/spaces (* 3 indent-size))))
+         (cons (n/token-node package)))))
+
+
+(defn- format-import-group
+  [opts package class-names]
+  (if (= 1 (count class-names))
+    (let [break-width (:single-import-group-width-threshold opts 50)
+          qualified-class (symbol (str package \. (first class-names)))]
+      (if (<= (count (str qualified-class)) break-width)
+        ; Format single
+        (-> (n/token-node qualified-class)
+            (with-meta (meta (first class-names)))
+            (expand-comments))
+        ; Format list
+        [(format-import-group* package class-names)]))
+    [(format-import-group* package class-names)]))
+
+
+;; ## Namespace Rendering
+
+(defn- render-inline
+  [kw elements]
+  (->> elements
+       (cons (n/keyword-node kw))
+       (interpose (n/spaces 1))
+       (n/list-node)))
+
+
+(defn- render-block
+  [kw elements]
+  (->> elements
+       (mapcat (partial vector
+                        (n/newlines 1)
+                        (n/spaces (* 2 indent-size))))
+       (list* (n/keyword-node kw))
+       (n/list-node)))
+
+
+(defn- render-refer-clojure
+  [elements]
+  (when (seq elements)
+    ; collapse onto one line?
+    [(n/spaces indent-size)
+     (render-inline :refer-clojure elements)]))
+
+
+(defn- render-gen-class
+  [elements]
+  (when elements
+    ; TODO: line formatting
+    [(n/spaces indent-size)
+     (render-inline :gen-class elements)]))
+
+
+(defn- render-requires
+  [kw elements]
+  (when (seq elements)
+    [(n/spaces indent-size)
+     (->> elements
+          (mapcat expand-require-group)
+          (sort-requires)
+          (mapcat expand-comments)
+          (render-block kw))]))
 
 
 (defn- render-imports
   [elements]
   (when (seq elements)
-    (let [elements (->> elements
-                        (strip-whitespace-and-newlines)
-                        (expand-imports)
-                        (group-imports)
-                        (sort-by key)
-                        (mapcat
-                          (fn [[package class-names]]
-                            (if (= 1 (count class-names))
-                              (-> (n/token-node (symbol (str package \. (first class-names))))
-                                  (with-meta (meta (first class-names)))
-                                  (expand-comments))
-                              [(n/list-node
-                                 (->> (sort class-names)
-                                      (map (fn [class-name]
-                                             (concat (::comments (meta class-name))
-                                                     [(n/token-node class-name)])))
-                                      (mapcat (partial list*
-                                                       (n/newlines 1)
-                                                       (n/spaces (* 3 indent-size))))
-                                      (cons (n/token-node package))))]))))]
-      [(n/spaces indent-size)
-       (render-block :import elements)])))
+    [(n/spaces indent-size)
+     (->> elements
+          (expand-imports)
+          (group-imports)
+          (sort-by key)
+          (mapcat (partial apply format-import-group {}))
+          (render-block :import)) ]))
 
 
 (defn- render-ns-form
@@ -300,7 +287,8 @@
         [(render-docstring (:doc ns-data))
          (render-refer-clojure (:refer-clojure ns-data))
          (render-gen-class (:gen-class ns-data))
-         (render-requires (:require ns-data))
+         (render-requires :require (:require ns-data))
+         (render-requires :require-macros (:require-macros ns-data))
          (render-imports (:import ns-data))]))))
 
 
