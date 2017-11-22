@@ -1,7 +1,8 @@
 (ns cljfmt.zloc
   "Common utility functions for using rewrite-clj zippers."
   #?@(:clj
-      [(:require
+      [(:refer-clojure :exclude [reader-conditional?])
+       (:require
          [clojure.string :as str]
          [clojure.zip :as zip]
          [rewrite-clj.node :as n]
@@ -31,12 +32,6 @@
   "True if the node at this location is a comment."
   [zloc]
   (some-> zloc z/node n/comment?))
-
-
-(defn line-break?
-  "True if the node at this location is a linebreak or a comment."
-  [zloc]
-  (or (zlinebreak? zloc) (comment? zloc)))
 
 
 (defn root?
@@ -76,7 +71,7 @@
   (and zloc (= (n/tag (z/node zloc)) :reader-macro)))
 
 
-(defn reader-conditional-macro?
+(defn reader-conditional?
   "True if the node at this location is a reader conditional form."
   [zloc]
   (and (reader-macro? zloc) (#{"?" "?@"} (-> zloc z/down token-value str))))
@@ -93,12 +88,3 @@
   "Skip to the location of the next non-whitespace node."
   [zloc]
   (skip zip/next whitespace? zloc))
-
-
-(defn index-of
-  "Determine the index of the node in the children of its parent."
-  [zloc]
-  (->> (iterate z/left zloc)
-       (take-while identity)
-       (count)
-       (dec)))

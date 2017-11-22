@@ -3,7 +3,7 @@
       [(:require
          [cljfmt.indent :as indent]
          [cljfmt.ns :as ns]
-         [cljfmt.zloc :refer :all]
+         [cljfmt.zloc :as zl]
          [clojure.zip :as zip]
          [rewrite-clj.node :as n]
          [rewrite-clj.parser :as p]
@@ -13,7 +13,7 @@
       [(:require
          [cljfmt.indent :as indent]
          [cljfmt.ns :as ns]
-         [cljfmt.zloc :refer :all]
+         [cljfmt.zloc :as zl]
          [clojure.zip :as zip]
          [rewrite-clj.node :as n]
          [rewrite-clj.parser :as p]
@@ -55,8 +55,8 @@
   "Count the number of consecutive blank lines at this location."
   [zloc]
   (loop [zloc zloc, newlines 0]
-    (if (zlinebreak? zloc)
-      (recur (-> zloc zip/right skip-whitespace)
+    (if (zl/zlinebreak? zloc)
+      (recur (-> zloc zip/right zl/skip-whitespace)
              (-> zloc z/string count (+ newlines)))
       newlines)))
 
@@ -70,7 +70,7 @@
 (defn- remove-whitespace-and-newlines
   "Edit the node at this location to remove any following whitespace."
   [zloc]
-  (if (zwhitespace? zloc)
+  (if (zl/zwhitespace? zloc)
     (recur (zip/remove zloc))
     zloc))
 
@@ -104,8 +104,8 @@
   "True if the node at this location is part of whitespace surrounding a
   top-level form."
   [zloc]
-  (and (top? (z/up zloc))
-       (surrounding? zloc zwhitespace?)))
+  (and (zl/top? (z/up zloc))
+       (surrounding? zloc zl/zwhitespace?)))
 
 
 (defn remove-surrounding-whitespace
@@ -121,9 +121,9 @@
   "True if the node at this location is an element and the immediately
   following location is a different element."
   [zloc]
-  (and (element? zloc)
-       (not (reader-macro? (zip/up zloc)))
-       (element? (zip/right zloc))))
+  (and (zl/element? zloc)
+       (not (zl/reader-macro? (zip/up zloc)))
+       (zl/element? (zip/right zloc))))
 
 
 (defn insert-missing-whitespace
@@ -172,15 +172,15 @@
 (defn- final?
   "True if this location is the last top-level node."
   [zloc]
-  (and (nil? (zip/right zloc)) (root? (zip/up zloc))))
+  (and (nil? (zip/right zloc)) (zl/root? (zip/up zloc))))
 
 
 (defn- trailing-whitespace?
   "True if the node at this location represents whitespace trailing a form on a
   line or the final top-level node."
   [zloc]
-  (and (whitespace? zloc)
-       (or (zlinebreak? (zip/right zloc)) (final? zloc))))
+  (and (zl/whitespace? zloc)
+       (or (zl/zlinebreak? (zip/right zloc)) (final? zloc))))
 
 
 (defn remove-trailing-whitespace

@@ -1,7 +1,7 @@
 (ns cljfmt.indent
   #?@(:clj
       [(:require
-         [cljfmt.zloc :refer :all]
+         [cljfmt.zloc :as zl]
          [clojure.java.io :as io]
          [clojure.string :as str]
          [clojure.zip :as zip]
@@ -9,7 +9,7 @@
          [rewrite-clj.zip :as z])]
       :cljs
       [(:require
-         [cljfmt.zloc :refer :all]
+         [cljfmt.zloc :as zl]
          [clojure.zip :as zip]
          [clojure.string :as str]
          [rewrite-clj.node :as n]
@@ -41,23 +41,29 @@
 
 ;; ## Location Predicates
 
+(defn- line-break?
+  "True if the node at this location is a linebreak or a comment."
+  [zloc]
+  (or (zl/zlinebreak? zloc) (zl/comment? zloc)))
+
+
 (defn- indentation?
   "True if the node at this location consists of whitespace and is the first
   node on a line."
   [zloc]
-  (and (line-break? (zip/prev zloc)) (whitespace? zloc)))
+  (and (line-break? (zip/prev zloc)) (zl/whitespace? zloc)))
 
 
 (defn- comment-next?
   "True if the next non-whitespace node after this location is a comment."
   [zloc]
-  (-> zloc zip/next skip-whitespace comment?))
+  (-> zloc zip/next zl/skip-whitespace zl/comment?))
 
 
 (defn- line-break-next?
   "True if the next non-whitespace node after this location is a linebreak."
   [zloc]
-  (-> zloc zip/next skip-whitespace line-break?))
+  (-> zloc zip/next zl/skip-whitespace line-break?))
 
 
 (defn should-indent?
@@ -112,6 +118,15 @@
 
 ;; ## Indentation Rules
 
+(defn- index-of
+  "Determine the index of the node in the children of its parent."
+  [zloc]
+  (->> (iterate z/left zloc)
+       (take-while identity)
+       (count)
+       (dec)))
+
+
 (defn- coll-indent
   "Determine how indented a new collection element should be."
   [zloc]
@@ -121,7 +136,7 @@
 (defn- list-indent
   "Determine how indented a list at the current location should be."
   [zloc]
-  (if (and (some-> zloc zip/leftmost zip/right skip-whitespace zlinebreak?)
+  (if (and (some-> zloc zip/leftmost zip/right zl/skip-whitespace zl/zlinebreak?)
            (-> zloc z/leftmost z/tag (= :token)))
     (+ (-> zloc zip/up margin) indent-size)
     (if (> (index-of zloc) 1)
@@ -175,10 +190,14 @@
   (let [tag (-> zloc z/up z/tag)
         gp  (-> zloc z/up z/up)]
     (cond
-      (reader-conditional-macro? gp) (coll-indent zloc)
-      (#{:list :fn} tag)             (custom-indent zloc indents)
-      (= :meta tag)                  (indent-amount (z/up zloc) indents)
-      :else                          (coll-indent zloc))))
+      (zl/reader-conditional? gp)
+        (coll-indent zloc)
+      (#{:list :fn} tag)
+        (custom-indent zloc indents)
+      (= :meta tag)
+        (indent-amount (z/up zloc) indents)
+      :else
+        (coll-indent zloc))))
 
 
 ;; ### Style Utilities
@@ -201,7 +220,7 @@
 (defn- form-symbol
   "Return a name-only symbol for the leftmost node from this location."
   [zloc]
-  (-> zloc z/leftmost token-value remove-namespace))
+  (-> zloc z/leftmost zl/token-value remove-namespace))
 
 
 
@@ -256,9 +275,9 @@
   line."
   [zloc]
   (if-let [zloc (zip/left zloc)]
-    (if (whitespace? zloc)
+    (if (zl/whitespace? zloc)
       (recur zloc)
-      (or (zlinebreak? zloc) (comment? zloc)))
+      (or (zl/zlinebreak? zloc) (zl/comment? zloc)))
     true))
 
 
