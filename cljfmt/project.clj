@@ -28,4 +28,8 @@
 
   :profiles
   {:provided
-   {:dependencies [[org.clojure/clojurescript "1.7.228"]]}})
+   {:dependencies [[org.clojure/clojurescript "1.7.228"]]}
+
+   :repl
+   {:source-paths ["dev"]
+    :dependencies [[org.clojure/tools.namespace "0.2.11"]]}})
