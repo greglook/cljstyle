@@ -1,45 +1,26 @@
 (ns cljfmt.core
   #?@(:clj
-      [(:refer-clojure :exclude [reader-conditional?])
-       (:require
+      [(:require
+         [cljfmt.indent :as indent]
          [cljfmt.ns :as ns]
-         [clojure.java.io :as io]
-         [clojure.string :as str]
+         [cljfmt.zloc :refer :all]
          [clojure.zip :as zip]
          [rewrite-clj.node :as n]
          [rewrite-clj.parser :as p]
          [rewrite-clj.zip :as z
-          :refer [append-space edn skip whitespace-or-comment?]])
-       (:import
-         java.util.regex.Pattern)]
+          :refer [append-space edn skip]])]
       :cljs
       [(:require
+         [cljfmt.indent :as indent]
          [cljfmt.ns :as ns]
-         [cljs.reader :as reader]
+         [cljfmt.zloc :refer :all]
          [clojure.zip :as zip]
-         [clojure.string :as str]
          [rewrite-clj.node :as n]
          [rewrite-clj.parser :as p]
          [rewrite-clj.zip :as z]
          [rewrite-clj.zip.base :as zb :refer [edn]]
          [rewrite-clj.zip.whitespace :as zw
-          :refer [append-space skip whitespace-or-comment?]])
-       (:require-macros
-         [cljfmt.core :refer [read-resource]])]))
-
-
-#?(:clj (def read-resource* (comp read-string slurp io/resource)))
-#?(:clj (defmacro read-resource [path] `'~(read-resource* path)))
-
-
-(def indent-size 2)
-
-
-(def default-indents
-  (merge (read-resource "cljfmt/indents/clojure.clj")
-         (read-resource "cljfmt/indents/compojure.clj")
-         (read-resource "cljfmt/indents/fuzzy.clj")))
-
+          :refer [append-space skip]])]))
 
 
 ;; ## Editing Functions
@@ -68,97 +49,7 @@
 
 
 
-;; ## Location Functions
-
-(def ^:private zwhitespace?
-  "True if the node is a whitespace node."
-  #?(:clj z/whitespace? :cljs zw/whitespace?))
-
-
-(def ^:private zlinebreak?
-  "True if the node contains a line break."
-  #?(:clj z/linebreak? :cljs zw/linebreak?))
-
-
-(defn- root?
-  "True if this location is the root node."
-  [zloc]
-  (nil? (zip/up zloc)))
-
-
-(defn- top?
-  "True if the node at this location has a parent node."
-  [zloc]
-  (and zloc (not= (z/node zloc) (z/root zloc))))
-
-
-(defn- element?
-  "True if the node at this location represents a syntactically important
-  token."
-  [zloc]
-  (and zloc (not (whitespace-or-comment? zloc))))
-
-
-(defn- token?
-  "True if the node at this location is a token."
-  [zloc]
-  (= (z/tag zloc) :token))
-
-
-(defn- token-value
-  "Return the s-expression form of the token at this location."
-  [zloc]
-  (and (token? zloc) (z/sexpr zloc)))
-
-
-(defn- reader-macro?
-  "True if the node at this location is a reader macro expression."
-  [zloc]
-  (and zloc (= (n/tag (z/node zloc)) :reader-macro)))
-
-
-(defn- reader-conditional?
-  "True if the node at this location is a reader conditional form."
-  [zloc]
-  (and (reader-macro? zloc) (#{"?" "?@"} (-> zloc z/down token-value str))))
-
-
-(defn- whitespace?
-  "True if the node at this location is whitespace and _not_ a line break
-  character."
-  [zloc]
-  (= (z/tag zloc) :whitespace))
-
-
-(defn- comment?
-  "True if the node at this location is a comment."
-  [zloc]
-  (some-> zloc z/node n/comment?))
-
-
-(defn- line-break?
-  "True if the node at this location is a linebreak or a comment."
-  [zloc]
-  (or (zlinebreak? zloc) (comment? zloc)))
-
-
-(defn- index-of
-  "Determine the index of the node in the children of its parent."
-  [zloc]
-  (->> (iterate z/left zloc)
-       (take-while identity)
-       (count)
-       (dec)))
-
-
-
 ;; ## Rule: Consecutive Blank Lines
-
-(defn- skip-whitespace
-  "Skip to the location of the next non-whitespace node."
-  [zloc]
-  (skip zip/next whitespace? zloc))
-
 
 (defn- count-newlines
   "Count the number of consecutive blank lines at this location."
@@ -244,275 +135,16 @@
 
 ;; ## Rule: Indentation
 
-(def ^:private start-element
-  {:meta "^", :meta* "#^", :vector "[",       :map "{"
-   :list "(", :eval "#=",  :uneval "#_",      :fn "#("
-   :set "#{", :deref "@",  :reader-macro "#", :unquote "~"
-   :var "#'", :quote "'",  :syntax-quote "`", :unquote-splicing "~@"})
-
-
-(defn- indentation?
-  "True if the node at this location consists of whitespace and is the first
-  node on a line."
-  [zloc]
-  (and (line-break? (zip/prev zloc)) (whitespace? zloc)))
-
-
-(defn- comment-next?
-  "True if the next non-whitespace node after this location is a comment."
-  [zloc]
-  (-> zloc zip/next skip-whitespace comment?))
-
-
-(defn- line-break-next?
-  "True if the next non-whitespace node after this location is a linebreak."
-  [zloc]
-  (-> zloc zip/next skip-whitespace line-break?))
-
-
-(defn- should-indent?
-  "True if indentation should exist after the current location."
-  [zloc]
-  (and (line-break? zloc) (not (line-break-next? zloc))))
-
-
-(defn- should-unindent?
-  "True if the current location is indentation whitespace that should be
-  reformatted."
-  [zloc]
-  (and (indentation? zloc) (not (comment-next? zloc))))
-
-
 (defn- unindent
   "Remove indentation whitespace from the form in preparation for reformatting."
   [form]
-  (transform form edit-all should-unindent? zip/remove))
-
-
-(defn- prior-line-string
-  "Work backward from the current location to build out the string containing
-  the previous line of text."
-  [zloc]
-  (loop [zloc     zloc
-         worklist '()]
-    (if-let [p (zip/left zloc)]
-      (let [s            (str (n/string (z/node p)))
-            new-worklist (cons s worklist)]
-        (if-not (str/includes? s "\n")
-          (recur p new-worklist)
-          (apply str new-worklist)))
-      (if-let [p (zip/up zloc)]
-        ;; newline cannot be introduced by start-element
-        (recur p (cons (start-element (n/tag (z/node p))) worklist))
-        (apply str worklist)))))
-
-
-(defn- last-line-in-string
-  "Return a string containing the last line of text in `s`, which may be `s`
-  itself if it contains no newlines."
-  [s]
-  (if-let [i (str/last-index-of s "\n")]
-    (subs s (inc i))
-    s))
-
-
-(defn- margin
-  "Return the column of the last character in the previous line."
-  [zloc]
-  (-> zloc prior-line-string last-line-in-string count))
-
-
-(defn- coll-indent
-  "Determine how indented a new collection element should be."
-  [zloc]
-  (-> zloc zip/leftmost margin))
-
-
-(defn- list-indent
-  "Determine how indented a list at the current location should be."
-  [zloc]
-  (if (and (some-> zloc zip/leftmost zip/right skip-whitespace zlinebreak?)
-           (-> zloc z/leftmost z/tag (= :token)))
-    (+ (-> zloc zip/up margin) indent-size)
-    (if (> (index-of zloc) 1)
-      (-> zloc zip/leftmost z/right margin)
-      (coll-indent zloc))))
-
-
-(defn- indent-width
-  "Determine how many characters should the form at the location be indented."
-  [zloc]
-  (case (z/tag zloc)
-    :list indent-size
-    :fn   (inc indent-size)))
-
-
-;; ## Indentation Style Rules
-
-(defn- remove-namespace
-  "Remove the namespace from a symbol. Non-symbol argumenst are returned
-  unchanged."
-  [x]
-  (if (symbol? x) (symbol (name x)) x))
-
-
-(defn- pattern?
-  "True if the value if a regular expression pattern."
-  [v]
-  (instance? #?(:clj Pattern :cljs js/RegExp) v))
-
-
-(defn- indent-matches?
-  "True if the rule key indicates that it should apply to this form symbol."
-  [rule-key sym]
-  (cond
-    (symbol? rule-key) (= rule-key sym)
-    (pattern? rule-key) (re-find rule-key (str sym))))
-
-
-(defn- form-symbol
-  "Return a name-only symbol for the leftmost node from this location."
-  [zloc]
-  (-> zloc z/leftmost token-value remove-namespace))
-
-
-(defmulti ^:private indenter-fn
-  "Multimethod for applying indentation rules to forms."
-  (fn [rule-key [rule-type & args]] rule-type))
-
-
-(defn- make-indenter
-  "Construct an indentation function by mapping the multimethod over the
-  configured rule bodies."
-  [[rule-key opts]]
-  (apply some-fn (map (partial indenter-fn rule-key) opts)))
-
-
-(defn- indent-order
-  "Return a string for establishing the ranking of a rule key."
-  [[rule-key _]]
-  (cond
-    (symbol? key) (str 0 rule-key)
-    (pattern? key) (str 1 rule-key)))
-
-
-(defn- custom-indent
-  "Look up custom indentation rules for the node at this location. Returns the
-  number of spaces to indent the node."
-  [zloc indents]
-  (if (empty? indents)
-    (list-indent zloc)
-    (let [indenter (->> (sort-by indent-order indents)
-                        (map make-indenter)
-                        (apply some-fn))]
-      (or (indenter zloc)
-          (list-indent zloc)))))
-
-
-;; ### Inner Style Rule
-
-(defn- index-matches-top-argument?
-  "True if the node at this location is a descendant of the `idx`-th child of
-  the node `depth` higher in the tree."
-  [zloc depth idx]
-  (and (pos? depth) (= idx (index-of (nth (iterate z/up zloc) (dec depth))))))
-
-
-(defn- inner-indent
-  "Calculate how many spaces the node at this location should be indented,
-  based on the rule and previous margins. Returns nil if the rule does not
-  apply."
-  [zloc rule-key depth idx]
-  (let [top (nth (iterate z/up zloc) depth)]
-    (when (and (indent-matches? rule-key (form-symbol top))
-               (or (nil? idx) (index-matches-top-argument? zloc depth idx)))
-      (let [zup (z/up zloc)]
-        (+ (margin zup) (indent-width zup))))))
-
-
-(defmethod indenter-fn :inner
-  [rule-key [_ depth idx]]
-  (fn [zloc] (inner-indent zloc rule-key depth idx)))
-
-
-;; ### Block Style Rule
-
-(defn- nth-form
-  "Return the location of the n-th node from the left in this level."
-  [zloc n]
-  (reduce (fn [z f] (when z (f z)))
-          (z/leftmost zloc)
-          (repeat n z/right)))
-
-
-(defn- first-form-in-line?
-  "True if the node at this location is the first non-whitespace node on the
-  line."
-  [zloc]
-  (if-let [zloc (zip/left zloc)]
-    (if (whitespace? zloc)
-      (recur zloc)
-      (or (zlinebreak? zloc) (comment? zloc)))
-    true))
-
-
-(defn- block-indent
-  "Calculate how many spaces the node at this location should be indented as a
-  block. Returns nil if the rule does not apply."
-  [zloc rule-key idx]
-  (when (indent-matches? rule-key (form-symbol zloc))
-    (if (and (some-> zloc (nth-form (inc idx)) first-form-in-line?)
-             (> (index-of zloc) idx))
-      (inner-indent zloc rule-key 0 nil)
-      (list-indent zloc))))
-
-
-(defmethod indenter-fn :block
-  [rule-key [_ idx]]
-  (fn [zloc] (block-indent zloc rule-key idx)))
-
-
-;; ### Cond Style Rule
-
-(defn- cond-indent
-  "Calculate how many spaces the node at this location should be indented as a
-  conditional block. Returns nil if the rule does not apply."
-  [zloc rule-key idx]
-  (when (indent-matches? rule-key (form-symbol zloc))
-    (let [zloc-idx (index-of zloc)
-          leading-forms (if (some-> zloc (nth-form idx) first-form-in-line?)
-                          0
-                          idx)
-          indent (inner-indent zloc rule-key 0 nil)]
-      (if (even? (- zloc-idx leading-forms))
-        (+ indent indent-size)
-        indent))))
-
-
-(defmethod indenter-fn :cond
-  [rule-key [_ idx]]
-  (fn [zloc] (cond-indent zloc rule-key idx)))
-
-
-;; ### Indentation Transforms
-
-(defn- indent-amount
-  "Calculates the number of spaces the node at this location should be
-  indented, based on the available custom indent rules."
-  [zloc indents]
-  (let [tag (-> zloc z/up z/tag)
-        gp  (-> zloc z/up z/up)]
-    (cond
-      (reader-conditional? gp) (coll-indent zloc)
-      (#{:list :fn} tag)       (custom-indent zloc indents)
-      (= :meta tag)            (indent-amount (z/up zloc) indents)
-      :else                    (coll-indent zloc))))
+  (transform form edit-all indent/should-unindent? zip/remove))
 
 
 (defn- indent-line
   "Apply indentation to the line beginning at this location."
   [zloc indents]
-  (let [width (indent-amount zloc indents)]
+  (let [width (indent/indent-amount zloc indents)]
     (if (pos? width)
       (zip/insert-right zloc (whitespace width))
       zloc)))
@@ -521,9 +153,9 @@
 (defn indent
   "Transform this form by indenting all lines their proper amounts."
   ([form]
-   (indent form default-indents))
+   (indent form indent/default-indents))
   ([form indents]
-   (transform form edit-all should-indent? #(indent-line % indents))))
+   (transform form edit-all indent/should-indent? #(indent-line % indents))))
 
 
 (defn reindent
@@ -580,7 +212,7 @@
     (:insert-missing-whitespace? opts true)
       (insert-missing-whitespace)
     (:indentation? opts true)
-      (reindent (:indents opts default-indents))
+      (reindent (:indents opts indent/default-indents))
     (:rewrite-namespaces? opts true)
       (rewrite-namespaces opts)
     (:remove-trailing-whitespace? opts true)
