@@ -1,14 +1,16 @@
 (ns leiningen.cljfmt
   (:refer-clojure :exclude [format])
-  (:require [cljfmt.core :as cljfmt]
-            [clojure.java.io :as io]
-            [clojure.string :as str]
-            [clojure.stacktrace :as st]
-            [leiningen.core.main :as main]
-            [leiningen.cljfmt.diff :as diff]
-            [meta-merge.core :refer [meta-merge]]))
+  (:require
+    [cljfmt.core :as cljfmt]
+    [clojure.java.io :as io]
+    [clojure.string :as str]
+    [clojure.stacktrace :as st]
+    [leiningen.core.main :as main]
+    [leiningen.cljfmt.diff :as diff]
+    [meta-merge.core :refer [meta-merge]]))
 
-(defn relative-path [dir file]
+(defn relative-path
+  [^java.io.File dir ^java.io.File file]
   (-> (.toURI dir)
       (.relativize (.toURI file))
       (.getPath)))
@@ -52,7 +54,7 @@
     (if (empty? paths)
       (main/abort "No source or test paths defined in project map")
       (->> (map io/file paths)
-           (filter #(and (.exists %) (.isDirectory %)))))))
+           (filter (fn [^java.io.File x] (and (.exists x) (.isDirectory x))))))))
 
 (def zero-counts {:okay 0, :incorrect 0, :error 0})
 
