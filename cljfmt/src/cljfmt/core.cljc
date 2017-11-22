@@ -81,7 +81,7 @@
 
 
 (defn- top?
-  ; TODO: it seems like this returns true if zloc is NOT the root?
+  "True if the node at this location has a parent node."
   [zloc]
   (and zloc (not= (z/node zloc) (z/root zloc))))
 
@@ -399,6 +399,21 @@
       (list-indent zloc))))
 
 
+(defn- cond-indent
+  "Calculate how many spaces the node at this location should be indented as a
+  conditional block. Returns nil if the rule does not apply."
+  [zloc rule-key idx]
+  (when (indent-matches? rule-key (form-symbol zloc))
+    (let [zloc-idx (index-of zloc)
+          leading-forms (if (some-> zloc (nth-form idx) first-form-in-line?)
+                          0
+                          idx)
+          indent (inner-indent zloc rule-key 0 nil)]
+      (if (even? (- zloc-idx leading-forms))
+        (+ indent indent-size)
+        indent))))
+
+
 (defmulti ^:private indenter-fn
   "Multimethod for applying indentation rules to forms."
   (fn [rule-key [rule-type & args]] rule-type))
@@ -412,6 +427,11 @@
 (defmethod indenter-fn :block
   [rule-key [_ idx]]
   (fn [zloc] (block-indent zloc rule-key idx)))
+
+
+(defmethod indenter-fn :cond
+  [rule-key [_ idx]]
+  (fn [zloc] (cond-indent zloc rule-key idx)))
 
 
 (defn- make-indenter

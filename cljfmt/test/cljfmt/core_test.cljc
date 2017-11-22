@@ -19,7 +19,21 @@
     (is (= "(do (foo)\n    (bar))"
            (reformat-string "(do (foo)\n(bar))")))
     (is (= "(deftype Foo\n  [x]\n  Bar)"
-           (reformat-string "(deftype Foo\n[x]\nBar)")))
+           (reformat-string "(deftype Foo\n[x]\nBar)"))))
+
+  (testing "cond indentation"
+    (is (= "(cond\n  a? a\n  b? b)"
+           (reformat-string "(cond  \na? a\n   b? b)")))
+    (is (= "(cond\n  a?\n    a\n  b?\n    b)"
+           (reformat-string "(cond  \na?\n a\nb?\n  b)")))
+    (is (= "(condp = (:k x)\n  a?\n    a\n  b?\n    b)"
+           (reformat-string "(condp = (:k x)\n a?\n a\nb?\n  b)")))
+    (is (= "(cond->\n  a? (a 123)\n  b? (b true))"
+           (reformat-string "(cond->  \n  a? (a 123)\n  b? (b true))")))
+    (is (= "(cond->\n  a?\n    (a 123)\n  b?\n    (b true))"
+           (reformat-string "(cond->\n  a?\n(a 123)\n  b?\n(b true))")))
+    (is (= "(cond-> x\n  a?\n    (a 123)\n  b?\n    (b true))"
+           (reformat-string "(cond-> x \n  a?\n(a 123)\n  b?\n(b true))")))
     (is (= "(cond->> x\n  a? a\n  b? b)"
            (reformat-string "(cond->> x\na? a\nb? b)"))))
 
