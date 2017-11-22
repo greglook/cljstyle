@@ -88,3 +88,22 @@
   "Skip to the location of the next non-whitespace node."
   [zloc]
   (skip zip/next whitespace? zloc))
+
+
+(defn multiline?
+  "True if the form at this location spans more than one line."
+  [zloc]
+  (str/includes? (z/string zloc) "\n"))
+
+
+(defn- remove-namespace
+  "Remove the namespace from a symbol. Non-symbol arguments are returned
+  unchanged."
+  [x]
+  (if (symbol? x) (symbol (name x)) x))
+
+
+(defn form-symbol
+  "Return a name-only symbol for the leftmost node from this location."
+  [zloc]
+  (-> zloc z/leftmost token-value remove-namespace))

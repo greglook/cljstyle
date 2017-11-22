@@ -157,6 +157,14 @@
     (pattern? key) (str 1 rule-key)))
 
 
+(defn- indent-matches?
+  "True if the rule key indicates that it should apply to this form symbol."
+  [rule-key sym]
+  (cond
+    (symbol? rule-key) (= rule-key sym)
+    (pattern? rule-key) (re-find rule-key (str sym))))
+
+
 (defn- custom-indent
   "Look up custom indentation rules for the node at this location. Returns the
   number of spaces to indent the node."
@@ -187,29 +195,6 @@
         (coll-indent zloc))))
 
 
-;; ### Style Utilities
-
-(defn- remove-namespace
-  "Remove the namespace from a symbol. Non-symbol argumenst are returned
-  unchanged."
-  [x]
-  (if (symbol? x) (symbol (name x)) x))
-
-
-(defn- indent-matches?
-  "True if the rule key indicates that it should apply to this form symbol."
-  [rule-key sym]
-  (cond
-    (symbol? rule-key) (= rule-key sym)
-    (pattern? rule-key) (re-find rule-key (str sym))))
-
-
-(defn- form-symbol
-  "Return a name-only symbol for the leftmost node from this location."
-  [zloc]
-  (-> zloc z/leftmost zl/token-value remove-namespace))
-
-
 
 ;; ## Inner Style Rule
 
@@ -235,7 +220,7 @@
   apply."
   [zloc rule-key depth idx]
   (let [top (nth (iterate z/up zloc) depth)]
-    (when (and (indent-matches? rule-key (form-symbol top))
+    (when (and (indent-matches? rule-key (zl/form-symbol top))
                (or (nil? idx) (index-matches-top-argument? zloc depth idx)))
       (let [zup (z/up zloc)]
         (+ (margin zup) (indent-width zup))))))
@@ -272,7 +257,7 @@
   "Calculate how many spaces the node at this location should be indented as a
   block. Returns nil if the rule does not apply."
   [zloc rule-key idx]
-  (when (indent-matches? rule-key (form-symbol zloc))
+  (when (indent-matches? rule-key (zl/form-symbol zloc))
     (if (and (some-> zloc (nth-form (inc idx)) first-form-in-line?)
              (> (index-of zloc) idx))
       (inner-indent zloc rule-key 0 nil)
@@ -291,7 +276,7 @@
   "Calculate how many spaces the node at this location should be indented as a
   conditional block. Returns nil if the rule does not apply."
   [zloc rule-key idx]
-  (when (indent-matches? rule-key (form-symbol zloc))
+  (when (indent-matches? rule-key (zl/form-symbol zloc))
     (let [zloc-idx (index-of zloc)
           leading-forms (if (some-> zloc (nth-form idx) first-form-in-line?)
                           0
