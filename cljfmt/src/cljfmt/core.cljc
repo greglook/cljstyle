@@ -4,6 +4,7 @@
          [cljfmt.indent :as indent]
          [cljfmt.ns :as ns]
          [cljfmt.zloc :as zl]
+         [clojure.java.io :as io]
          [clojure.zip :as zip]
          [rewrite-clj.node :as n]
          [rewrite-clj.parser :as p]
@@ -20,7 +21,20 @@
          [rewrite-clj.zip :as z]
          [rewrite-clj.zip.base :as zb :refer [edn]]
          [rewrite-clj.zip.whitespace :as zw
-          :refer [append-space skip]])]))
+          :refer [append-space skip]])
+       (:require-macros
+         [cljfmt.core :refer [read-resource]])]))
+
+
+#?(:clj (def read-resource* (comp read-string slurp io/resource)))
+#?(:clj (defmacro read-resource [path] `'~(read-resource* path)))
+
+
+(def default-indents
+  (merge (read-resource "cljfmt/indents/clojure.clj")
+         (read-resource "cljfmt/indents/compojure.clj")
+         (read-resource "cljfmt/indents/fuzzy.clj")))
+
 
 
 ;; ## Editing Functions
@@ -153,7 +167,7 @@
 (defn indent
   "Transform this form by indenting all lines their proper amounts."
   ([form]
-   (indent form indent/default-indents))
+   (indent form default-indents))
   ([form indents]
    (transform form edit-all indent/should-indent? #(indent-line % indents))))
 
@@ -212,7 +226,7 @@
     (:insert-missing-whitespace? opts true)
       (insert-missing-whitespace)
     (:indentation? opts true)
-      (reindent (:indents opts indent/default-indents))
+      (reindent (:indents opts default-indents))
     (:rewrite-namespaces? opts true)
       (rewrite-namespaces opts)
     (:remove-trailing-whitespace? opts true)

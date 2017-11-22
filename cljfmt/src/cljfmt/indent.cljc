@@ -2,7 +2,6 @@
   #?@(:clj
       [(:require
          [cljfmt.zloc :as zl]
-         [clojure.java.io :as io]
          [clojure.string :as str]
          [clojure.zip :as zip]
          [rewrite-clj.node :as n]
@@ -10,25 +9,13 @@
       :cljs
       [(:require
          [cljfmt.zloc :as zl]
-         [clojure.zip :as zip]
          [clojure.string :as str]
+         [clojure.zip :as zip]
          [rewrite-clj.node :as n]
-         [rewrite-clj.zip :as z])
-       (:require-macros
-         [cljfmt.indent :refer [read-resource]])]))
-
-
-#?(:clj (def read-resource* (comp read-string slurp io/resource)))
-#?(:clj (defmacro read-resource [path] `'~(read-resource* path)))
+         [rewrite-clj.zip :as z])]))
 
 
 (def indent-size 2)
-
-
-(def default-indents
-  (merge (read-resource "cljfmt/indents/clojure.clj")
-         (read-resource "cljfmt/indents/compojure.clj")
-         (read-resource "cljfmt/indents/fuzzy.clj")))
 
 
 (def ^:private start-element
