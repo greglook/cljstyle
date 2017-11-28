@@ -1,6 +1,7 @@
 (ns cljfmt.core
   #?@(:clj
       [(:require
+         [cljfmt.fn :as fn]
          [cljfmt.indent :as indent]
          [cljfmt.ns :as ns]
          [cljfmt.zloc :as zl]
@@ -12,6 +13,7 @@
           :refer [append-space edn skip]])]
       :cljs
       [(:require
+         [cljfmt.fn :as fn]
          [cljfmt.indent :as indent]
          [cljfmt.ns :as ns]
          [cljfmt.zloc :as zl]
@@ -60,6 +62,51 @@
   "Build a new whitespace node with `width` spaces."
   [width]
   (n/whitespace-node (apply str (repeat width " "))))
+
+
+
+;; ## Rule: Function Line Breaks
+
+(defn- eat-whitespace
+  [zloc]
+  (loop [zloc zloc]
+    (if (zl/zwhitespace? zloc)
+      (recur (zip/next (zip/remove zloc)))
+      zloc)))
+
+
+(defn- replace-whitespace
+  [form p? f]
+  (transform
+    form edit-all p?
+    (fn [zloc]
+      (-> zloc
+          (zip/replace (f zloc))
+          (zip/right)
+          (eat-whitespace)))))
+
+
+(defn line-break-functions
+  "Transform this form by applying line-breaks to `defn` and `fn` forms."
+  [form]
+  ; TODO: do more in fn ns
+  (-> form
+      (replace-whitespace
+        fn/fn-to-name-or-args-space?
+        (constantly (whitespace 1)))
+      (replace-whitespace
+        fn/post-name-space?
+        #(if (fn/defn-or-multiline? %)
+           (n/newlines 1)
+           (whitespace 1)))
+      (replace-whitespace
+        fn/post-doc-space?
+        (constantly (n/newlines 1)))
+      (replace-whitespace
+        fn/post-args-space?
+        #(if (fn/defn-or-multiline? %)
+           (n/newlines 1)
+           (whitespace 1)))))
 
 
 
@@ -219,12 +266,16 @@
   "Transform this form by applying formatting rules to it."
   [form & [{:as opts}]]
   (cond-> form
-    (:remove-consecutive-blank-lines? opts true)
-      (remove-consecutive-blank-lines)
     (:remove-surrounding-whitespace? opts true)
       (remove-surrounding-whitespace)
     (:insert-missing-whitespace? opts true)
       (insert-missing-whitespace)
+    (:line-break-functions? opts true)
+      (line-break-functions)
+    ; TODO: line-break-types
+    (:remove-consecutive-blank-lines? opts true)
+      (remove-consecutive-blank-lines)
+    ; TODO: insert-top-padding-lines
     (:indentation? opts true)
       (reindent (:indents opts default-indents))
     (:rewrite-namespaces? opts true)

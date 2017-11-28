@@ -40,7 +40,7 @@
   (testing "constant indentation"
     (is (= "(def foo\n  \"Hello World\")"
            (reformat-string "(def foo\n\"Hello World\")")))
-    (is (= "(defn foo [x]\n  (+ x 1))"
+    (is (= "(defn foo\n  [x]\n  (+ x 1))"
            (reformat-string "(defn foo [x]\n(+ x 1))")))
     (is (= "(defn foo\n  [x]\n  (+ x 1))"
            (reformat-string "(defn foo\n[x]\n(+ x 1))")))
@@ -48,11 +48,11 @@
            (reformat-string "(defn foo\n([] 0)\n([x]\n(+ x 1)))")))
     (is (= "(fn [x]\n  (foo bar\n       baz))"
            (reformat-string "(fn [x]\n(foo bar\nbaz))")))
-    (is (= "(fn [x] (foo bar\n             baz))"
-           (reformat-string "(fn [x] (foo bar\nbaz))"))))
+    (is (= "(fn [x] (foo bar baz))"
+           (reformat-string "(fn [x] (foo bar baz))"))))
 
   (testing "inner indentation"
-    (is (= "(letfn [(foo [x]\n          (* x x))]\n  (foo 5))"
+    (is (= "(letfn [(foo\n          [x]\n          (* x x))]\n  (foo 5))"
            (reformat-string "(letfn [(foo [x]\n(* x x))]\n(foo 5))")))
     (is (= "(reify Closeable\n  (close [_]\n    (prn :closed)))"
            (reformat-string "(reify Closeable\n(close [_]\n(prn :closed)))")))
@@ -76,7 +76,7 @@
            (reformat-string "(if foo\n(do bar\nbaz)\nquz)"))))
 
   (testing "namespaces"
-    (is (= "(t/defn foo [x]\n  (+ x 1))"
+    (is (= "(t/defn foo\n  [x]\n  (+ x 1))"
            (reformat-string "(t/defn foo [x]\n(+ x 1))")))
     (is (= "(t/defrecord Foo [x]\n  Closeable\n  (close [_]\n    (prn x)))"
            (reformat-string "(t/defrecord Foo [x]\nCloseable\n(close [_]\n(prn x)))"))))
@@ -87,19 +87,15 @@
     (is (= "#(reify Closeable\n   (close [_]\n     (prn %)))"
            (reformat-string "#(reify Closeable\n(close [_]\n(prn %)))"))))
 
-  (testing "multiple arities"
-    (is (= "(fn\n  ([x]\n   (foo)\n   (bar)))"
-           (reformat-string "(fn\n([x]\n(foo)\n(bar)))"))))
-
   (testing "comments"
     (is (= ";foo\n(def x 1)"
            (reformat-string ";foo\n(def x 1)")))
-    (is (= "(ns foo.core)\n\n;; foo\n(defn foo [x]\n  (inc x))"
+    (is (= "(ns foo.core)\n\n;; foo\n(defn foo\n  [x]\n  (inc x))"
            (reformat-string "(ns foo.core)\n\n;; foo\n(defn foo [x]\n(inc x))")))
     (is (= ";; foo\n(ns foo\n  (:require\n    [bar]))"
            (reformat-string ";; foo\n(ns foo\n(:require bar))")))
-    (is (= "(defn foo [x]\n  ;; +1\n  (inc x))"
-           (reformat-string "(defn foo [x]\n  ;; +1\n(inc x))")))
+    (is (= "(defn foo\n  [x]\n;; +1\n  (inc x))"
+           (reformat-string "(defn foo [x] ;; +1\n(inc x))")))
     (is (= "(let [;foo\n      x (foo bar\n             baz)]\n  x)"
            (reformat-string "(let [;foo\n x (foo bar\n baz)]\n x)")))
     (is (= "(binding [x 1] ; foo\n  x)"
@@ -132,13 +128,38 @@
            (reformat-string "(;a\n\n ;b\n )"))))
 
   (testing "indentated forms in letfn block"
-    (is (= (reformat-string "(letfn [(f [x]\nx)]\n(let [x (f 1)]\n(str x 2\n3 4)))")
-           (str "(letfn [(f [x]\n          x)]\n"
-                "  (let [x (f 1)]\n    (str x 2\n         3 4)))"))))
+    (is (= "(letfn [(f\n          [x]\n          x)]\n  (let [x (f 1)]\n    (str x 2\n         3 4)))"
+           (reformat-string "(letfn [(f [x]\nx)]\n(let [x (f 1)]\n(str x 2\n3 4)))"))))
 
   (testing "miltiline right hand side forms"
     (is (= "(list foo :bar (fn a\n                 ([] nil)\n                 ([b] b)))"
            (reformat-string "(list foo :bar (fn a\n([] nil)\n([b] b)))"))))
+
+  (testing "function forms"
+    (is (= "(fn [x y] x)"
+           (reformat-string "(fn [x y] x)")))
+    (is (= "(fn [x y]\n  x)"
+           (reformat-string "(fn\n  [x y]\n  x)")))
+    (is (= "(fn foo [x y] x)"
+           (reformat-string "(fn foo [x y] x)")))
+    (is (= "(fn foo\n  [x y]\n  x)"
+           (reformat-string "(fn foo [x y]\nx)")))
+    (is (= "(fn ([x]\n     (foo)\n     (bar)))"
+           (reformat-string "(fn\n([x]\n(foo)\n(bar)))")))
+    (is (= "(defn foo\n  [x y]\n  x)"
+           (reformat-string "(defn foo [x y] x)")))
+    (is (= "(defn foo\n  [x y]\n  x)"
+           (reformat-string "(defn foo [x y]\n  x)")))
+    (is (= "(defn foo\n  \"docs\"\n  [x y]\n  x)"
+           (reformat-string "(defn foo \"docs\" [x y] x)")))
+    (is (= "(defn foo\n  \"docs\"\n  [x y]\n  x)"
+           (reformat-string "(defn foo \"docs\" [x y]\n  x)")))
+    (is (= "(defn foo\n  \"docs\"\n  [x y]\n  x)"
+           (reformat-string "(defn foo \"docs\"\n[x y]x)")))
+    (is (= "(defn foo\n  \"docs\"\n  [x y]\n  x)"
+           (reformat-string "(defn foo\n\"docs\"\n[x y] \nx)")))
+    (is (= "(defn foo\n  ([x]\n   (foo)\n   (bar)))"
+           (reformat-string "(defn foo\n([x]\n(foo)\n(bar)))"))))
 
   (testing "reader conditionals"
     (is (= "#?(:clj foo\n   :cljs bar)"
