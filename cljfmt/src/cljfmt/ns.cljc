@@ -5,6 +5,7 @@
     [rewrite-clj.node :as n]
     [rewrite-clj.zip :as z]))
 
+; TODO: this does *not* handle cljc files with reader-conditional namespaces well.
 
 (def indent-size 2)
 

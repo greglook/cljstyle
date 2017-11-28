@@ -18,6 +18,14 @@
           :refer [skip whitespace-or-comment?]])]))
 
 
+(defn zprn
+  "Print a zipper location for debugging purposes. Returns the
+  location unchanged."
+  [zloc tag]
+  (prn tag (:l (second zloc)) (first zloc) (:r (second zloc)))
+  zloc)
+
+
 (def zwhitespace?
   "True if the node is a whitespace node."
   #?(:clj z/whitespace? :cljs zw/whitespace?))

@@ -112,6 +112,9 @@
 
 ;; ## Rule: Consecutive Blank Lines
 
+; TODO: insert a configurable number of blank lines around top-level forms which span multiple lines
+; TODO: config to allow max number of consecutive blank lines
+
 (defn- count-newlines
   "Count the number of consecutive blank lines at this location."
   [zloc]
