@@ -80,10 +80,19 @@
   (transform
     form edit-all p?
     (fn [zloc]
-      (-> zloc
-          (zip/replace (f zloc))
-          (zip/right)
-          (eat-whitespace)))))
+      (if (f zloc)
+        ; break space
+        (if (zl/zlinebreak? zloc)
+          (z/right zloc)
+          (-> zloc
+              (zip/replace (n/newlines 1))
+              (zip/right)
+              (eat-whitespace)))
+        ; inline space
+        (-> zloc
+            (zip/replace (whitespace 1))
+            (zip/right)
+            (eat-whitespace))))))
 
 
 (defn line-break-functions
@@ -93,20 +102,16 @@
   (-> form
       (replace-whitespace
         fn/fn-to-name-or-args-space?
-        (constantly (whitespace 1)))
+        (constantly false))
       (replace-whitespace
         fn/post-name-space?
-        #(if (fn/defn-or-multiline? %)
-           (n/newlines 1)
-           (whitespace 1)))
+        fn/defn-or-multiline?)
       (replace-whitespace
         fn/post-doc-space?
-        (constantly (n/newlines 1)))
+        (constantly true))
       (replace-whitespace
         fn/post-args-space?
-        #(if (fn/defn-or-multiline? %)
-           (n/newlines 1)
-           (whitespace 1)))))
+        fn/defn-or-multiline?)))
 
 
 

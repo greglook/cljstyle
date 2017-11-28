@@ -94,8 +94,8 @@
            (reformat-string "(ns foo.core)\n\n;; foo\n(defn foo [x]\n(inc x))")))
     (is (= ";; foo\n(ns foo\n  (:require\n    [bar]))"
            (reformat-string ";; foo\n(ns foo\n(:require bar))")))
-    (is (= "(defn foo\n  [x]\n;; +1\n  (inc x))"
-           (reformat-string "(defn foo [x] ;; +1\n(inc x))")))
+    (is (= "(defn foo\n  [x]\n  ;; +1\n  (inc x))"
+           (reformat-string "(defn foo [x]\n  ;; +1\n(inc x))")))
     (is (= "(let [;foo\n      x (foo bar\n             baz)]\n  x)"
            (reformat-string "(let [;foo\n x (foo bar\n baz)]\n x)")))
     (is (= "(binding [x 1] ; foo\n  x)"
