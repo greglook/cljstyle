@@ -62,41 +62,35 @@
        (contains? #{[] ["fn"] ["defn"]} (map name (preceeding-symbols zloc)))))
 
 
-; fn-to-name-or-args:
-;    (fn-sym< >meta?< >name ...)
-;    (fn-sym< >meta?< >[args...] ...)
-; - always replace with single space
 (defn fn-to-name-or-args-space?
+  "True if the node at this location is whitespace between a function's header
+  and the name or argument vector."
   [zloc]
   (and (zl/zwhitespace? zloc)
        (fn-form? (z/up zloc))
        (no-prev? zloc (some-fn fn-name? arg-vector?))))
 
 
-; post-name:
-;    (fn-sym meta? name< >...)
-; - break if defn or multiline
 (defn post-name-space?
+  "True if the node at this location is whitespace immediately following a
+  function name."
   [zloc]
   (and (zl/zwhitespace? zloc)
        (fn-name? (z/left zloc))))
 
 
-; post-doc:
-;    (defn name docstring< >[args...] ...)
-; - always break
 (defn post-doc-space?
+  "True if the node at this location is whitespace immediately following a
+  function docstring."
   [zloc]
   (and (zl/zwhitespace? zloc)
        (fn-name? (z/left (z/left zloc)))
        (string? (zl/token-value (z/left zloc)))))
 
 
-; post-args:
-;    (fn-sym meta? [args...]< >...)
-;    (fn-sym meta? ([args...]< >...) ([args...]< >...) ...)
-; - break if defn or multiline
 (defn post-args-space?
+  "True if the node at this location is whitespace immediately following a
+  function argument vector."
   [zloc]
   (and (zl/zwhitespace? zloc)
        (arg-vector? (z/left zloc))))

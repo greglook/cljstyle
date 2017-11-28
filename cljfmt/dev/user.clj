@@ -20,7 +20,7 @@
        ;(iterate #(z/find-next-depth-first % p?))
        (next)
        (take-while some?)
-       (map z/string)))
+       (run! #(zl/zprn % :>>))))
 
 
 (defn try-edit

@@ -203,7 +203,7 @@
 (defn- format-import-group
   [opts package class-names]
   (if (= 1 (count class-names))
-    (let [break-width (:single-import-group-width-threshold opts 50)
+    (let [break-width (:single-import-break-width opts 30)
           qualified-class (symbol (str package \. (first class-names)))]
       (if (<= (count (str qualified-class)) break-width)
         ; Format single

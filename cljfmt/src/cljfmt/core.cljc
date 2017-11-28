@@ -68,6 +68,8 @@
 ;; ## Rule: Function Line Breaks
 
 (defn- eat-whitespace
+  "Eat whitespace characters, leaving the zipper located at the next
+  non-whitespace node."
   [zloc]
   (loop [zloc zloc]
     (if (zl/zwhitespace? zloc)
@@ -75,12 +77,14 @@
       zloc)))
 
 
-(defn- replace-whitespace
-  [form p? f]
+(defn- break-whitespace
+  "Edit the form to replace the whitespace to ensure it has a line-break if
+  `break?` returns true on the location or a single space character if false."
+  [form p? break?]
   (transform
     form edit-all p?
     (fn [zloc]
-      (if (f zloc)
+      (if (break? zloc)
         ; break space
         (if (zl/zlinebreak? zloc)
           (z/right zloc)
@@ -98,27 +102,23 @@
 (defn line-break-functions
   "Transform this form by applying line-breaks to `defn` and `fn` forms."
   [form]
-  ; TODO: do more in fn ns
   (-> form
-      (replace-whitespace
+      (break-whitespace
         fn/fn-to-name-or-args-space?
         (constantly false))
-      (replace-whitespace
+      (break-whitespace
         fn/post-name-space?
         fn/defn-or-multiline?)
-      (replace-whitespace
+      (break-whitespace
         fn/post-doc-space?
         (constantly true))
-      (replace-whitespace
+      (break-whitespace
         fn/post-args-space?
         fn/defn-or-multiline?)))
 
 
 
 ;; ## Rule: Consecutive Blank Lines
-
-; TODO: insert a configurable number of blank lines around top-level forms which span multiple lines
-; TODO: config to allow max number of consecutive blank lines
 
 (defn- count-newlines
   "Count the number of consecutive blank lines at this location."
@@ -132,8 +132,8 @@
 
 (defn- consecutive-blank-line?
   "True if more than one blank line follows this location."
-  [zloc]
-  (> (count-newlines zloc) 2))
+  [zloc max-consecutive]
+  (< (inc max-consecutive) (count-newlines zloc)))
 
 
 (defn- remove-whitespace-and-newlines
@@ -145,17 +145,48 @@
 
 
 (defn- replace-consecutive-blank-lines
-  "Replace the node at this location with one blank line and remove any
+  "Replace the node at this location with `n` blank lines and remove any
   following whitespace and linebreaks."
-  [zloc]
-  ; TODO: config to allow 1-n blank lines based on context?
-  (-> zloc (zip/replace (n/newlines 2)) zip/next remove-whitespace-and-newlines))
+  [zloc n]
+  (-> zloc
+      (zip/replace (n/newlines (inc n)))
+      (zip/next)
+      (remove-whitespace-and-newlines)))
 
 
 (defn remove-consecutive-blank-lines
   "Edit the form to replace consecutive blank lines with a single line."
-  [form]
-  (transform form edit-all consecutive-blank-line? replace-consecutive-blank-lines))
+  [form max-consecutive]
+  (transform form edit-all
+             #(consecutive-blank-line? % max-consecutive)
+             #(replace-consecutive-blank-lines % max-consecutive)))
+
+
+
+;; ## Rule: Padding Lines
+
+(defn- padding-line-break?
+  "True if the node at this location is whitespace between two top-level
+  forms, at least one of which is multi-line."
+  [zloc]
+  (and (zl/zwhitespace? zloc)
+       (zl/root? (z/up zloc))
+       (let [prev-zloc (z/skip zip/left zl/zwhitespace? zloc)
+             next-zloc (z/skip zip/right zl/zwhitespace? zloc)]
+         (and prev-zloc
+              next-zloc
+              (not (zl/comment? prev-zloc))
+              (not (zl/comment? next-zloc))
+              (or (zl/multiline? prev-zloc)
+                  (zl/multiline? next-zloc))))))
+
+
+(defn insert-padding-lines
+  "Edit the form to replace consecutive blank lines with a single line."
+  [form padding-lines]
+  (transform form edit-all
+             padding-line-break?
+             #(replace-consecutive-blank-lines % padding-lines)))
 
 
 
@@ -282,8 +313,9 @@
       (line-break-functions)
     ; TODO: line-break-types
     (:remove-consecutive-blank-lines? opts true)
-      (remove-consecutive-blank-lines)
-    ; TODO: insert-top-padding-lines
+      (remove-consecutive-blank-lines (:max-consecutive-blank-lines opts 2))
+    (:insert-padding-lines? opts true)
+      (insert-padding-lines (:padding-lines opts 2))
     (:indentation? opts true)
       (reindent (:indents opts default-indents))
     (:rewrite-namespaces? opts true)
