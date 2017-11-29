@@ -242,6 +242,13 @@ level of indentation if they are on their own line:
     :b)
 ```
 
+## Ignoring Forms
+
+By default, cljfmt will ignore forms which are wrapped in a `(comment ...)` form
+or preceeded by the discard macro `#_`. You can also optionally disable
+formatting rules from matching a form by tagging it with `^:cljfmt/ignore`
+metadata.
+
 ## License
 
 Copyright © 2016 James Reeves

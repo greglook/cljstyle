@@ -41,14 +41,47 @@
 
 ;; ## Editing Functions
 
+(defn- ignored-meta?
+  "True if the node at this location represents metadata tagging a form to be
+  ignored by cljfmt."
+  [zloc]
+  (and (= :meta (z/tag zloc))
+       (when-let [m (z/sexpr (z/next zloc))]
+         (or (= :cljfmt/ignore m)
+             (:cljfmt/ignore m)))))
+
+
+(defn- comment-form?
+  "True if the node at this location is a comment form - that is, a list
+  beginning with the `comment` symbol, as opposed to a literal text comment."
+  [zloc]
+  (and (= :list (z/tag zloc))
+       (= 'comment (zl/form-symbol (z/down zloc)))))
+
+
+(defn- discard-macro?
+  "True if the node at this location is a discard reader macro."
+  [zloc]
+  (= :uneval (z/tag zloc)))
+
+
+(defn- ignored?
+  "True if the node at this location is inside an ignored form."
+  [zloc]
+  (some? (z/find zloc z/up (some-fn ignored-meta?
+                                    comment-form?
+                                    discard-macro?))))
+
+
 (defn- edit-all
   "Edit all nodes in `zloc` matching the predicate by applying `f` to them.
   Returns the final zipper location."
   [zloc p? f]
-  (loop [zloc (if (p? zloc) (f zloc) zloc)]
-    (if-let [zloc (z/find-next zloc zip/next p?)]
-      (recur (f zloc))
-      zloc)))
+  (let [p? (fn [zl] (and (p? zl) (not (ignored? zl))))]
+    (loop [zloc (if (p? zloc) (f zloc) zloc)]
+      (if-let [zloc (z/find-next zloc zip/next p?)]
+        (recur (f zloc))
+        zloc))))
 
 
 (defn- transform

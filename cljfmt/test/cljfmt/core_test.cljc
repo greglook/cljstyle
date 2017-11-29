@@ -75,7 +75,7 @@
     (is (= "(if foo\n  (do bar\n      baz)\n  quz)"
            (reformat-string "(if foo\n(do bar\nbaz)\nquz)"))))
 
-  (testing "namespaces"
+  (testing "namespaced symbols"
     (is (= "(t/defn foo\n  [x]\n  (+ x 1))"
            (reformat-string "(t/defn foo [x]\n(+ x 1))")))
     (is (= "(t/defrecord Foo [x]\n  Closeable\n  (close [_]\n    (prn x)))"
@@ -108,6 +108,10 @@
            (reformat-string "(def ^:private\nfoo\n:foo)")))
     (is (= "(def ^:private foo\n  :foo)"
            (reformat-string "(def ^:private foo\n:foo)"))))
+
+  (testing "ignored forms"
+    (is (= "^:cljfmt/ignore\n(def x\n 123\n  456)"
+           (reformat-string "^:cljfmt/ignore\n(def x\n 123\n  456)"))))
 
   (testing "fuzzy matches"
     (is (= "(with-foo x\n  y\n  z)"
@@ -292,7 +296,7 @@
          (reformat-string "(foo)\n\n\n(bar)")))
   (is (= "(foo)\n\n\n(bar)"
          (reformat-string "(foo)\n \n \n(bar)")))
-  (is (= "(foo)\n\n\n\n(bar)"
+  (is (= "(foo)\n\n\n(bar)"
          (reformat-string "(foo)\n\n\n\n\n(bar)")))
   (is (= "(foo)\n\n;bar\n\n(baz)"
          (reformat-string "(foo)\n\n;bar\n\n(baz)")))
@@ -353,7 +357,7 @@
   (is (= "::foo" (reformat-string "::foo")))
   (is (= "::foo/bar" (reformat-string "::foo/bar")))
   (is (= "foo:bar" (reformat-string "foo:bar")))
-  (is (= "#_(foo\n    bar)" (reformat-string "#_(foo\nbar)")))
+  (is (= "#_(foo\nbar)" (reformat-string "#_(foo\nbar)")))
   (is (= "(juxt +' -')" (reformat-string "(juxt +' -')")))
   (is (= "#\"(?i)foo\"" (reformat-string "#\"(?i)foo\"")))
   (is (= "#\"a\nb\"" (reformat-string "#\"a\nb\""))))
