@@ -153,16 +153,23 @@
   "Return a string for establishing the ranking of a rule key."
   [[rule-key _]]
   (cond
-    (symbol? key) (str 0 rule-key)
-    (pattern? key) (str 1 rule-key)))
+    (symbol? rule-key)
+      (if (namespace rule-key)
+        (str 0 rule-key)
+        (str 1 rule-key))
+    (pattern? rule-key)
+      (str 2 rule-key)))
 
 
 (defn- indent-matches?
   "True if the rule key indicates that it should apply to this form symbol."
   [rule-key sym]
   (cond
-    (symbol? rule-key) (= rule-key sym)
-    (pattern? rule-key) (re-find rule-key (str sym))))
+    (and (symbol? rule-key) (symbol? sym))
+      (or (= rule-key sym)
+          (= rule-key (symbol (name sym))))
+    (pattern? rule-key)
+      (re-find rule-key (str sym))))
 
 
 (defn- custom-indent
@@ -220,7 +227,7 @@
   apply."
   [zloc rule-key depth idx]
   (let [top (nth (iterate z/up zloc) depth)]
-    (when (and (indent-matches? rule-key (zl/form-symbol top))
+    (when (and (indent-matches? rule-key (zl/form-symbol-full top))
                (or (nil? idx) (index-matches-top-argument? zloc depth idx)))
       (let [zup (z/up zloc)]
         (+ (margin zup) (indent-width zup))))))
@@ -257,7 +264,7 @@
   "Calculate how many spaces the node at this location should be indented as a
   block. Returns nil if the rule does not apply."
   [zloc rule-key idx]
-  (when (indent-matches? rule-key (zl/form-symbol zloc))
+  (when (indent-matches? rule-key (zl/form-symbol-full zloc))
     (if (and (some-> zloc (nth-form (inc idx)) first-form-in-line?)
              (> (index-of zloc) idx))
       (inner-indent zloc rule-key 0 nil)
@@ -276,7 +283,7 @@
   "Calculate how many spaces the node at this location should be indented as a
   conditional block. Returns nil if the rule does not apply."
   [zloc rule-key idx]
-  (when (indent-matches? rule-key (zl/form-symbol zloc))
+  (when (indent-matches? rule-key (zl/form-symbol-full zloc))
     (let [zloc-idx (index-of zloc)
           leading-forms (if (some-> zloc (nth-form idx) first-form-in-line?)
                           0

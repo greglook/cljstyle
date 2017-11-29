@@ -134,7 +134,16 @@ that are merged with the defaults, you can use the `:replace` hint:
 
 ### Indentation rules
 
-There are two types of indentation rule, `:inner` and `:block`.
+There are a few types of indentation rules that can be applied to forms. Each
+rule is specified with either a symbol or a regular expression pattern. Rules
+are matched against forms in the following order:
+
+1. Check the qualified form symbol against the rule, including namespace.
+2. Check the _name_ of the form symbol against the rule symbol.
+3. If the rule is a pattern, match it against the form symbol string.
+
+This ordering allows you to provide specific rules for overlapping symbols from
+different namespaces, e.g. differentiating `d/catch` from `catch`.
 
 #### Inner rules
 

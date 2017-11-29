@@ -56,8 +56,8 @@
            (reformat-string "(letfn [(foo [x]\n(* x x))]\n(foo 5))")))
     (is (= "(reify Closeable\n  (close [_]\n    (prn :closed)))"
            (reformat-string "(reify Closeable\n(close [_]\n(prn :closed)))")))
-    (is (= "(defrecord Foo [x]\n  Closeable\n  (close [_]\n    (prn x)))"
-           (reformat-string "(defrecord Foo [x]\nCloseable\n(close [_]\n(prn x)))"))))
+    (is (= "(defrecord Foo\n  [x]\n  Closeable\n  (close [_]\n    (prn x)))"
+           (reformat-string "(defrecord Foo\n[x]\nCloseable\n(close [_]\n(prn x)))"))))
 
   (testing "data structure indentation"
     (is (= "[:foo\n :bar\n :baz]"
@@ -78,8 +78,8 @@
   (testing "namespaced symbols"
     (is (= "(t/defn foo\n  [x]\n  (+ x 1))"
            (reformat-string "(t/defn foo [x]\n(+ x 1))")))
-    (is (= "(t/defrecord Foo [x]\n  Closeable\n  (close [_]\n    (prn x)))"
-           (reformat-string "(t/defrecord Foo [x]\nCloseable\n(close [_]\n(prn x)))"))))
+    (is (= "(t/defrecord Foo\n  [x]\n  Closeable\n  (close [_]\n    (prn x)))"
+           (reformat-string "(t/defrecord Foo\n [x]\nCloseable\n(close [_]\n(prn x)))"))))
 
   (testing "function #() syntax"
     (is (= "#(while true\n   (println :foo))"

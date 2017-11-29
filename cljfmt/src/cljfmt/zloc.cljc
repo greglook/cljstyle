@@ -111,7 +111,13 @@
   (if (symbol? x) (symbol (name x)) x))
 
 
+(defn form-symbol-full
+  "Return the symbol in the leftmost node from this location."
+  [zloc]
+  (-> zloc z/leftmost token-value))
+
+
 (defn form-symbol
   "Return a name-only symbol for the leftmost node from this location."
   [zloc]
-  (-> zloc z/leftmost token-value remove-namespace))
+  (-> zloc form-symbol-full remove-namespace))
