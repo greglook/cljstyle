@@ -25,7 +25,8 @@ Into nicely formatted Clojure code like this:
 ## Installation
 
 The easiest way to get started with cljfmt is to add the lein-cljfmt
-plugin to your [Leiningen][] project map:
+plugin to your [Leiningen](https://github.com/technomancy/leiningen) project
+map:
 
 ```clojure
 :plugins [[lein-cljfmt "0.5.6"]]
@@ -33,8 +34,6 @@ plugin to your [Leiningen][] project map:
 
 cljfmt has tested on Leiningen 2.5, but may not work on older
 versions, particularly versions prior to Leiningen 2.4.
-
-[leiningen]: https://github.com/technomancy/leiningen
 
 ## Usage
 
@@ -95,9 +94,25 @@ selectively enabled or disabled:
   Defaults to true.
 
 * `:remove-consecutive-blank-lines?` -
-  true if cljfmt should collapse consecutive blank lines. This will
-  convert `(foo)\n\n\n(bar)` to `(foo)\n\n(bar)`. Defaults to true.
+  true if cljfmt should collapse consecutive blank lines. Any runs of empty
+  lines longer than `:max-consecutive-blank-lines` will be truncated to the
+  configured limit. Defaults to enabled with limit 2. This will convert
+  `(foo)\n\n\n\n(bar)` to `(foo)\n\n\n(bar)`.
 
+* `:insert-padding-lines?` -
+  Whether cljfmt should insert blank lines between certain top-level forms. Any
+  multi-line form will be padded with at least `:padding-lines` empty lines
+  between it and other non-comment forms. Defaults to enabled with 2 lines.
+
+* `:rewrite-namespaces?` -
+  Whether cljfmt should rewrite namespace forms to standardize their layout.
+  Defaults to true.
+
+* `:single-import-break-width` -
+  Control the threshold for breaking a single class import into a package import
+  group. If the combined package and class name would be longer than this limit,
+  it is represented as a group, otherwise it is inlined into a qualified class
+  symbol.
 
 You can also configure the behavior of cljfmt:
 
@@ -148,10 +163,10 @@ Will indent all subforms one level in:
 
 ```clojure
 (foo bar
- baz
- (bang
-   quz
-   qoz))
+  baz
+  (bang
+    quz
+    qoz))
 ```
 
 Sometimes it's useful to limit indentation to one argument of the
@@ -203,6 +218,28 @@ But indents at a constant two spaces otherwise:
   bar
   baz
   bang)
+```
+
+#### Cond rules
+
+A `:cond` rule is similar to `:block`, except that it tries to indent
+test/expression clauses as pairs. The expression forms will be given an extra
+level of indentation if they are on their own line:
+
+```clojure
+{cond [[:cond 0]]}
+```
+
+```clojure
+(cond
+  a? :a
+  b? :b)
+
+(cond
+  a?
+    :a
+  b?
+    :b)
 ```
 
 ## License
