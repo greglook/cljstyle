@@ -204,8 +204,8 @@
   [zloc]
   (and (zl/zwhitespace? zloc)
        (zl/root? (z/up zloc))
-       (let [prev-zloc (z/skip zip/left zl/zwhitespace? zloc)
-             next-zloc (z/skip zip/right zl/zwhitespace? zloc)]
+       (let [prev-zloc (skip zip/left zl/zwhitespace? zloc)
+             next-zloc (skip zip/right zl/zwhitespace? zloc)]
          (and prev-zloc
               next-zloc
               (not (zl/comment? prev-zloc))
