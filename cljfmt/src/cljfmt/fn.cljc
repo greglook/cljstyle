@@ -5,10 +5,19 @@
     [rewrite-clj.zip :as z]))
 
 
+(defn- unwrap-meta
+  "If this location is a metadata node, recursively unwrap it and return the
+  location of the nested value form. Otherwise returns the location unchanged."
+  [zloc]
+  (if (= :meta (z/tag zloc))
+    (recur (z/next (z/down zloc)))
+    zloc))
+
+
 (defn- vector-node?
   "True if the node at this location is a vector node."
   [zloc]
-  (= :vector (z/tag zloc)))
+  (= :vector (z/tag (unwrap-meta zloc))))
 
 
 (defn- no-prev?
@@ -33,7 +42,7 @@
 (defn- arg-vector?
   "True if the node at this location is an argument vector to a function."
   [zloc]
-  (and (= :vector (z/tag zloc))
+  (and (vector-node? zloc)
        (no-prev? zloc vector-node?)
        (or (fn-form? (z/up zloc))
            (and (= :list (z/tag (z/up zloc)))
@@ -46,7 +55,7 @@
   [zloc]
   (into []
         (comp (take-while some?)
-              (keep zl/token-value)
+              (keep (comp zl/token-value unwrap-meta))
               (filter symbol?))
         (iterate z/left (z/left zloc))))
 
@@ -54,12 +63,13 @@
 (defn- fn-name?
   "True if this location is a function name symbol."
   [zloc]
-  (and (fn-form? (z/up zloc))
-       (zl/token? zloc)
-       (no-prev? zloc arg-vector?)
-       (symbol? (z/sexpr zloc))
-       (not (contains? #{"fn" "defn"} (name (z/sexpr zloc))))
-       (contains? #{[] ["fn"] ["defn"]} (map name (preceeding-symbols zloc)))))
+  (let [unwrapped (unwrap-meta zloc)]
+    (and (fn-form? (z/up zloc))
+         (zl/token? unwrapped)
+         (no-prev? zloc arg-vector?)
+         (symbol? (z/sexpr unwrapped))
+         (not (contains? #{"fn" "defn"} (name (z/sexpr unwrapped))))
+         (contains? #{[] ["fn"] ["defn"]} (map name (preceeding-symbols zloc))))))
 
 
 (defn fn-to-name-or-args-space?

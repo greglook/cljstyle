@@ -85,7 +85,9 @@
     (is (= "#(while true\n   (println :foo))"
            (reformat-string "#(while true\n(println :foo))")))
     (is (= "#(reify Closeable\n   (close [_]\n     (prn %)))"
-           (reformat-string "#(reify Closeable\n(close [_]\n(prn %)))"))))
+           (reformat-string "#(reify Closeable\n(close [_]\n(prn %)))")))
+    (is (= "(mapv\n  #(vector\n    {:foo %\n     :bar 123}\n    %)\n  xs)"
+           (reformat-string "(mapv\n #(vector\n {:foo %\n  :bar 123}\n       %)\nxs)"))))
 
   (testing "comments"
     (is (= ";foo\n(def x 1)"
@@ -139,37 +141,41 @@
     (is (= "(list foo :bar (fn a\n                 ([] nil)\n                 ([b] b)))"
            (reformat-string "(list foo :bar (fn a\n([] nil)\n([b] b)))"))))
 
-  (testing "function forms"
-    (is (= "(fn [x y] x)"
-           (reformat-string "(fn [x y] x)")))
-    (is (= "(fn [x y]\n  x)"
-           (reformat-string "(fn\n  [x y]\n  x)")))
-    (is (= "(fn foo [x y] x)"
-           (reformat-string "(fn foo [x y] x)")))
-    (is (= "(fn foo\n  [x y]\n  x)"
-           (reformat-string "(fn foo [x y]\nx)")))
-    (is (= "(fn ([x]\n     (foo)\n     (bar)))"
-           (reformat-string "(fn\n([x]\n(foo)\n(bar)))")))
-    (is (= "(defn foo\n  [x y]\n  x)"
-           (reformat-string "(defn foo [x y] x)")))
-    (is (= "(defn foo\n  [x y]\n  x)"
-           (reformat-string "(defn foo [x y]\n  x)")))
-    (is (= "(defn foo\n  \"docs\"\n  [x y]\n  x)"
-           (reformat-string "(defn foo \"docs\" [x y] x)")))
-    (is (= "(defn foo\n  \"docs\"\n  [x y]\n  x)"
-           (reformat-string "(defn foo \"docs\" [x y]\n  x)")))
-    (is (= "(defn foo\n  \"docs\"\n  [x y]\n  x)"
-           (reformat-string "(defn foo \"docs\"\n[x y]x)")))
-    (is (= "(defn foo\n  \"docs\"\n  [x y]\n  x)"
-           (reformat-string "(defn foo\n\"docs\"\n[x y] \nx)")))
-    (is (= "(defn foo\n  ([x]\n   (foo)\n   (bar)))"
-           (reformat-string "(defn foo\n([x]\n(foo)\n(bar)))"))))
-
   (testing "reader conditionals"
     (is (= "#?(:clj foo\n   :cljs bar)"
            (reformat-string "#?(:clj foo\n:cljs bar)")))
     (is (= "#?@(:clj foo\n    :cljs bar)"
            (reformat-string "#?@(:clj foo\n:cljs bar)")))))
+
+
+(deftest function-forms
+  (is (= "(fn [x y] x)"
+         (reformat-string "(fn [x y] x)")))
+  (is (= "(fn [x y]\n  x)"
+         (reformat-string "(fn\n  [x y]\n  x)")))
+  (is (= "(fn foo [x y] x)"
+         (reformat-string "(fn foo [x y] x)")))
+  (is (= "(fn foo\n  [x y]\n  x)"
+         (reformat-string "(fn foo [x y]\nx)")))
+  (is (= "(fn ([x]\n     (foo)\n     (bar)))"
+         (reformat-string "(fn\n([x]\n(foo)\n(bar)))")))
+  (is (= "(defn foo\n  [x y]\n  x)"
+         (reformat-string "(defn foo [x y] x)")))
+  (is (= "(defn foo\n  [x y]\n  x)"
+         (reformat-string "(defn foo [x y]\n  x)")))
+  (is (= "(defn foo\n  \"docs\"\n  [x y]\n  x)"
+         (reformat-string "(defn foo \"docs\" [x y] x)")))
+  (is (= "(defn foo\n  \"docs\"\n  [x y]\n  x)"
+         (reformat-string "(defn foo \"docs\" [x y]\n  x)")))
+  (is (= "(defn foo\n  \"docs\"\n  [x y]\n  x)"
+         (reformat-string "(defn foo \"docs\"\n[x y]x)")))
+  (is (= "(defn foo\n  \"docs\"\n  [x y]\n  x)"
+         (reformat-string "(defn foo\n\"docs\"\n[x y] \nx)")))
+  (is (= "(defn foo\n  ([x]\n   (foo)\n   (bar)))"
+         (reformat-string "(defn foo\n([x]\n(foo)\n(bar)))")))
+  (is (= "(defn ^:deprecated foo\n  \"Deprecated method.\"\n  [x]\n  123)"
+         (reformat-string "(defn ^:deprecated foo \"Deprecated method.\"\n[x]\n123)"))))
+
 
 (deftest ns-reformatting
   (testing "namespace forms"
