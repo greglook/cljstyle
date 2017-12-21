@@ -279,6 +279,21 @@
 
 ;; ## Cond Style Rule
 
+(defn- at-least-one-empty-line?
+  "Checks that there are at least two newline characters between here
+  and the next syntactically relevant form."
+  [direction zloc]
+  (->> zloc
+       direction
+       (iterate direction)
+       (take-while some?)
+       (take-while (complement zl/element?))
+       (map z/node)
+       (apply str)
+       (re-seq #"\n")
+       (count)
+       (< 1)))
+
 (defn- cond-indent
   "Calculate how many spaces the node at this location should be indented as a
   conditional block. Returns nil if the rule does not apply."
@@ -288,8 +303,20 @@
           leading-forms (if (some-> zloc (nth-form idx) first-form-in-line?)
                           0
                           idx)
-          indent (inner-indent zloc rule-key 0 nil)]
-      (if (even? (- zloc-idx leading-forms))
+          indent (inner-indent zloc rule-key 0 nil)
+          clause-idx (- zloc-idx leading-forms)]
+      (if (and (even? clause-idx)
+               (not
+                 ;; Special case where stair-steps are unnecessary
+                 (and
+                   ;; should be one empty line above, but if this is the
+                   ;; first clause that's ok too
+                   (or (= 2 clause-idx)
+                       (at-least-one-empty-line? zip/left (z/left zloc)))
+                   ;; should be one empty line below, but if this is the
+                   ;; last clause that's ok too
+                   (or (not (z/right (z/right zloc)))
+                       (at-least-one-empty-line? zip/right (z/right zloc))))))
         (+ indent indent-size)
         indent))))
 

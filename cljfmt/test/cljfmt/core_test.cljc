@@ -35,7 +35,30 @@
     (is (= "(cond-> x\n  a?\n    (a 123)\n  b?\n    (b true))"
            (reformat-string "(cond-> x \n  a?\n(a 123)\n  b?\n(b true))")))
     (is (= "(cond->> x\n  a? a\n  b? b)"
-           (reformat-string "(cond->> x\na? a\nb? b)"))))
+           (reformat-string "(cond->> x\na? a\nb? b)")))
+    (is (= "(cond-> x\n  a?\n  (a 123)\n\n  b?\n  (b true))"
+           (reformat-string "(cond-> x\na?\n(a 123)\n\nb?\n(b true))")))
+    (is (= "
+(cond
+  b
+  c
+  ;; some comment
+  d
+    e
+  f
+    g
+
+  h ; comment
+  i ; another comment
+
+  j k
+  l
+    m
+
+  n
+    o
+  p)"
+           (reformat-string "\n(cond\nb\nc\n  ;; some comment\nd\ne\nf\ng\n\nh ; comment\ni ; another comment\n\nj k\nl\nm\n\nn\no\np)"))))
 
   (testing "constant indentation"
     (is (= "(def foo\n  \"Hello World\")"
