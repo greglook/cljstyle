@@ -86,8 +86,14 @@
            (reformat-string "#(while true\n(println :foo))")))
     (is (= "#(reify Closeable\n   (close [_]\n     (prn %)))"
            (reformat-string "#(reify Closeable\n(close [_]\n(prn %)))")))
-    (is (= "(mapv\n  #(vector\n    {:foo %\n     :bar 123}\n    %)\n  xs)"
-           (reformat-string "(mapv\n #(vector\n {:foo %\n  :bar 123}\n       %)\nxs)"))))
+    (is (= "(mapv\n  #(vector\n     {:foo %\n      :bar 123}\n     %)\n  xs)"
+           (reformat-string "(mapv\n #(vector\n {:foo %\n  :bar 123}\n       %)\nxs)")))
+    (is (= "#(foo\n   bar\n   baz)"
+           (reformat-string "#(foo\nbar\nbaz)")))
+    (is (= "#(foo bar\n      baz)"
+           (reformat-string "#(foo bar\nbaz)")))
+    (is (= "#(foo bar\n   baz)"
+           (reformat-string "#(foo bar\nbaz)" '{:indents {foo [[:block 1]]}}))))
 
   (testing "comments"
     (is (= ";foo\n(def x 1)"
