@@ -6,10 +6,13 @@ jobs:
     docker:
       - image: circleci/clojure:lein-2.7.1
     steps:
+      - run:
+          name: Install NodeJS
+          command: sudo apt-get update && sudo apt-get install -y nodejs
       - checkout
       - restore_cache:
           keys:
-            - cljfmt-{{ checksum "project.clj" }}
+            - cljfmt-{{ checksum "cljfmt/project.clj" }}
             - cljfmt-
       - run:
           command: lein deps
@@ -26,7 +29,7 @@ jobs:
       - save_cache:
           paths:
             - ~/.m2
-          key: cljfmt-{{ checksum "project.clj" }}
+          key: cljfmt-{{ checksum "cljfmt/project.clj" }}
       - store_artifacts:
           path: cljfmt/target/coverage
           destination: coverage
