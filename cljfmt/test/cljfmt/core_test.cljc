@@ -115,7 +115,9 @@
     (is (= "(def ^:private\n  foo\n  :foo)"
            (reformat-string "(def ^:private\nfoo\n:foo)")))
     (is (= "(def ^:private foo\n  :foo)"
-           (reformat-string "(def ^:private foo\n:foo)"))))
+           (reformat-string "(def ^:private foo\n:foo)")))
+    (is (= "^:a\n:bcd"
+           (reformat-string "^\n:a\n:bcd"))))
 
   (testing "ignored forms"
     (is (= "^:cljfmt/ignore\n(def x\n 123\n  456)"
@@ -151,7 +153,15 @@
     (is (= "#?(:clj foo\n   :cljs bar)"
            (reformat-string "#?(:clj foo\n:cljs bar)")))
     (is (= "#?@(:clj foo\n    :cljs bar)"
-           (reformat-string "#?@(:clj foo\n:cljs bar)")))))
+           (reformat-string "#?@(:clj foo\n:cljs bar)"))))
+
+  (testing "reader macros"
+    (is (= "#inst\n\"2018-01-01T00:00:00.000-00:00\""
+           (reformat-string "#inst\n\"2018-01-01T00:00:00.000-00:00\""))))
+
+  (testing "map prefixes"
+    (is (= "#:abc\n{:d 1}"
+           (reformat-string "#:abc\n{:d 1}")))))
 
 
 (deftest function-forms

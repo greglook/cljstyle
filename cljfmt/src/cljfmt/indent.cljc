@@ -200,7 +200,7 @@
         (coll-indent zloc)
       (#{:list :fn} tag)
         (custom-indent zloc indents)
-      (= :meta tag)
+      (#{:meta :meta* :reader-macro} tag)
         (indent-amount (z/up zloc) indents)
       :else
         (coll-indent zloc))))
