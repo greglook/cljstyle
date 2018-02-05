@@ -25,7 +25,7 @@
                                  :target :nodejs
                                  :optimizations :none}}}
               :test-commands
-              {"dev" ["node" "target/out/tests.js"]}}
+              {"dev" ["nodejs" "target/out/tests.js"]}}
 
   :profiles
   {:provided
