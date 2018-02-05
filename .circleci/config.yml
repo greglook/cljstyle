@@ -1,0 +1,35 @@
+version: 2
+
+jobs:
+  build:
+    working_directory: ~/repo
+    docker:
+      - image: circleci/clojure:lein-2.7.1
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - cljfmt-{{ checksum "project.clj" }}
+            - cljfmt-
+      - run:
+          command: lein deps
+          pwd: cljfmt
+      - run:
+          command: lein check
+          pwd: cljfmt
+      - run:
+          command: lein test
+          pwd: cljfmt
+      - run:
+          command: lein cloverage --codecov
+          pwd: cljfmt
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: cljfmt-{{ checksum "project.clj" }}
+      - store_artifacts:
+          path: cljfmt/target/coverage
+          destination: coverage
+      - run:
+          name: Publish Coverage
+          command: "(curl -s https://codecov.io/bash > codecov) && bash codecov -f cljfmt/target/coverage/codecov.json"

@@ -6,7 +6,8 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
 
   :plugins
-  [[lein-cljsbuild "1.1.2"]]
+  [[lein-cljsbuild "1.1.2"]
+   [lein-cloverage "1.0.10"]]
 
   :dependencies
   [[org.clojure/clojure "1.8.0"]
