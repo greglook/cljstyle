@@ -1,41 +1,26 @@
 (ns cljfmt.core
-  #?@(:clj
-      [(:require
-         [cljfmt.fn :as fn]
-         [cljfmt.indent :as indent]
-         [cljfmt.ns :as ns]
-         [cljfmt.zloc :as zl]
-         [clojure.java.io :as io]
-         [clojure.zip :as zip]
-         [rewrite-clj.node :as n]
-         [rewrite-clj.parser :as p]
-         [rewrite-clj.zip :as z
-          :refer [append-space edn skip]])]
-      :cljs
-      [(:require
-         [cljfmt.fn :as fn]
-         [cljfmt.indent :as indent]
-         [cljfmt.ns :as ns]
-         [cljfmt.zloc :as zl]
-         [clojure.zip :as zip]
-         [rewrite-clj.node :as n]
-         [rewrite-clj.parser :as p]
-         [rewrite-clj.zip :as z]
-         [rewrite-clj.zip.base :as zb :refer [edn]]
-         [rewrite-clj.zip.whitespace :as zw
-          :refer [append-space skip]])
-       (:require-macros
-         [cljfmt.core :refer [read-resource]])]))
-
-
-#?(:clj (def read-resource* (comp read-string slurp io/resource)))
-#?(:clj (defmacro read-resource [path] `'~(read-resource* path)))
+  (:require
+    [cljfmt.fn :as fn]
+    [cljfmt.indent :as indent]
+    [cljfmt.ns :as ns]
+    [cljfmt.zloc :as zl]
+    [clojure.java.io :as io]
+    [clojure.zip :as zip]
+    [rewrite-clj.node :as n]
+    [rewrite-clj.parser :as p]
+    [rewrite-clj.zip :as z
+     :refer [append-space edn skip]]))
 
 
 (def default-indents
-  (merge (read-resource "cljfmt/indents/clojure.clj")
-         (read-resource "cljfmt/indents/compojure.clj")
-         (read-resource "cljfmt/indents/fuzzy.clj")))
+  "Default indentation rules included with the library."
+  ; TODO: load this lazily / from other places?
+  (letfn [(read-resource
+            [path]
+            (read-string (slurp (io/resource path))))]
+    (merge (read-resource "cljfmt/indents/clojure.clj")
+           (read-resource "cljfmt/indents/compojure.clj")
+           (read-resource "cljfmt/indents/fuzzy.clj"))))
 
 
 

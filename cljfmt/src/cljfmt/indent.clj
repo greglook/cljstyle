@@ -1,18 +1,10 @@
 (ns cljfmt.indent
-  #?@(:clj
-      [(:require
-         [cljfmt.zloc :as zl]
-         [clojure.string :as str]
-         [clojure.zip :as zip]
-         [rewrite-clj.node :as n]
-         [rewrite-clj.zip :as z])]
-      :cljs
-      [(:require
-         [cljfmt.zloc :as zl]
-         [clojure.string :as str]
-         [clojure.zip :as zip]
-         [rewrite-clj.node :as n]
-         [rewrite-clj.zip :as z])]))
+  (:require
+    [cljfmt.zloc :as zl]
+    [clojure.string :as str]
+    [clojure.zip :as zip]
+    [rewrite-clj.node :as n]
+    [rewrite-clj.zip :as z]))
 
 
 (def indent-size 2)
@@ -150,7 +142,7 @@
 (defn- pattern?
   "True if the value if a regular expression pattern."
   [v]
-  (instance? #?(:clj java.util.regex.Pattern :cljs js/RegExp) v))
+  (instance? java.util.regex.Pattern v))
 
 
 (defn- indent-order

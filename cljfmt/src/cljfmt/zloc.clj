@@ -1,21 +1,12 @@
 (ns cljfmt.zloc
   "Common utility functions for using rewrite-clj zippers."
-  #?@(:clj
-      [(:refer-clojure :exclude [reader-conditional?])
-       (:require
-         [clojure.string :as str]
-         [clojure.zip :as zip]
-         [rewrite-clj.node :as n]
-         [rewrite-clj.zip :as z
-          :refer [skip whitespace-or-comment?]])]
-      :cljs
-      [(:require
-         [clojure.string :as str]
-         [clojure.zip :as zip]
-         [rewrite-clj.node :as n]
-         [rewrite-clj.zip :as z]
-         [rewrite-clj.zip.whitespace :as zw
-          :refer [skip whitespace-or-comment?]])]))
+  (:refer-clojure :exclude [reader-conditional?])
+  (:require
+    [clojure.string :as str]
+    [clojure.zip :as zip]
+    [rewrite-clj.node :as n]
+    [rewrite-clj.zip :as z
+     :refer [skip whitespace-or-comment?]]))
 
 
 (defn zprn
@@ -28,12 +19,12 @@
 
 (def zwhitespace?
   "True if the node is a whitespace node."
-  #?(:clj z/whitespace? :cljs zw/whitespace?))
+  z/whitespace?)
 
 
 (def zlinebreak?
   "True if the node contains a line break."
-  #?(:clj z/linebreak? :cljs zw/linebreak?))
+  z/linebreak?)
 
 
 (defn comment?
@@ -82,7 +73,8 @@
 (defn reader-conditional?
   "True if the node at this location is a reader conditional form."
   [zloc]
-  (and (reader-macro? zloc) (#{"?" "?@"} (-> zloc z/down token-value str))))
+  (and (reader-macro? zloc)
+       (contains? #{"?" "?@"} (-> zloc z/down token-value str))))
 
 
 (defn whitespace?

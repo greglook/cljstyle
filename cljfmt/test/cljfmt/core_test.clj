@@ -1,8 +1,8 @@
 (ns cljfmt.core-test
   (:require
-    [#?@(:clj (clojure.test :refer)
-         :cljs (cljs.test :refer-macros)) [deftest testing is]]
-    [cljfmt.core :refer [reformat-string]]))
+    [cljfmt.core :refer [reformat-string]]
+    [clojure.test :refer :all]))
+
 
 (deftest test-indent
   (testing "list indentation"
