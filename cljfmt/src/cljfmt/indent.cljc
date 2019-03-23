@@ -281,9 +281,9 @@
 
 
 
-;; ## Cond Style Rule
+;; ## Stair Style Rule
 
-(defn- cond-indent
+(defn- stair-indent
   "Calculate how many spaces the node at this location should be indented as a
   conditional block. Returns nil if the rule does not apply."
   [zloc rule-key idx]
@@ -298,6 +298,6 @@
         indent))))
 
 
-(defmethod indenter-fn :cond
+(defmethod indenter-fn :stair
   [rule-key [_ idx]]
-  (fn [zloc] (cond-indent zloc rule-key idx)))
+  (fn [zloc] (stair-indent zloc rule-key idx)))
