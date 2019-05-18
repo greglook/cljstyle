@@ -1,4 +1,4 @@
-(defproject mvxcvi/cljfmt "0.7.0-SNAPSHOT"
+(defproject mvxcvi/cljfmt "0.7.0"
   :description "A library for formatting Clojure code"
   :url "https://github.com/greglook/cljfmt"
   :scm {:dir ".."}
@@ -6,31 +6,14 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
 
   :plugins
-  [[lein-cljsbuild "1.1.2"]
-   [lein-cloverage "1.0.10"]]
+  [[lein-cloverage "1.1.0"]]
 
   :dependencies
-  [[org.clojure/clojure "1.8.0"]
-   [org.clojure/tools.reader "1.0.0-alpha4"]
-   [rewrite-clj "0.5.2"]
-   [rewrite-cljs "0.4.3"]]
-
-  :hooks [leiningen.cljsbuild]
-
-  :cljsbuild {:builds
-              {"dev" {:source-paths ["src" "test"]
-                      :compiler {:main cljfmt.test-runner
-                                 :output-to "target/out/tests.js"
-                                 :output-dir "target/out"
-                                 :target :nodejs
-                                 :optimizations :none}}}
-              :test-commands
-              {"dev" ["nodejs" "target/out/tests.js"]}}
+  [[org.clojure/clojure "1.9.0"]
+   [org.clojure/tools.reader "1.3.2"]
+   [rewrite-clj "0.6.1"]]
 
   :profiles
-  {:provided
-   {:dependencies [[org.clojure/clojurescript "1.7.228"]]}
-
-   :repl
+  {:repl
    {:source-paths ["dev"]
     :dependencies [[org.clojure/tools.namespace "0.2.11"]]}})

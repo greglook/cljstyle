@@ -5,7 +5,7 @@
     [rewrite-clj.node :as n]
     [rewrite-clj.zip :as z]))
 
-; TODO: this does *not* handle cljc files with reader-conditional namespaces well.
+;; FIXME: this does *not* handle cljc files with reader-conditional namespaces well.
 
 (def indent-size 2)
 
@@ -38,15 +38,17 @@
            (fn [[elements comments] el]
              (case (n/tag el)
                :comment
-                 [elements (conj comments (chomp-comment el))]
-               (:vector :token)
-                 [(conj elements (vary-meta el assoc ::comments comments))
-                  []]
+               [elements (conj comments (chomp-comment el))]
+
+               (:token :vector :map)
+               [(conj elements (vary-meta el assoc ::comments comments))
+                []]
+
                :list
-                 [(conj elements (vary-meta
-                                   (parse-list-with-comments el)
-                                   assoc ::comments comments))
-                  []]))
+               [(conj elements (vary-meta
+                                 (parse-list-with-comments el)
+                                 assoc ::comments comments))
+                []]))
            [[header] []])
          (first)
          (n/list-node))))
@@ -248,7 +250,17 @@
   (when elements
     ; TODO: line formatting
     [(n/spaces indent-size)
-     (render-inline :gen-class elements)]))
+     (->> elements
+          (partition-all 2)
+          (mapcat (fn format-entry
+                    [[k v]]
+                    [(n/newlines 1)
+                     (n/spaces (* 2 indent-size))
+                     k
+                     (n/spaces 1)
+                     v]))
+          (list* (n/keyword-node :gen-class))
+          (n/list-node))]))
 
 
 (defn- render-requires

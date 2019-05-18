@@ -4,11 +4,8 @@ jobs:
   build:
     working_directory: ~/repo
     docker:
-      - image: circleci/clojure:lein-2.7.1
+      - image: circleci/clojure:lein-2.9.1
     steps:
-      - run:
-          name: Install NodeJS
-          command: sudo apt-get update && sudo apt-get install -y nodejs
       - checkout
       - restore_cache:
           keys:
@@ -35,4 +32,4 @@ jobs:
           destination: coverage
       - run:
           name: Publish Coverage
-          command: "(curl -s https://codecov.io/bash > codecov) && bash codecov -f cljfmt/target/coverage/codecov.json"
+          command: 'bash <(curl -s https://codecov.io/bash) -f cljfmt/target/coverage/codecov.json'

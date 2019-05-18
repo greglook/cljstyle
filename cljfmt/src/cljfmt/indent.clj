@@ -1,18 +1,10 @@
 (ns cljfmt.indent
-  #?@(:clj
-      [(:require
-         [cljfmt.zloc :as zl]
-         [clojure.string :as str]
-         [clojure.zip :as zip]
-         [rewrite-clj.node :as n]
-         [rewrite-clj.zip :as z])]
-      :cljs
-      [(:require
-         [cljfmt.zloc :as zl]
-         [clojure.string :as str]
-         [clojure.zip :as zip]
-         [rewrite-clj.node :as n]
-         [rewrite-clj.zip :as z])]))
+  (:require
+    [cljfmt.zloc :as zl]
+    [clojure.string :as str]
+    [clojure.zip :as zip]
+    [rewrite-clj.node :as n]
+    [rewrite-clj.zip :as z]))
 
 
 (def indent-size 2)
@@ -150,7 +142,7 @@
 (defn- pattern?
   "True if the value if a regular expression pattern."
   [v]
-  (instance? #?(:clj java.util.regex.Pattern :cljs js/RegExp) v))
+  (instance? java.util.regex.Pattern v))
 
 
 (defn- indent-order
@@ -281,9 +273,9 @@
 
 
 
-;; ## Cond Style Rule
+;; ## Stair Style Rule
 
-(defn- cond-indent
+(defn- stair-indent
   "Calculate how many spaces the node at this location should be indented as a
   conditional block. Returns nil if the rule does not apply."
   [zloc rule-key idx]
@@ -298,6 +290,6 @@
         indent))))
 
 
-(defmethod indenter-fn :cond
+(defmethod indenter-fn :stair
   [rule-key [_ idx]]
-  (fn [zloc] (cond-indent zloc rule-key idx)))
+  (fn [zloc] (stair-indent zloc rule-key idx)))
