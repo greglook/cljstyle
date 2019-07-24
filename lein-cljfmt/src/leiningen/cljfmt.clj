@@ -9,33 +9,46 @@
     [leiningen.cljfmt.diff :as diff]
     [meta-merge.core :refer [meta-merge]]))
 
+
 (defn relative-path
   [^java.io.File dir ^java.io.File file]
   (-> (.toURI dir)
       (.relativize (.toURI file))
       (.getPath)))
 
-(defn grep [re dir]
+
+(defn grep
+  [re dir]
   (filter #(re-find re (relative-path dir %)) (file-seq (io/file dir))))
 
-(defn file-pattern [project]
-  (get-in project [:cljfmt :file-pattern] #"\.clj[sx]?$"))
 
-(defn find-files [project f]
+(defn file-pattern
+  [project]
+  (get-in project [:cljfmt :file-pattern] #"\.clj[csx]?$"))
+
+
+(defn find-files
+  [project f]
   (let [f (io/file f)]
     (when-not (.exists f) (main/abort "No such file:" (str f)))
     (if (.isDirectory f)
       (grep (file-pattern project) f)
       [f])))
 
+
 (def default-config
   {:indents cljfmt/default-indents})
 
-(defn reformat-string [project s]
+
+(defn reformat-string
+  [project s]
   (cljfmt/reformat-string s (meta-merge default-config (:cljfmt project {}))))
 
-(defn project-path [project file]
+
+(defn project-path
+  [project file]
   (relative-path (io/file (:root project ".")) (io/file file)))
+
 
 (defn format-diff
   ([project file]
@@ -48,7 +61,9 @@
        (diff/colorize-diff diff)
        diff))))
 
-(defn format-paths [project]
+
+(defn format-paths
+  [project]
   (let [paths (concat (:source-paths project)
                       (:test-paths project))]
     (if (empty? paths)
@@ -56,9 +71,15 @@
       (->> (map io/file paths)
            (filter (fn [^java.io.File x] (and (.exists x) (.isDirectory x))))))))
 
-(def zero-counts {:okay 0, :incorrect 0, :error 0})
 
-(defn check-one [project file]
+(def zero-counts
+  {:okay 0
+   :incorrect 0
+   :error 0})
+
+
+(defn check-one
+  [project file]
   (let [original (slurp file)
         status   {:counts zero-counts :file file}]
     (try
@@ -73,11 +94,15 @@
             (assoc-in [:counts :error] 1)
             (assoc :exception ex))))))
 
-(defn print-stack-trace [ex]
+
+(defn print-stack-trace
+  [ex]
   (binding [*out* *err*]
     (st/print-stack-trace ex)))
 
-(defn print-file-status [project status]
+
+(defn print-file-status
+  [project status]
   (let [path (project-path project (:file status))]
     (when-let [ex (:exception status)]
       (main/warn "Failed to format file:" path)
@@ -86,13 +111,17 @@
       (main/warn path "has incorrect formatting")
       (main/warn diff))))
 
-(defn exit [counts]
+
+(defn exit
+  [counts]
   (when-not (zero? (:error counts 0))
     (main/exit 2))
   (when-not (zero? (:incorrect counts 0))
     (main/exit 1)))
 
-(defn print-final-count [counts]
+
+(defn print-final-count
+  [counts]
   (let [error     (:error counts 0)
         incorrect (:incorrect counts 0)]
     (when-not (zero? error)
@@ -102,12 +131,19 @@
     (when (and (zero? incorrect) (zero? error))
       (main/info "All source files formatted correctly"))))
 
+
 (defn merge-counts
-  ([]    zero-counts)
-  ([a]   a)
+  ([] zero-counts)
+  ([a] a)
   ([a b] (merge-with + a b)))
 
+
 (defn check
+  "Check source files for formatting errors. Prints a diff of all malformed
+  lines found and exits with an error if any files have format errors.
+
+  Usage:
+  lein cljfmt check [path...]"
   ([project]
    (if project
      (apply check project (format-paths project))
@@ -124,7 +160,12 @@
      (print-final-count counts)
      (exit counts))))
 
+
 (defn fix
+  "Fix formatting errors in source files. Edits the files in place.
+
+  Usage:
+  lein cljfmt fix [path...]"
   ([project]
    (if project
      (apply fix project (format-paths project))
@@ -143,8 +184,10 @@
              (binding [*out* *err*]
                (print-stack-trace e)))))))))
 
+
 (defn ^:no-project-needed cljfmt
   "Format Clojure source files"
+  {:subtasks [#'check #'fix]}
   [project command & args]
   (case command
     "check" (apply check project args)
