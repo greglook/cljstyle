@@ -14,13 +14,7 @@
 
 (def default-indents
   "Default indentation rules included with the library."
-  ; TODO: load this lazily / from other places?
-  (letfn [(read-resource
-            [path]
-            (read-string (slurp (io/resource path))))]
-    (merge (read-resource "cljfmt/indents/clojure.clj")
-           (read-resource "cljfmt/indents/compojure.clj")
-           (read-resource "cljfmt/indents/fuzzy.clj"))))
+  (read-string (slurp (io/resource "cljfmt/indents.clj"))))
 
 
 
@@ -270,18 +264,14 @@
 
 (defn indent
   "Transform this form by indenting all lines their proper amounts."
-  ([form]
-   (indent form default-indents))
-  ([form indents]
-   (transform form edit-all indent/should-indent? #(indent-line % indents))))
+  [form indents]
+  (transform form edit-all indent/should-indent? #(indent-line % indents)))
 
 
 (defn reindent
   "Transform this form by rewriting all line indentation."
-  ([form]
-   (indent (unindent form)))
-  ([form indents]
-   (indent (unindent form) indents)))
+  [form indents]
+  (indent (unindent form) indents))
 
 
 
