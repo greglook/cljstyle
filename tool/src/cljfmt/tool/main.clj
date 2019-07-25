@@ -1,4 +1,4 @@
-(ns cljfmt.tool
+(ns cljfmt.tool.main
   "Main entry for cljfmt tool."
   (:gen-class)
   (:require
