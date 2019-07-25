@@ -95,7 +95,7 @@
    :remove-trailing-whitespace? true
    :insert-missing-whitespace? true
    :remove-consecutive-blank-lines? true
-   :max-consecutive-blank-lines 3
+   :max-consecutive-blank-lines 2
    :insert-padding-lines? true
    :padding-lines 2
    :rewrite-namespaces? true

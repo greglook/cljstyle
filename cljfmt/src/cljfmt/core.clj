@@ -1,5 +1,6 @@
 (ns cljfmt.core
   (:require
+    [cljfmt.config :as config]
     [cljfmt.fn :as fn]
     [cljfmt.indent :as indent]
     [cljfmt.ns :as ns]
@@ -311,31 +312,40 @@
 
 (defn reformat-form
   "Transform this form by applying formatting rules to it."
-  [form & [{:as opts}]]
+  [form config]
   (cond-> form
-    (:remove-surrounding-whitespace? opts true)
-      (remove-surrounding-whitespace)
-    (:insert-missing-whitespace? opts true)
-      (insert-missing-whitespace)
-    (:line-break-functions? opts true)
-      (line-break-functions)
+    (:remove-surrounding-whitespace? config true)
+    (remove-surrounding-whitespace)
+
+    (:insert-missing-whitespace? config true)
+    (insert-missing-whitespace)
+
+    (:line-break-functions? config true)
+    (line-break-functions)
+
     ; TODO: line-break-types
-    (:remove-consecutive-blank-lines? opts true)
-      (remove-consecutive-blank-lines (:max-consecutive-blank-lines opts 2))
-    (:insert-padding-lines? opts true)
-      (insert-padding-lines (:padding-lines opts 2))
-    (:indentation? opts true)
-      (reindent (:indents opts default-indents))
-    (:rewrite-namespaces? opts true)
-      (rewrite-namespaces opts)
-    (:remove-trailing-whitespace? opts true)
-      (remove-trailing-whitespace)))
+    (:remove-consecutive-blank-lines? config true)
+    (remove-consecutive-blank-lines (:max-consecutive-blank-lines config 2))
+
+    (:insert-padding-lines? config true)
+    (insert-padding-lines (:padding-lines config 2))
+
+    (:indentation? config true)
+    (reindent (:indents config config/default-indents))
+
+    (:rewrite-namespaces? config true)
+    (rewrite-namespaces config)
+
+    (:remove-trailing-whitespace? config true)
+    (remove-trailing-whitespace)))
 
 
 (defn reformat-string
   "Helper method to transform a string by parsing it, formatting it, then
   printing it."
-  [form-string & [options]]
-  (-> (p/parse-string-all form-string)
-      (reformat-form options)
-      (n/string)))
+  ([form-string]
+   (reformat-string form-string config/default-config))
+  ([form-string config]
+   (-> (p/parse-string-all form-string)
+       (reformat-form config)
+       (n/string))))
