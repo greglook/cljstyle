@@ -8,7 +8,6 @@
     (java.util.concurrent
       ForkJoinPool
       ForkJoinTask
-      PriorityBlockingQueue
       RecursiveAction
       TimeUnit)))
 
@@ -22,14 +21,14 @@
       []
       (cond
         (config/ignored? config file)
-        (report file :ignored {})
+        (report :ignored file nil)
 
         (config/source-file? config file)
         (try
           (let [result (process config file)]
-            (report file :processed result))
+            (report :processed file result))
           (catch Exception ex
-            (report file :process-error {:ex ex})))
+            (report :process-error file {:error ex})))
 
         (config/directory? file)
         (try
@@ -38,39 +37,27 @@
                                (.listFiles file))]
             (ForkJoinTask/invokeAll ^java.util.Collection subtasks))
           (catch Exception ex
-            (report file :search-error {:ex ex})))
+            (report :search-error file {:error ex})))
 
         :else
-        (report file :unknown {})))))
+        (report :unknown file nil)))))
 
 
-(defn process-files
+(defn process-files!
   "Recursively process source files starting from the given `paths`. Blocks
   until all tasks complete and returns nil, or throws an exception if the wait
   times out."
   [process report config paths]
-  (let [pool (ForkJoinPool.)
-        tasks (mapv #(processing-action process report config (io/file %))
-                    paths)]
+  (let [pool (ForkJoinPool.)]
     (->>
       paths
       (map io/file)
       (map #(processing-action process report config %))
       (run! #(.submit pool ^ForkJoinTask %)))
-    ;(Thread/sleep 100)
-    ;(.awaitQuiescence pool 5 TimeUnit/MINUTES)
     (.shutdown pool)
-    (prn pool)
-    (println "Pool stats:"
-             (.getPoolSize pool)
-             (.getActiveThreadCount pool)
-             (.getRunningThreadCount pool)
-             (.hasQueuedSubmissions pool)
-             (.getQueuedSubmissionCount pool)
-             (.getQueuedTaskCount pool))
     (when-not (.awaitTermination pool 5 TimeUnit/MINUTES)
       (.shutdownNow pool)
-      (throw (ex-info (format "Not all worker threads have completed after timeout! There are still %d threads processing %d queued and %d submitted tasks.\n"
+      (throw (ex-info (format "Not all worker threads completed after timeout! There are still %d threads processing %d queued and %d submitted tasks.\n"
                               (.getRunningThreadCount pool)
                               (.getQueuedTaskCount pool)
                               (.getQueuedSubmissionCount pool))

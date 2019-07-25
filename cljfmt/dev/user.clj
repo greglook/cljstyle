@@ -45,18 +45,44 @@
     (printf "[%s] Processing source file %s\n"
             (.getName (Thread/currentThread))
             (.getPath file))
-    (flush)))
+    (flush))
+  {:foo true})
 
 
 (defn test-report
-  [file type data]
-  (swap! reports assoc (.getPath file) [type data])
+  [report-type file data]
+  ;; Report results
   (locking output-lock
-    (printf "[%s] %s on %s%s\n"
-            (.getName (Thread/currentThread))
-            (name type)
-            (.getPath file)
-            (if (seq data)
-              (str " " (pr-str data))
-              ""))
-    (flush)))
+    (case report-type
+      :processed
+      (printf "[%s] Results for file %s: %s\n"
+              (.getName (Thread/currentThread))
+              (.getPath file)
+              (pr-str data))
+
+
+      :process-error
+      (printf "[%s] Error processing file %s: %s\n"
+              (.getName (Thread/currentThread))
+              (.getPath file)
+              (:error data))
+
+      :search-error
+      (printf "[%s] Error searching directory %s: %s\n"
+              (.getName (Thread/currentThread))
+              (.getPath file)
+              (:error data))
+
+      nil)
+    (flush))
+  ;; Record results
+  (swap! reports
+         (fn [old]
+           (-> old
+               (update-in [:counts report-type] (fnil inc 0))
+               (cond->
+                 (= :processed report-type)
+                 (assoc-in [:results (.getPath file)] data)
+
+                 (contains? #{:process-error :search-error} report-type)
+                 (assoc-in [:errors (.getPath file)] data))))))

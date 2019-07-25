@@ -101,7 +101,7 @@
    :rewrite-namespaces? true
    :single-import-break-width 30
    :indents default-indents
-   :file-pattern #"\.clj[csx]$"
+   :file-pattern #"\.clj[csx]?$"
    :file-ignore #{}})
 
 
@@ -179,7 +179,6 @@
   (let [config (read-string (slurp file))
         path (.getAbsolutePath file)]
     (if (s/valid? ::settings config)
-      ;; TODO: canonicalize paths for absolute ignore rules?
       (vary-meta config assoc ::path path)
       (throw (ex-info (str "Invalid configuration loaded from file: " path
                            "\n" (s/explain-str ::settings config))
