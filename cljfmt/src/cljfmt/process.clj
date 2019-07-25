@@ -12,6 +12,19 @@
       TimeUnit)))
 
 
+(defn- record-result
+  "Report task results in a shared map."
+  [results result-type file result]
+  (-> results
+      (update-in [:counts result-type] (fnil inc 0))
+      (cond->
+        (= :processed result-type)
+        (assoc-in [:results (.getPath file)] result)
+
+        (contains? #{:process-error :search-error} result-type)
+        (assoc-in [:errors (.getPath file)] result))))
+
+
 (defn- processing-action
   "Construct a `RecursiveAction` representing the work to process a subtree or
   source file `file`."
@@ -45,10 +58,17 @@
 
 (defn walk-files!
   "Recursively process source files starting from the given `paths`. Blocks
-  until all tasks complete and returns nil, or throws an exception if the wait
-  times out."
+  until all tasks complete and returns the result map, or throws an exception
+  if the wait times out."
   [process report config paths]
-  (let [pool (ForkJoinPool.)]
+  (let [start (System/nanoTime)
+        pool (ForkJoinPool.)
+        results (atom {})
+        report (fn record-and-report
+                 [result-type file result]
+                 (swap! results record-result result-type file result)
+                 (report result-type file result)
+                 nil)]
     (->>
       paths
       (map io/file)
@@ -61,5 +81,6 @@
                               (.getRunningThreadCount pool)
                               (.getQueuedTaskCount pool)
                               (.getQueuedSubmissionCount pool))
-                      {}))))
-  nil)
+                      {})))
+    (let [elapsed (/ (- (System/nanoTime) start) 1e6)]
+      (assoc @results :elapsed elapsed))))

@@ -49,8 +49,7 @@
 
 
 (defn test-report
-  [reports report-type file data]
-  ;; Report results
+  [report-type file data]
   (locking output-lock
     (case report-type
       :processed
@@ -58,7 +57,6 @@
               (.getName (Thread/currentThread))
               (.getPath file)
               (pr-str data))
-
 
       :process-error
       (printf "[%s] Error processing file %s: %s\n"
@@ -73,27 +71,14 @@
               (:error data))
 
       nil)
-    (flush))
-  ;; Record results
-  (swap! reports
-         (fn [old]
-           (-> old
-               (update-in [:counts report-type] (fnil inc 0))
-               (cond->
-                 (= :processed report-type)
-                 (assoc-in [:results (.getPath file)] data)
-
-                 (contains? #{:process-error :search-error} report-type)
-                 (assoc-in [:errors (.getPath file)] data))))))
+    (flush)))
 
 
 (defn process-local!
   [& {:as opts}]
-  (let [config (config/merge-settings config/default-config opts)
-        reports (atom {})]
+  (let [config (config/merge-settings config/default-config opts)]
     (process/walk-files!
       test-process
-      (partial test-report reports)
+      test-report
       config
-      ["."])
-    @reports))
+      ["."])))
