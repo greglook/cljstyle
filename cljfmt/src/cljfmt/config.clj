@@ -153,9 +153,8 @@
 (defn source-file?
   "True if the file is a recognized source file."
   [config ^File file]
-  (let [pattern (:file-pattern config)]
-    (and (readable-file? file)
-         (boolean (re-seq pattern (.getName file))))))
+  (and (re-seq (:file-pattern config) (.getName file))
+       (readable-file? file)))
 
 
 (defn ignored?
