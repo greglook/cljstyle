@@ -2,7 +2,7 @@
   (:require
     [cljfmt.config :as config]
     [cljfmt.core :as core]
-    [cljfmt.file :as file]
+    [cljfmt.process :as process]
     [cljfmt.zloc :as zl]
     [clojure.java.io :as io]
     [clojure.repl :refer :all]
@@ -36,7 +36,6 @@
 
 
 (def output-lock (Object.))
-(def reports (atom {}))
 
 
 (defn test-process
@@ -50,7 +49,7 @@
 
 
 (defn test-report
-  [report-type file data]
+  [reports report-type file data]
   ;; Report results
   (locking output-lock
     (case report-type
@@ -86,3 +85,15 @@
 
                  (contains? #{:process-error :search-error} report-type)
                  (assoc-in [:errors (.getPath file)] data))))))
+
+
+(defn process-local!
+  [& {:as opts}]
+  (let [config (config/merge-settings config/default-config opts)
+        reports (atom {})]
+    (process/walk-files!
+      test-process
+      (partial test-report reports)
+      config
+      ["."])
+    @reports))

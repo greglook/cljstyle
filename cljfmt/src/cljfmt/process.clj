@@ -1,4 +1,4 @@
-(ns cljfmt.file
+(ns cljfmt.process
   "Code for discovering and processing source files."
   (:require
     [cljfmt.config :as config]
@@ -43,7 +43,7 @@
         (report :unknown file nil)))))
 
 
-(defn process-files!
+(defn walk-files!
   "Recursively process source files starting from the given `paths`. Blocks
   until all tasks complete and returns nil, or throws an exception if the wait
   times out."
