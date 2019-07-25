@@ -71,7 +71,7 @@
 
 (def version
   "Project version string."
-  (if-let [props-file (io/resource "META-INF/maven/mvxcvi/solanum/pom.properties")]
+  (if-let [props-file (io/resource "META-INF/maven/mvxcvi/cljfmt/pom.properties")]
     (with-open [props-reader (io/reader props-file)]
       (let [props (doto (java.util.Properties.)
                     (.load props-reader))
