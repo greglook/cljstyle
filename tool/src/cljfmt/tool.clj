@@ -30,6 +30,24 @@
 
 
 
+;; ## Utilities
+
+(def ^:dynamic *options*
+  "Configuration options."
+  {})
+
+
+(defn- log
+  "Log a message which will only be printed when --verbose is set."
+  [& messages]
+  (when (:verbose *options*)
+    (binding [*out* *err*]
+      (apply println messages)
+      (flush)))
+  nil)
+
+
+
 ;; ## Fix Command
 
 (defn- print-fix-usage
@@ -42,7 +60,7 @@
 
 (defn- fix-sources
   "Implementation of the `fix` command."
-  [options paths]
+  [paths]
   ;; FIXME: implement
   (throw (RuntimeException. "NYI")))
 
@@ -61,7 +79,7 @@
 
 (defn- check-sources
   "Implementation of the `check` command."
-  [options paths]
+  [paths]
   ;; FIXME: implement
   (throw (RuntimeException. "NYI")))
 
@@ -103,30 +121,32 @@
   (let [parsed (cli/parse-opts raw-args cli-options)
         [command args] (parsed :arguments)
         options (parsed :options)]
+    ;; Print any option parse errors and abort.
     (when-let [errors (parsed :errors)]
       (binding [*out* *err*]
         (run! println errors)
         (System/exit 1)))
-    (when (or (:help options) (nil? command))
+    ;; Show help for general usage or a command.
+    (when (:help options)
       (case command
         "check" (print-check-usage)
         "fix" (print-fix-usage)
         (print-general-usage (parsed :summary)))
       (flush)
-      (System/exit (if (:help options) 0 1)))
-    (case command
-      "fix"
-      (fix-sources options args)
-
-      "check"
-      (check-sources options args)
-
-      "version"
-      (print-version args)
-
-      ;; else
-      (binding [*out* *err*]
-        (println "Unknown cljfmt command:" command)
-        (System/exit 1)))
-    ;; Successful run.
+      (System/exit 0))
+    ;; If no command provided, print help and exit with an error.
+    (when-not command
+      (print-general-usage (parsed :summary))
+      (flush)
+      (System/exit 1))
+    ;; Execute requested command.
+    (binding [*options* options]
+      (case command
+        "fix" (fix-sources args)
+        "check" (check-sources args)
+        "version" (print-version args)
+        (binding [*out* *err*]
+          (println "Unknown cljfmt command:" command)
+          (System/exit 1))))
+    ;; Successful tool run if no other exit.
     (System/exit 0)))
