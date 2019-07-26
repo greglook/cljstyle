@@ -100,7 +100,8 @@
   (is (= "#(foo bar\n      baz)"
          (reformat-string "#(foo bar\nbaz)")))
   (is (= "#(foo bar\n   baz)"
-         (reformat-string "#(foo bar\nbaz)" '{:indents {foo [[:block 1]]}}))))
+         (reformat-string "#(foo bar\nbaz)"
+                          {:indents '{foo [[:block 1]]}}))))
 
 
 (deftest comment-handling

@@ -65,4 +65,6 @@
  with-open       [[:block 1]]
  with-out-str    [[:block 0]]
  with-precision  [[:block 1]]
- with-redefs     [[:block 1]]}
+ with-redefs     [[:block 1]]
+ #"^def"         [[:inner 0]]
+ #"^with-"       [[:inner 0]]}

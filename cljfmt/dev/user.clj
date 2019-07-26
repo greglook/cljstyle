@@ -1,6 +1,7 @@
 (ns user
   (:require
-    [cljfmt.core :as core]
+    [cljfmt.config :as config]
+    [cljfmt.core :as cljfmt]
     [cljfmt.zloc :as zl]
     [clojure.java.io :as io]
     [clojure.repl :refer :all]
