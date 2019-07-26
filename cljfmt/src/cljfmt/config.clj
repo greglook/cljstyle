@@ -229,7 +229,7 @@
   The search will terminate after `limit` recursions or once it hits the
   filesystem root or a directory not owned by the user."
   [dir limit]
-  {:pre [(directory? dir) (pos-int? limit)]}
+  {:pre [(pos-int? limit)]}
   (loop [configs ()
          dir (.getAbsoluteFile (io/file dir))
          limit limit]

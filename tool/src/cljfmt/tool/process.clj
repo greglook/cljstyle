@@ -13,6 +13,19 @@
       TimeUnit)))
 
 
+(defn- relativize-path
+  "Generate a canonical path to the given file from a relative root."
+  [^File root ^File file]
+  (-> (.getCanonicalFile root)
+      (.toURI)
+      (.relativize (.toURI file))
+      (as-> uri
+        (if (= "." (.getPath root))
+          uri
+          (io/file root (.getPath uri))))
+      (.getPath)))
+
+
 (defn- report-result!
   "Report task results in a shared map and take any associated side-effects."
   [results result]
@@ -50,9 +63,7 @@
   "Construct a `RecursiveAction` representing the work to process a subtree or
   source file `file`."
   [process! results config ^File root ^File file]
-  (let [path (-> (.toURI root)
-                 (.relativize (.toURI file))
-                 (.getPath))
+  (let [path (relativize-path root file)
         report! (fn report!
                   [data]
                   (let [result (assoc data :file file :path path)]

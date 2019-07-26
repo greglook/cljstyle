@@ -5,7 +5,7 @@
     [cljfmt.config :as config]
     [cljfmt.core :as cljfmt]
     [cljfmt.tool.diff :as diff]
-    [cljfmt.tool.process :refer [walk-files!]]
+    [cljfmt.tool.process :as process]
     [cljfmt.tool.util :as u]
     [clojure.java.io :as io]
     [clojure.pprint :refer [pprint]]
@@ -42,10 +42,10 @@
 ;; ## Utilities
 
 (defn- search-roots
-  "Convert the list of paths into a collection of canonical search roots. If
-  the path list is empty, uses the local directory as a single root."
+  "Convert the list of paths into a collection of search roots. If the path
+  list is empty, uses the local directory as a single root."
   [paths]
-  (mapv #(.getCanonicalFile (io/file %)) (or (seq paths) ["."])))
+  (mapv io/file (or (seq paths) ["."])))
 
 
 (defn- load-configs
@@ -60,6 +60,18 @@
       (u/logf "Using default cljfmt configuration for %s"
               (.getPath file)))
     (apply config/merge-settings config/default-config configs)))
+
+
+(defn- walk-files!
+  "Walk source files and apply the processing function to each."
+  [f paths]
+  (->>
+    (search-roots paths)
+    (pmap (fn prep-root
+            [^File root]
+            (let [canonical (.getCanonicalFile root)]
+              [(load-configs canonical) root canonical])))
+    (process/walk-files! f)))
 
 
 
@@ -84,18 +96,13 @@
 (defn- find-sources
   "Implementation of the `find` command."
   [paths]
-  (->
-    (->>
-      (search-roots paths)
-      (pmap (juxt load-configs identity identity))
-      (walk-files! find-source))
-    (as-> results
-      (let [counts (:counts results)
-            total (apply + (vals counts))]
-        (u/logf "Searched %d files in %.2f ms"
-                total
-                (:elapsed results -1.0))
-        (u/log (pr-str counts))))))
+  (let [results (walk-files! find-source paths)
+        counts (:counts results)
+        total (apply + (vals counts))]
+    (u/logf "Searched %d files in %.2f ms"
+            total
+            (:elapsed results -1.0))
+    (u/log (pr-str counts))))
 
 
 
@@ -129,25 +136,20 @@
 (defn- check-sources
   "Implementation of the `check` command."
   [paths]
-  (->
-    (->>
-      (search-roots paths)
-      (pmap (juxt load-configs identity identity))
-      (walk-files! (partial check-source u/*options*)))
-    (as-> results
-      (let [counts (:counts results)
-            total (apply + (vals counts))]
-        (u/logf "Checked %d files in %.2f ms"
-                total
-                (:elapsed results -1.0))
-        (u/log (pr-str counts))
-        (when-not (empty? (:errors results))
-          (u/printerrf "Failed to process %d files" (count (:errors results)))
-          (System/exit 3))
-        (when-not (zero? (:incorrect counts 0))
-          (u/printerrf "%d files formatted incorrectly" (:incorrect counts))
-          (System/exit 2))
-        (u/logf "All %d files formatted correctly" (:correct counts))))))
+  (let [results (walk-files! (partial check-source u/*options*) paths)
+        counts (:counts results)
+        total (apply + (vals counts))]
+    (u/logf "Checked %d files in %.2f ms"
+            total
+            (:elapsed results -1.0))
+    (u/log (pr-str counts))
+    (when-not (empty? (:errors results))
+      (u/printerrf "Failed to process %d files" (count (:errors results)))
+      (System/exit 3))
+    (when-not (zero? (:incorrect counts 0))
+      (u/printerrf "%d files formatted incorrectly" (:incorrect counts))
+      (System/exit 2))
+    (u/logf "All %d files formatted correctly" (:correct counts))))
 
 
 
@@ -178,24 +180,19 @@
 (defn- fix-sources
   "Implementation of the `fix` command."
   [paths]
-  (->
-    (->>
-      (search-roots paths)
-      (pmap (juxt load-configs identity identity))
-      (walk-files! (partial fix-source u/*options*)))
-    (as-> results
-      (let [counts (:counts results)
-            total (apply + (vals counts))]
-        (u/logf "Checked %d files in %.2f ms"
-                total
-                (:elapsed results -1.0))
-        (u/log (pr-str counts))
-        (when-not (empty? (:errors results))
-          (u/printerrf "Failed to process %d files" (count (:errors results)))
-          (System/exit 3))
-        (if (zero? (:fixed counts 0))
-          (u/logf "All %d files formatted correctly" (:correct counts))
-          (u/printerrf "Corrected formatting of %d files" (:fixed counts)))))))
+  (let [results (walk-files! (partial fix-source u/*options*) paths)
+        counts (:counts results)
+        total (apply + (vals counts))]
+    (u/logf "Checked %d files in %.2f ms"
+            total
+            (:elapsed results -1.0))
+    (u/log (pr-str counts))
+    (when-not (empty? (:errors results))
+      (u/printerrf "Failed to process %d files" (count (:errors results)))
+      (System/exit 3))
+    (if (zero? (:fixed counts 0))
+      (u/logf "All %d files formatted correctly" (:correct counts))
+      (u/printerrf "Corrected formatting of %d files" (:fixed counts)))))
 
 
 
@@ -258,7 +255,7 @@
   "Main entry point."
   [& raw-args]
   (let [parsed (cli/parse-opts raw-args cli-options)
-        [command args] (parsed :arguments)
+        [command & args] (parsed :arguments)
         options (parsed :options)]
     ;; Print any option parse errors and abort.
     (when-let [errors (parsed :errors)]
