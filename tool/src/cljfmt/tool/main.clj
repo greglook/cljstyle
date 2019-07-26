@@ -28,7 +28,8 @@
   (println "Usage: cljfmt [options] <command> [args...]")
   (newline)
   (println "Commands:")
-  (println "    check     Find files with formatting errors and print a diff.")
+  (println "    find      Find files which would be processed.")
+  (println "    check     Check source files and print a diff for errors.")
   (println "    fix       Edit source files to fix formatting errors.")
   (println "    config    Show config used for a given path.")
   (println "    version   Print program version information.")
@@ -59,6 +60,42 @@
       (u/logf "Using default cljfmt configuration for %s"
               (.getPath file)))
     (apply config/merge-settings config/default-config configs)))
+
+
+
+;; ## Find Command
+
+(defn- print-find-usage
+  "Print help for the find command."
+  []
+  (println "Usage: cljfmt [options] find [paths...]")
+  (newline)
+  (println "Search for files which would be checked for errors. Prints the relative")
+  (println "path to each file."))
+
+
+(defn- find-source
+  "Print information about a single source file."
+  [config path file]
+  {:type :found
+   :info path})
+
+
+(defn- find-sources
+  "Implementation of the `find` command."
+  [paths]
+  (->
+    (->>
+      (search-roots paths)
+      (pmap (juxt load-configs identity identity))
+      (walk-files! find-source))
+    (as-> results
+      (let [counts (:counts results)
+            total (apply + (vals counts))]
+        (u/logf "Searched %d files in %.2f ms"
+                total
+                (:elapsed results -1.0))
+        (u/log (pr-str counts))))))
 
 
 
@@ -232,6 +269,7 @@
     ;; Show help for general usage or a command.
     (when (:help options)
       (case command
+        "find"   (print-find-usage)
         "check"  (print-check-usage)
         "fix"    (print-fix-usage)
         "config" (print-config-usage)
@@ -247,6 +285,7 @@
     (try
       (binding [u/*options* options]
         (case command
+          "find"    (find-sources args)
           "check"   (check-sources args)
           "fix"     (fix-sources args)
           "config"  (show-config args)
