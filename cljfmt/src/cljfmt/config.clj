@@ -160,8 +160,18 @@
 (defn ignored?
   "True if the file should be ignored."
   [config ^File file]
-  ;; FIXME: implement
-  false)
+  (some
+    (fn test-rule
+      [rule]
+      (cond
+        (string? rule)
+        (= rule (.getName file))
+
+        (pattern? rule)
+        (boolean (re-seq rule (.getCanonicalPath file)))
+
+        :else false))
+    (:file-ignore config)))
 
 
 
