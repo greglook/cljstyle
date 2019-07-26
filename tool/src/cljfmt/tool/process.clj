@@ -92,7 +92,7 @@
                  :error ex})))
 
           :else
-          (report! {:type :unknown}))))))
+          (report! {:type :unrelated}))))))
 
 
 (defn walk-files!
