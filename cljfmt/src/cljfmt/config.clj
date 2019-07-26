@@ -185,14 +185,24 @@
   "Read a configuration file. Throws an exception if the read fails or the
   contents are not valid configuration settings."
   [^File file]
-  (let [config (read-string (slurp file))
-        path (.getAbsolutePath file)]
-    (if (s/valid? ::settings config)
-      (vary-meta config assoc ::path path)
-      (throw (ex-info (str "Invalid configuration loaded from file: " path
-                           "\n" (s/explain-str ::settings config))
-                      {:type ::invalid
-                       :path path})))))
+  (let [path (.getAbsolutePath file)]
+    (->
+      (try
+        (read-string (slurp file))
+        (catch Exception ex
+          (throw (ex-info (str "Error loading configuration from file: "
+                               path "\n" (.getSimpleName (class ex))
+                               ": " (.getMessage ex))
+                          {:type ::invalid
+                           :path path}
+                          ex))))
+      (as-> config
+        (if (s/valid? ::settings config)
+          (vary-meta config assoc ::path path)
+          (throw (ex-info (str "Invalid configuration loaded from file: " path
+                               "\n" (s/explain-str ::settings config))
+                          {:type ::invalid
+                           :path path})))))))
 
 
 (defn source-path

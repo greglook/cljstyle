@@ -111,5 +111,5 @@
   [^Throwable tr]
   (print-stack-trace tr)
   (when-let [cause (.getCause tr)]
-    (print "Caused by: " )
+    (print "Caused by: ")
     (recur cause)))

@@ -295,7 +295,9 @@
             (System/exit 1))))
       (catch Exception ex
         (binding [*out* *err*]
-          (u/print-cause-trace ex)
+          (if (= ::config/invalid (:type (ex-data ex)))
+            (println (.getMessage ex))
+            (u/print-cause-trace ex))
           (flush)
           (System/exit 4))))
     ;; Successful tool run if no other exit.
