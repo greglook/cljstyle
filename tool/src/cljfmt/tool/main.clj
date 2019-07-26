@@ -7,6 +7,7 @@
     [cljfmt.tool.diff :as diff]
     [cljfmt.tool.process :refer [walk-files!]]
     [clojure.java.io :as io]
+    [clojure.stacktrace :as st]
     [clojure.string :as str]
     [clojure.tools.cli :as cli]
     [clojure.pprint :refer [pprint]])
@@ -44,13 +45,19 @@
   {})
 
 
+(defn- printerr
+  "Print a message to standard error."
+  [message & fmt-args]
+  (binding [*out* *err*]
+    (apply printf (str message "\n") fmt-args)
+    (flush)))
+
+
 (defn- log
   "Log a message which will only be printed when --verbose is set."
   [message & fmt-args]
   (when (:verbose *options*)
-    (binding [*out* *err*]
-      (apply printf (str message "\n") fmt-args)
-      (flush)))
+    (apply printerr message fmt-args))
   nil)
 
 
@@ -112,8 +119,19 @@
       (pmap (juxt load-configs identity identity))
       (walk-files! (partial check-source *options*)))
     (as-> results
-      ;; TODO: final report/exit status
-      (prn :done (select-keys results [:counts :elapsed])))))
+      (let [counts (:counts results)
+            total (apply + (vals counts))]
+        (log "Checked %d files in %.2f ms"
+             total
+             (:elapsed results -1.0))
+        (log (pr-str counts))
+        (when-not (empty? (:errors results))
+          (printerr "Failed to process %d files\n" (count (:errors results)))
+          (System/exit 3))
+        (when-not (zero? (:incorrect counts 0))
+          (printerr "%d files formatted incorrectly" (:incorrect counts))
+          (System/exit 2))
+        (log "All %d files formatted correctly" (:correct counts))))))
 
 
 
@@ -200,6 +218,7 @@
     (when-let [errors (parsed :errors)]
       (binding [*out* *err*]
         (run! println errors)
+        (flush)
         (System/exit 1)))
     ;; Show help for general usage or a command.
     (when (:help options)
@@ -216,14 +235,20 @@
       (flush)
       (System/exit 1))
     ;; Execute requested command.
-    (binding [*options* options]
-      (case command
-        "check"   (check-sources args)
-        "fix"     (fix-sources args)
-        "config"  (show-config args)
-        "version" (print-version args)
+    (try
+      (binding [*options* options]
+        (case command
+          "check"   (check-sources args)
+          "fix"     (fix-sources args)
+          "config"  (show-config args)
+          "version" (print-version args)
+          (binding [*out* *err*]
+            (println "Unknown cljfmt command:" command)
+            (System/exit 1))))
+      (catch Exception ex
         (binding [*out* *err*]
-          (println "Unknown cljfmt command:" command)
-          (System/exit 1))))
+          (st/print-stack-trace ex)
+          (flush)
+          (System/exit 4))))
     ;; Successful tool run if no other exit.
     (System/exit 0)))

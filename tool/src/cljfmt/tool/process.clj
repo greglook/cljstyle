@@ -13,14 +13,6 @@
       TimeUnit)))
 
 
-;; Goals here:
-;; - check vs fix shouldn't have to care about reporting errors
-;; - tool output needs to be coordinated so multiple threads don't step on each other
-;; - tasks should get standard result map to deal with afterwards
-;; - check needs to print diffs
-;; - fix needs to print actions
-
-
 (defn- report-result!
   "Report task results in a shared map and take any associated side-effects."
   [results result]
