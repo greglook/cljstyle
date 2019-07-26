@@ -186,6 +186,12 @@
                        :path path})))))
 
 
+(defn source-path
+  "Return the path a given configuration map was read from."
+  [config]
+  (::path (meta config)))
+
+
 (defn dir-config
   "Return the map of cljfmt configuration from the file in the given directory,
   if it exists and is readable. Returns nil if the configuration is not present

@@ -54,5 +54,4 @@
     (process/walk-files!
       test-process
       test-report
-      config
-      ["."])))
+      [[config "."]])))

@@ -11,11 +11,15 @@
    [mvxcvi/cljfmt "0.7.1-SNAPSHOT"]
    [com.googlecode.java-diff-utils/diffutils "1.2.1"]]
 
+  :main cljfmt.tool.main
+
   :profiles
   {:repl
    {:source-paths ["dev"]
     :dependencies
-    [[org.clojure/tools.namespace "0.3.0"]]}
+    [[org.clojure/tools.namespace "0.3.0"]]
+    :repl-options
+    {:init-ns user}}
 
    :svm
    {;:java-source-paths ["svm/java"]
@@ -25,5 +29,4 @@
    :uberjar
    {:target-path "target/uberjar"
     :uberjar-name "cljfmt.jar"
-    :main cljfmt.tool.main
     :aot :all}})
