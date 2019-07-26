@@ -2,7 +2,7 @@
   (:require
     [cljfmt.config :as config]
     [cljfmt.core :as cljfmt]
-    [cljfmt.process :as process]
+    [cljfmt.tool.process :as process]
     [clojure.java.io :as io]
     [clojure.repl :refer :all]
     [clojure.string :as str]

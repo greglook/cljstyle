@@ -7,10 +7,9 @@
     [cljfmt.tool.diff :as diff]
     [cljfmt.tool.process :refer [walk-files!]]
     [clojure.java.io :as io]
-    [clojure.stacktrace :as st]
+    [clojure.pprint :refer [pprint]]
     [clojure.string :as str]
-    [clojure.tools.cli :as cli]
-    [clojure.pprint :refer [pprint]])
+    [clojure.tools.cli :as cli])
   (:import
     java.io.File))
 
