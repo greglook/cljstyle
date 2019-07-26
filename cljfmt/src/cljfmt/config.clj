@@ -44,9 +44,8 @@
 
 
 (s/def ::indenter
-  (s/and (s/cat :type simple-keyword?
-                :args (s/+ nat-int?))
-         vector?))
+  (s/cat :type simple-keyword?
+         :args (s/+ nat-int?)))
 
 
 (s/def ::indent-rule
