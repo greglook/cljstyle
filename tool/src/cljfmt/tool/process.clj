@@ -20,10 +20,10 @@
       (.toURI)
       (.relativize (.toURI file))
       (as-> uri
-        (if (= "." (.getPath root))
-          uri
-          (io/file root (.getPath uri))))
-      (.getPath)))
+        (let [path (.getPath ^java.net.URI uri)]
+          (if (= "." (.getPath root))
+            path
+            (.getPath (io/file root path)))))))
 
 
 (defn- report-result!
