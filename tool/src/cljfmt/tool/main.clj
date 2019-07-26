@@ -145,11 +145,41 @@
   (println "Edit source files in place to correct formatting errors."))
 
 
+(defn- fix-source
+  "Fix a single source file and produce a result."
+  [options config path ^File file]
+  (let [original (slurp file)
+        revised (cljfmt/reformat-string original config)]
+    (if (= original revised)
+      {:type :correct
+       :debug (str "Source file " path " is  formatted correctly")}
+      (do
+        (spit file revised)
+        {:type :fixed
+         :info (str "Reformatting source file " path)}))))
+
+
 (defn- fix-sources
   "Implementation of the `fix` command."
   [paths]
-  ;; FIXME: implement
-  (throw (RuntimeException. "NYI")))
+  (->
+    (->>
+      (search-roots paths)
+      (pmap (juxt load-configs identity identity))
+      (walk-files! (partial fix-source *options*)))
+    (as-> results
+      (let [counts (:counts results)
+            total (apply + (vals counts))]
+        (log "Checked %d files in %.2f ms"
+             total
+             (:elapsed results -1.0))
+        (log (pr-str counts))
+        (when-not (empty? (:errors results))
+          (printerr "Failed to process %d files\n" (count (:errors results)))
+          (System/exit 3))
+        (if (zero? (:fixed counts 0))
+          (log "All %d files formatted correctly" (:correct counts))
+          (printerr "Corrected formatting of %d files" (:fixed counts)))))))
 
 
 
