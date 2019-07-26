@@ -1,19 +1,13 @@
 (ns cljfmt.tool.diff
   "Diff-handling code for cljfmt fixes."
   (:require
+    [cljfmt.tool.util :refer [colorize]]
     [clojure.java.io :as io]
     [clojure.string :as str])
   (:import
     (difflib
-      DiffUtils
-      Delta$TYPE)))
-
-
-(def ^:private ansi-codes
-  {:reset "[0m"
-   :red   "[031m"
-   :green "[032m"
-   :cyan  "[036m"})
+      Delta$TYPE
+      DiffUtils)))
 
 
 (defn- split-lines
@@ -38,13 +32,6 @@
       (split-lines original)
       (DiffUtils/diff (split-lines original) (split-lines revised))
       3)))
-
-
-(defn- colorize
-  "Wrap the string in ANSI escape sequences to render the named color."
-  [s color]
-  {:pre [(ansi-codes color)]}
-  (str \u001b (ansi-codes color) s \u001b (ansi-codes :reset)))
 
 
 (defn colorize-diff

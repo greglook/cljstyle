@@ -2,8 +2,8 @@
   "Code for discovering and processing source files."
   (:require
     [cljfmt.config :as config]
-    [clojure.java.io :as io]
-    [clojure.stacktrace :as st])
+    [cljfmt.tool.util :as u]
+    [clojure.java.io :as io])
   (:import
     java.io.File
     (java.util.concurrent
@@ -19,33 +19,30 @@
   ;; Side effects.
   (when-let [message (:debug result)]
     (when (:verbose results)
-      (binding [*out* *err*]
-        (println message)
-        (flush))))
+      (u/printerr message)))
   (when-let [message (:info result)]
     (println message)
     (flush))
   (when-let [message (:warn result)]
-    (binding [*out* *err*]
-      (println message)
-      (flush)))
+    (u/printerr message))
   (when-let [^Exception ex (:error result)]
     (binding [*out* *err*]
       (if (:verbose results)
-        (st/print-stack-trace ex)
-        (printf "%s: %s\n"
-                (.getSimpleName (class ex))
-                (.getMessage ex)))
+        (u/print-cause-trace ex)
+        (u/print-throwable ex))
       (flush)))
   ;; Update results map.
-  (let [result-type (:type result)]
+  (let [result-type (:type result)
+        ignored-type? #{:unrelated :ignored}
+        error-type? #{:process-error :search-error}]
     (-> results
         (update-in [:counts result-type] (fnil inc 0))
         (cond->
-          (contains? #{:correct :malformed} result-type)
+          (and (not (ignored-type? result-type))
+               (not (error-type? result-type)))
           (assoc-in [:results (:path result)] result)
 
-          (contains? #{:process-error :search-error} result-type)
+          (error-type? result-type)
           (assoc-in [:errors (:path result)] result)))))
 
 
@@ -122,7 +119,6 @@
                       {})))
     (send results identity)
     (when-not (await-for 5000 results)
-      (binding [*out* *err*]
-        (println "WARNING: results not fully reported after 5 second timeout")))
+      (u/printerr "WARNING: results not fully reported after 5 second timeout"))
     (let [elapsed (/ (- (System/nanoTime) start) 1e6)]
       (assoc @results :elapsed elapsed))))

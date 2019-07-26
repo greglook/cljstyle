@@ -6,6 +6,7 @@
     [cljfmt.core :as cljfmt]
     [cljfmt.tool.diff :as diff]
     [cljfmt.tool.process :refer [walk-files!]]
+    [cljfmt.tool.util :as u]
     [clojure.java.io :as io]
     [clojure.pprint :refer [pprint]]
     [clojure.string :as str]
@@ -39,27 +40,6 @@
 
 ;; ## Utilities
 
-(def ^:dynamic *options*
-  "Configuration options."
-  {})
-
-
-(defn- printerr
-  "Print a message to standard error."
-  [message & fmt-args]
-  (binding [*out* *err*]
-    (apply printf (str message "\n") fmt-args)
-    (flush)))
-
-
-(defn- log
-  "Log a message which will only be printed when --verbose is set."
-  [message & fmt-args]
-  (when (:verbose *options*)
-    (apply printerr message fmt-args))
-  nil)
-
-
 (defn- search-roots
   "Convert the list of paths into a collection of canonical search roots. If
   the path list is empty, uses the local directory as a single root."
@@ -72,12 +52,12 @@
   [^File file]
   (let [configs (config/find-parents file 20)]
     (if (seq configs)
-      (log "Using cljfmt configuration from %d sources for %s:\n%s"
-           (count configs)
-           (.getPath file)
-           (str/join "\n" (map config/source-path configs)))
-      (log "Using default cljfmt configuration for %s"
-           (.getPath file)))
+      (u/logf "Using cljfmt configuration from %d sources for %s:\n%s"
+              (count configs)
+              (.getPath file)
+              (str/join "\n" (map config/source-path configs)))
+      (u/logf "Using default cljfmt configuration for %s"
+              (.getPath file)))
     (apply config/merge-settings config/default-config configs)))
 
 
@@ -116,21 +96,21 @@
     (->>
       (search-roots paths)
       (pmap (juxt load-configs identity identity))
-      (walk-files! (partial check-source *options*)))
+      (walk-files! (partial check-source u/*options*)))
     (as-> results
       (let [counts (:counts results)
             total (apply + (vals counts))]
-        (log "Checked %d files in %.2f ms"
-             total
-             (:elapsed results -1.0))
-        (log (pr-str counts))
+        (u/logf "Checked %d files in %.2f ms"
+                total
+                (:elapsed results -1.0))
+        (u/log (pr-str counts))
         (when-not (empty? (:errors results))
-          (printerr "Failed to process %d files\n" (count (:errors results)))
+          (u/printerrf "Failed to process %d files" (count (:errors results)))
           (System/exit 3))
         (when-not (zero? (:incorrect counts 0))
-          (printerr "%d files formatted incorrectly" (:incorrect counts))
+          (u/printerrf "%d files formatted incorrectly" (:incorrect counts))
           (System/exit 2))
-        (log "All %d files formatted correctly" (:correct counts))))))
+        (u/logf "All %d files formatted correctly" (:correct counts))))))
 
 
 
@@ -165,20 +145,20 @@
     (->>
       (search-roots paths)
       (pmap (juxt load-configs identity identity))
-      (walk-files! (partial fix-source *options*)))
+      (walk-files! (partial fix-source u/*options*)))
     (as-> results
       (let [counts (:counts results)
             total (apply + (vals counts))]
-        (log "Checked %d files in %.2f ms"
-             total
-             (:elapsed results -1.0))
-        (log (pr-str counts))
+        (u/logf "Checked %d files in %.2f ms"
+                total
+                (:elapsed results -1.0))
+        (u/log (pr-str counts))
         (when-not (empty? (:errors results))
-          (printerr "Failed to process %d files\n" (count (:errors results)))
+          (u/printerrf "Failed to process %d files" (count (:errors results)))
           (System/exit 3))
         (if (zero? (:fixed counts 0))
-          (log "All %d files formatted correctly" (:correct counts))
-          (printerr "Corrected formatting of %d files" (:fixed counts)))))))
+          (u/logf "All %d files formatted correctly" (:correct counts))
+          (u/printerrf "Corrected formatting of %d files" (:fixed counts)))))))
 
 
 
@@ -265,7 +245,7 @@
       (System/exit 1))
     ;; Execute requested command.
     (try
-      (binding [*options* options]
+      (binding [u/*options* options]
         (case command
           "check"   (check-sources args)
           "fix"     (fix-sources args)
@@ -276,7 +256,7 @@
             (System/exit 1))))
       (catch Exception ex
         (binding [*out* *err*]
-          (st/print-stack-trace ex)
+          (u/print-cause-trace ex)
           (flush)
           (System/exit 4))))
     ;; Successful tool run if no other exit.
