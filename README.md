@@ -84,7 +84,13 @@ The `config` command will show what configuration settings cljfmt would use to
 process the specified files or files in the current directory:
 
 ```
-cljfmt config [path...]
+cljfmt config [path]
+```
+
+Finally, `version` will show what version of the tool you're using:
+
+```
+cljfmt version
 ```
 
 

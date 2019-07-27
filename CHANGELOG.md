@@ -7,6 +7,10 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+...
+
+## [0.8.0] - 2019-07-27
+
 This is a significant release which revamps the tooling entirely. Instead of a
 Leiningen plugin, the tool is now a stand-alone native binary compiled with
 Graal.
@@ -35,5 +39,6 @@ functionality.
 
 Legacy project release.
 
-[Unreleased]: https://github.com/greglook/cljfmt/compare/0.7.0...HEAD
+[Unreleased]: https://github.com/greglook/cljfmt/compare/0.8.0...HEAD
+[0.8.0]: https://github.com/greglook/cljfmt/compare/0.7.0...0.8.0
 [0.7.0]: https://github.com/greglook/cljfmt/compare/0.5.6...0.7.0
