@@ -1,4 +1,4 @@
-(defproject mvxcvi/cljfmt-tool "0.8.0-SNAPSHOT"
+(defproject mvxcvi/cljfmt-tool "0.8.0"
   :description "An executable tool for running cljfmt."
   :url "https://github.com/greglook/cljfmt"
   :scm {:dir ".."}
@@ -8,7 +8,7 @@
   :dependencies
   [[org.clojure/clojure "1.9.0"]
    [org.clojure/tools.cli "0.4.2"]
-   [mvxcvi/cljfmt "0.8.0-SNAPSHOT"]
+   [mvxcvi/cljfmt "0.8.0"]
    [com.googlecode.java-diff-utils/diffutils "1.2.1"]]
 
   :main cljfmt.tool.main
