@@ -4,7 +4,7 @@ cljfmt
 [![CircleCI](https://circleci.com/gh/greglook/cljfmt.svg?style=shield&circle-token=9576040ebe39e81406823481c98dc55a39d03c4d)](https://circleci.com/gh/greglook/cljfmt)
 [![codecov](https://codecov.io/gh/greglook/cljfmt/branch/master/graph/badge.svg)](https://codecov.io/gh/greglook/cljfmt)
 
-cljfmt is a tool for formatting Clojure code.
+`cljfmt` is a tool for formatting Clojure code.
 
 It can turn something like this:
 
@@ -27,116 +27,179 @@ Into nicely formatted Clojure code like this:
 
 ## Installation
 
-Library releases are published on Clojars. To use the latest version with
-Leiningen, add the following plugin to your project definition:
-
-[![Clojars Project](http://clojars.org/mvxcvi/lein-cljfmt/latest-version.svg)](http://clojars.org/mvxcvi/lein-cljfmt)
+Releases are published on the [GitHub project](https://github.com/greglook/cljfmt/releases).
+The native binaries are self-contained, so to install them simply place them on
+your path.
 
 
 ## Usage
 
+The `cljfmt` tool supports several different commands for checking source files.
+
+### Check and Fix
+
 To check the formatting of your source files, use:
 
-    lein cljfmt check
+```
+cljfmt check
+```
 
-If the formatting of any source file is incorrect, a diff will be
-supplied showing the problem, and what cljfmt thinks it should be.
+If the formatting of any source file is incorrect, a diff will be supplied
+showing the problem, and what cljfmt thinks it should be.
 
 If you want to check only a specific file, or several specific files,
 you can do that, too:
 
-    lein cljfmt check src/foo/core.clj
+```
+cljfmt check src/foo/core.clj
+```
 
-Once you've identified formatting issues, you can choose to ignore
-them, fix them manually, or let cljfmt fix them with:
+Once you've identified formatting issues, you can choose to ignore them, fix
+them manually, or let cljfmt fix them with:
 
-    lein cljfmt fix
+```
+cljfmt fix
+```
 
 As with the `check` task, you can choose to fix a specific file:
 
-    lein cljfmt fix src/foo/core.clj
+```
+cljfmt fix src/foo/core.clj
+```
 
+### Debugging
 
-## Editor Support
+For inspecting what cljfmt is doing, one tool is to specify the `--verbose`
+flag, which will cause additional debugging output to be printed. There are also
+a few extra commands which can help understand what's happening.
 
-* [vim-cljfmt](https://github.com/venantius/vim-cljfmt)
-* [CIDER 0.9+](https://github.com/clojure-emacs/cider)
+The `find` command will print what files would be checked by cljfmt. It will
+print each file path to standard output on a new line:
+
+```
+cljfmt find [path...]
+```
+
+The `config` command will show what configuration settings cljfmt would use to
+process the specified files or files in the current directory:
+
+```
+cljfmt config [path]
+```
+
+Finally, `version` will show what version of the tool you're using:
+
+```
+cljfmt version
+```
 
 
 ## Configuration
 
-You can configure lein-cljfmt by adding a `:cljfmt` map to your
-project:
+The `cljfmt` tool comes with a sensible set of default configuration built-in,
+and reads additional configuration from `.cljfmt` files which may be placed
+in any directories to control cljfmt's behavior on files in those subtrees.
+These files are regular Clojure files which should contain a map of settings to
+use:
 
 ```clojure
-:cljfmt {}
+;; cljfmt configuration
+{:max-blank-lines 3
+ :file-ignore #{"checkouts" "target"}}
 ```
 
-cljfmt has several different formatting rules, and these can be
-selectively enabled or disabled:
+When `cljfmt` is run, it searches upwards in the filesystem to find parent
+configuration, and as it searches in directories it will merge in local config
+files. For example, in a tree like the following:
 
-* `:indentation?` -
-  true if cljfmt should correct the indentation of your code.
-  Defaults to true.
+```
+a
+├── .cljfmt
+└── b
+    ├── c
+    │   ├── .cljfmt
+    │   └── foo.clj
+    └── d
+        ├── .cljfmt
+        └── e
+            └── bar.clj
+```
 
-* `:remove-surrounding-whitespace?` -
-  true if cljfmt should remove whitespace surrounding inner
-  forms. This will convert `(  foo  )` to `(foo)`.
-  Defaults to true.
+Running `cljfmt` in directory `c` would use `a/.cljfmt` as the base
+configuration and would combine in the `a/b/c/.cljfmt` configuration to check
+`foo.clj`. Running it directly from directory `e` would look upwards and use the
+combination of `a/.cljfmt` and `a/b/d/.cljfmt` for `bar.clj`.
 
-* `:remove-trailing-whitespace?` -
-  true if cljfmt should remove trailing whitespace in lines. This will
-  convert `(foo)   \n` to `(foo)\n`. Defaults to true.
+Configuration maps are merged together in depth-order, so that more local
+settings take precedence. As with Leiningen profiles, you can add metadata
+hints. If you want to override all existing indents, instead of just supplying
+new indents that are merged with the defaults, you can use the `:replace` hint:
 
-* `:insert-missing-whitespace?` -
-  true if cljfmt should insert whitespace missing from between
-  elements. This will convert `(foo(bar))` to `(foo (bar))`.
-  Defaults to true.
+```clojure
+{:indents ^:replace {#".*" [[:inner 0]]}}
+```
 
-* `:remove-consecutive-blank-lines?` -
-  true if cljfmt should collapse consecutive blank lines. Any runs of empty
+### File Settings
+
+You can configure the way `cljfmt` looks for source files with the following
+settings:
+
+* `:file-pattern`
+  Pattern to match against filenames to determine which files to check. Includes
+  all Clojure, ClojureScript, and cross-compiled files by default.
+
+* `:file-ignore`
+  Set of strings or patterns of files to ignore. Strings are matched against
+  file and directory names exactly; patterns are matched against the entire
+  (relative) file path. Ignored files will not be checked and ignored
+  directories will not be recursed into.
+
+### Format Rules
+
+`cljfmt` has many formatting rules, and these can be selectively enabled or
+disabled:
+
+* `:indentation?`
+  True if cljfmt should correct the indentation of your code.
+
+* `:remove-surrounding-whitespace?`
+  True if cljfmt should remove whitespace surrounding inner forms. This will
+  convert `(  foo  )` to `(foo)`.
+
+* `:remove-trailing-whitespace?`
+  True if cljfmt should remove trailing whitespace in lines. This will convert
+  `(foo)   \n` to `(foo)\n`.
+
+* `:insert-missing-whitespace?`
+  True if cljfmt should insert whitespace missing from between elements. This
+  will convert `(foo(bar))` to `(foo (bar))`.
+
+* `:remove-consecutive-blank-lines?`
+  True if cljfmt should collapse consecutive blank lines. Any runs of empty
   lines longer than `:max-consecutive-blank-lines` will be truncated to the
-  configured limit. Defaults to enabled with limit 2. This will convert
+  configured limit. The default limit is 2. This will convert
   `(foo)\n\n\n\n(bar)` to `(foo)\n\n\n(bar)`.
 
-* `:insert-padding-lines?` -
+* `:insert-padding-lines?`
   Whether cljfmt should insert blank lines between certain top-level forms. Any
   multi-line form will be padded with at least `:padding-lines` empty lines
-  between it and other non-comment forms. Defaults to enabled with 2 lines.
+  between it and other non-comment forms. The defaults is 2 lines.
 
-* `:rewrite-namespaces?` -
+* `:rewrite-namespaces?`
   Whether cljfmt should rewrite namespace forms to standardize their layout.
-  Defaults to true.
 
-* `:single-import-break-width` -
+* `:single-import-break-width`
   Control the threshold for breaking a single class import into a package import
   group. If the combined package and class name would be longer than this limit,
   it is represented as a group, otherwise it is inlined into a qualified class
   symbol.
 
-You can also configure the behavior of cljfmt:
-
-* `:file-pattern` -
-  determines which files to scan, `#”\.clj[sx]?$”` by default.
-
-* `:indents` -
-  a map of var symbols to indentation rules, i.e. `{symbol [& rules]}`.
-  See the next section for a detailed explanation.
-
-As with Leiningen profiles, you can add metadata hints. If you want to
-override all existing indents, instead of just supplying new indents
-that are merged with the defaults, you can use the `:replace` hint:
-
-```clojure
-:cljfmt {:indents ^:replace {#".*" [[:inner 0]]}}
-```
-
-
 ### Indentation rules
 
-There are a few types of indentation rules that can be applied to forms. Each
-rule is specified with either a symbol or a regular expression pattern. Rules
-are matched against forms in the following order:
+There are a few types of indentation rules that can be applied to forms. These
+are configured by a map of rule targets to indenters. Each rule is specified
+with either a symbol or a regular expression pattern. Rules are matched against
+forms in the following order:
 
 1. Check the qualified form symbol against the rule, including namespace.
 2. Check the _name_ of the form symbol against the rule symbol.
@@ -258,14 +321,4 @@ of indentation if they are on their own line:
 By default, cljfmt will ignore forms which are wrapped in a `(comment ...)` form
 or preceeded by the discard macro `#_`. You can also optionally disable
 formatting rules from matching a form by tagging it with `^:cljfmt/ignore`
-metadata.
-
-
-## License
-
-<!-- TODO: how to adapt this copyright? -->
-
-Copyright © 2016 James Reeves
-
-Distributed under the Eclipse Public License either version 1.0 or (at
-your option) any later version.
+metadata - this is often useful for macros.
