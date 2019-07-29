@@ -1,8 +1,6 @@
 # Build file for cljfmt
 
-.PHONY: setup clean uberjar package
-
-all: package
+.PHONY: all clean setup package
 
 uberjar_path := target/uberjar/cljfmt.jar
 version := $(shell grep defproject project.clj | cut -d ' ' -f 3 | tr -d \")
@@ -13,19 +11,18 @@ ifndef GRAAL_PATH
 $(error GRAAL_PATH is not set)
 endif
 
-setup:
-	lein deps
+all: package
 
 clean:
 	rm -rf target dist cljfmt
 
-$(uberjar_path): src/**/* svm/java/**/*
-	lein with-profile +svm uberjar
+setup:
+	lein deps
 
-uberjar: $(uberjar_path)
+$(uberjar_path): project.clj src/**/*
+	lein uberjar
 
-cljfmt: reflection-config := svm/reflection-config.json
-cljfmt: $(uberjar_path) $(reflection-config)
+cljfmt: $(uberjar_path)
 	$(GRAAL_PATH)/bin/native-image \
 	    --no-fallback \
 	    --allow-incomplete-classpath \

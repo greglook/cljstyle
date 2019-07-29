@@ -21,11 +21,6 @@
     :repl-options
     {:init-ns user}}
 
-   :svm
-   {;:java-source-paths ["svm/java"]
-    :dependencies
-    [[com.oracle.substratevm/svm "19.1.1" :scope "provided"]]}
-
    :uberjar
    {:target-path "target/uberjar"
     :uberjar-name "cljfmt.jar"
