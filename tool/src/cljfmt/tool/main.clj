@@ -17,8 +17,9 @@
 
 (def cli-options
   "Command-line tool options."
-  [[nil  "--no-color" "Don't output ANSI color codes"]
-   ["-v"  "--verbose" "Print detailed debugging output."]
+  [[nil  "--stats FILE" "Write formatting stats to the named file. The extension controls the format and may be either 'edn' or 'tsv'."]
+   [nil  "--no-color" "Don't output ANSI color codes."]
+   ["-v" "--verbose" "Print detailed debugging output."]
    ["-h" "--help" "Show help and usage information."]])
 
 
@@ -74,6 +75,46 @@
     (process/walk-files! f)))
 
 
+(defn- write-stats!
+  "Write stats output to the named file."
+  [file-name stats]
+  (let [ext (last (str/split file-name #"\."))]
+    (case ext
+      "edn"
+      (spit file-name (prn-str stats))
+
+      "tsv"
+      (->> (:files stats)
+           (into (dissoc stats :files)
+                 (map (fn [[k v]]
+                        [(keyword "files" (name k)) v])))
+           (map (fn [[k v]] (str (subs (str k) 1) \tab v \newline)))
+           (str/join)
+           (spit file-name))
+
+      ;; else
+      (u/printerrf "Unknown stats file extension '%s' - ignoring!" ext))))
+
+
+(defn- report-stats
+  "General result reporting logic."
+  [options results]
+  (let [counts (:counts results)
+        total-files (apply + (vals counts))
+        diff-lines (apply + (keep :diff-lines (vals (:results results))))
+        stats (cond-> {:files counts
+                       :total total-files
+                       :elapsed (:elapsed results)}
+                (pos? diff-lines)
+                (assoc :diff-lines diff-lines))]
+    (u/logf "Checked %d files in %.2f ms"
+            total-files
+            (:elapsed results -1.0))
+    (u/log (pr-str stats))
+    (when-let [stats-file (:stats options)]
+      (write-stats! stats-file stats))))
+
+
 
 ;; ## Find Command
 
@@ -125,24 +166,21 @@
     (if (= original revised)
       {:type :correct
        :debug (str "Source file " path " is  formatted correctly")}
-      (let [diff (cond-> (diff/unified-diff path original revised)
-                   (not (:no-color options))
-                   (diff/colorize-diff))]
+      (let [diff (diff/unified-diff path original revised)]
         {:type :incorrect
          :debug (str "Source file " path " is formatted incorrectly")
-         :info diff}))))
+         :info (cond-> diff
+                 (not (:no-color options))
+                 (diff/colorize))
+         :diff-lines (diff/count-changes diff)}))))
 
 
 (defn- check-sources
   "Implementation of the `check` command."
   [paths]
   (let [results (walk-files! (partial check-source u/*options*) paths)
-        counts (:counts results)
-        total (apply + (vals counts))]
-    (u/logf "Checked %d files in %.2f ms"
-            total
-            (:elapsed results -1.0))
-    (u/log (pr-str counts))
+        counts (:counts results)]
+    (report-stats u/*options* results)
     (when-not (empty? (:errors results))
       (u/printerrf "Failed to process %d files" (count (:errors results)))
       (System/exit 3))
@@ -181,12 +219,8 @@
   "Implementation of the `fix` command."
   [paths]
   (let [results (walk-files! (partial fix-source u/*options*) paths)
-        counts (:counts results)
-        total (apply + (vals counts))]
-    (u/logf "Checked %d files in %.2f ms"
-            total
-            (:elapsed results -1.0))
-    (u/log (pr-str counts))
+        counts (:counts results)]
+    (report-stats u/*options* results)
     (when-not (empty? (:errors results))
       (u/printerrf "Failed to process %d files" (count (:errors results)))
       (System/exit 3))
