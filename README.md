@@ -24,6 +24,10 @@ Into nicely formatted Clojure code like this:
   (+ (* x x) (* y y)))
 ```
 
+Note that this is a rewrite of the original
+[weavejester/cljfmt](https://github.com/weavejester/cljfmt/issues) tool to
+provide more capabilities and configurability.
+
 
 ## Installation
 
