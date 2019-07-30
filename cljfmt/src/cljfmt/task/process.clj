@@ -1,8 +1,8 @@
-(ns cljfmt.tool.process
+(ns cljfmt.task.process
   "Code for discovering and processing source files."
   (:require
     [cljfmt.config :as config]
-    [cljfmt.tool.util :as u]
+    [cljfmt.task.print :as p]
     [clojure.java.io :as io])
   (:import
     java.io.File
@@ -32,17 +32,17 @@
   ;; Side effects.
   (when-let [message (:debug result)]
     (when (:verbose results)
-      (u/printerr message)))
+      (p/printerr message)))
   (when-let [message (:info result)]
     (println message)
     (flush))
   (when-let [message (:warn result)]
-    (u/printerr message))
+    (p/printerr message))
   (when-let [^Exception ex (:error result)]
     (binding [*out* *err*]
       (if (:verbose results)
-        (u/print-cause-trace ex)
-        (u/print-throwable ex))
+        (p/print-cause-trace ex)
+        (p/print-throwable ex))
       (flush)))
   ;; Update results map.
   (let [result-type (:type result)
@@ -130,6 +130,6 @@
                       {})))
     (send results identity)
     (when-not (await-for 5000 results)
-      (u/printerr "WARNING: results not fully reported after 5 second timeout"))
+      (p/printerr "WARNING: results not fully reported after 5 second timeout"))
     (let [elapsed (/ (- (System/nanoTime) start) 1e6)]
       (assoc @results :elapsed elapsed))))

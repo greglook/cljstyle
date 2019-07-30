@@ -1,6 +1,6 @@
-(ns cljfmt.core-test
+(ns cljfmt.format.core-test
   (:require
-    [cljfmt.core :refer [reformat-string]]
+    [cljfmt.format.core :refer [reformat-string]]
     [clojure.test :refer :all]))
 
 

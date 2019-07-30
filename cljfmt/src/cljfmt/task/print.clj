@@ -1,4 +1,4 @@
-(ns cljfmt.tool.util
+(ns cljfmt.task.print
   "Common utilities for output and option sharing."
   (:require
     [clojure.string :as str]))

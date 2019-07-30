@@ -8,10 +8,9 @@
   :dependencies
   [[org.clojure/clojure "1.9.0"]
    [org.clojure/tools.cli "0.4.2"]
-   [mvxcvi/cljfmt "0.8.1-SNAPSHOT"]
-   [com.googlecode.java-diff-utils/diffutils "1.2.1"]]
+   [mvxcvi/cljfmt "0.8.1-SNAPSHOT"]]
 
-  :main cljfmt.tool.main
+  :main cljfmt.task.main
 
   :profiles
   {:repl

@@ -11,6 +11,7 @@
   :dependencies
   [[org.clojure/clojure "1.10.0"]
    [org.clojure/tools.reader "1.3.2"]
+   [com.googlecode.java-diff-utils/diffutils "1.2.1"]
    [rewrite-clj "0.6.1"]]
 
   :profiles
