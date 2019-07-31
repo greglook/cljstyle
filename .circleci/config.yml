@@ -9,27 +9,27 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - cljfmt-{{ checksum "cljfmt/project.clj" }}
-            - cljfmt-
+            - v1-{{ checksum "core/project.clj" }}
+            - v1-
       - run:
           command: lein deps
-          pwd: cljfmt
+          pwd: core
       - run:
           command: lein check
-          pwd: cljfmt
+          pwd: core
       - run:
           command: lein test
-          pwd: cljfmt
+          pwd: core
       - run:
           command: lein cloverage --codecov
-          pwd: cljfmt
+          pwd: core
       - save_cache:
           paths:
             - ~/.m2
-          key: cljfmt-{{ checksum "cljfmt/project.clj" }}
+          key: v1-{{ checksum "core/project.clj" }}
       - store_artifacts:
-          path: cljfmt/target/coverage
+          path: core/target/coverage
           destination: coverage
       - run:
           name: Publish Coverage
-          command: 'bash <(curl -s https://codecov.io/bash) -f cljfmt/target/coverage/codecov.json'
+          command: 'bash <(curl -s https://codecov.io/bash) -f core/target/coverage/codecov.json'
