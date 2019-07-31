@@ -10,10 +10,7 @@
     [clojure.spec.alpha :as s]
     [clojure.string :as str])
   (:import
-    java.io.File
-    (java.nio.file
-      Files
-      LinkOption)))
+    java.io.File))
 
 
 ;; ## Specs
@@ -128,10 +125,16 @@
 
 ;; ## File Utilities
 
-(defn readable-file?
-  "True if the given `File` is a regular file the process can read."
+(defn readable?
+  "True if the process can read the given `File`."
   [^File file]
-  (and file (.isFile file) (.canRead file)))
+  (and file (.canRead file)))
+
+
+(defn file?
+  "True if the given `File` represents a regular file."
+  [^File file]
+  (and file (.isFile file)))
 
 
 (defn directory?
@@ -140,20 +143,12 @@
   (and file (.isDirectory file)))
 
 
-(defn owner?
-  "True if the given `File` is owned by the current user."
-  [^File file]
-  (let [path (.toPath file)
-        owner (Files/getOwner path (into-array LinkOption []))
-        user (System/getenv "USER")]
-    (= user (.getName owner))))
-
-
 (defn source-file?
   "True if the file is a recognized source file."
   [config ^File file]
-  (and (re-seq (:file-pattern config) (.getName file))
-       (readable-file? file)))
+  (and (file? file)
+       (readable? file)
+       (re-seq (:file-pattern config) (.getName file))))
 
 
 (defn ignored?
@@ -217,7 +212,7 @@
   or is invalid."
   [^File dir]
   (let [file (io/file dir file-name)]
-    (when (readable-file? file)
+    (when (and (file? file) (readable? file))
       (read-config file))))
 
 
@@ -227,13 +222,13 @@
   ordered earlier.
 
   The search will terminate after `limit` recursions or once it hits the
-  filesystem root or a directory not owned by the user."
+  filesystem root or a directory the user can't read."
   [dir limit]
   {:pre [(pos-int? limit)]}
   (loop [configs ()
          dir (.getAbsoluteFile (io/file dir))
          limit limit]
-    (if (and (pos? limit) (directory? dir) (owner? dir))
+    (if (and (pos? limit) (directory? dir) (readable? dir))
       ;; Look for config file and recurse upward.
       (recur (if-let [config (dir-config dir)]
                (cons config configs)
