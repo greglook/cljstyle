@@ -1,0 +1,2 @@
+;; vim: filetype=clojure
+{:file-ignore #{"target"}}
