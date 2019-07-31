@@ -221,12 +221,14 @@
   files. Returns a sequence of configuration maps read, with shallower paths
   ordered earlier.
 
-  The search will terminate after `limit` recursions or once it hits the
-  filesystem root or a directory the user can't read."
-  [dir limit]
+  Note that the search begins with the _parent_ of the starting file, so will
+  not include the configuration in `start` if it is a directory. The search
+  will terminate after `limit` recursions or once it hits the filesystem root
+  or a directory the user can't read."
+  [start limit]
   {:pre [(pos-int? limit)]}
   (loop [configs ()
-         dir (.getAbsoluteFile (io/file dir))
+         dir (some-> start io/file .getAbsoluteFile .getParentFile)
          limit limit]
     (if (and (pos? limit) (directory? dir) (readable? dir))
       ;; Look for config file and recurse upward.
