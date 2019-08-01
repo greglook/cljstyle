@@ -6,7 +6,7 @@ version := $(shell grep defproject core/project.clj | cut -d ' ' -f 3 | tr -d \"
 platform := $(shell uname -s | tr '[:upper:]' '[:lower:]')
 release_name := cljfmt_$(version)_$(platform)
 
-lib_install_path := $$HOME/.m2/repository/mvxcvi/cljfmt/$(version)/cljfmt-$(version).jar
+lib_install_path := $(HOME)/.m2/repository/mvxcvi/cljfmt/$(version)/cljfmt-$(version).jar
 tool_uberjar_path := tool/target/uberjar/cljfmt.jar
 
 ifndef GRAAL_HOME
