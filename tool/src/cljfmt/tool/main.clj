@@ -61,7 +61,7 @@
       (System/exit 1))
     ;; Execute requested command.
     (try
-      (binding [p/*options* options]
+      (p/with-options options
         (case command
           "find"    (task/find-sources args)
           "check"   (task/check-sources args)

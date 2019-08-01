@@ -14,6 +14,10 @@
    [com.googlecode.java-diff-utils/diffutils "1.2.1"]
    [rewrite-clj "0.6.1"]]
 
+  :hiera
+  {:cluster-depth 2
+   :vertical false}
+
   :profiles
   {:repl
    {:source-paths ["dev"]
