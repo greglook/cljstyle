@@ -196,7 +196,7 @@
         revised (format/reformat-string original config)]
     (if (= original revised)
       {:type :correct
-       :debug (str "Source file " path " is  formatted correctly")}
+       :debug (str "Source file " path " is formatted correctly")}
       (let [diff (diff/unified-diff path original revised)]
         {:type :incorrect
          :debug (str "Source file " path " is formatted incorrectly")
@@ -239,7 +239,7 @@
         revised (format/reformat-string original config)]
     (if (= original revised)
       {:type :correct
-       :debug (str "Source file " path " is  formatted correctly")}
+       :debug (str "Source file " path " is formatted correctly")}
       (do
         (spit file revised)
         {:type :fixed
