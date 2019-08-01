@@ -10,7 +10,7 @@
    [org.clojure/tools.cli "0.4.2"]
    [mvxcvi/cljfmt "0.8.1-SNAPSHOT"]]
 
-  :main cljfmt.task.main
+  :main cljfmt.tool.main
 
   :profiles
   {:repl
