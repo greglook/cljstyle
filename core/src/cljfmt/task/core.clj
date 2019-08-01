@@ -19,12 +19,12 @@
   "Convert the list of paths into a collection of search roots. If the path
   list is empty, uses the local directory as a single root."
   [paths]
-  (mapv io/file (or (seq paths) [(System/getProperty "user.dir")])))
+  (mapv io/file (or (seq paths) ["."])))
 
 
 (defn- load-configs
   "Load parent configuration files. Returns a merged configuration map."
-  [^File file label]
+  [label ^File file]
   (let [configs (config/find-parents file 25)]
     (if (seq configs)
       (p/logf "Using cljfmt configuration from %d sources for %s:\n%s"
@@ -44,7 +44,7 @@
     (pmap (fn prep-root
             [^File root]
             (let [canonical (.getCanonicalFile root)]
-              [(load-configs canonical (.getPath root)) root canonical])))
+              [(load-configs (.getPath root) canonical) root canonical])))
     (process/walk-files! f)))
 
 
@@ -137,9 +137,12 @@
       (flush)
       (System/exit 1)))
   (let [^File file (first (search-roots paths))
-        ;; Pretend we're loading configuration one level deeper so that the
-        ;; parents include the directory itself.
-        config (load-configs (io/file file "x") (.getPath file))]
+        ;; If the target is a directory, pretend we're loading configuration
+        ;; one level deeper so that the parents include the directory itself.
+        target (if (.isDirectory file)
+                 (io/file file "x")
+                 file)
+        config (load-configs (.getPath file) target)]
     (pprint config)))
 
 
