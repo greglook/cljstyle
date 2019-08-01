@@ -236,7 +236,7 @@
   [start limit]
   {:pre [(pos-int? limit)]}
   (loop [configs ()
-         dir (some-> start io/file .getAbsoluteFile .getParentFile)
+         dir (some-> start io/file .getAbsoluteFile .getCanonicalFile .getParentFile)
          limit limit]
     (if (and (pos? limit) (directory? dir) (readable? dir))
       ;; Look for config file and recurse upward.
