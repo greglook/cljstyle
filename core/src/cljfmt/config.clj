@@ -101,6 +101,15 @@
    :file-ignore #{}})
 
 
+
+;; ## Utilities
+
+(defn source-paths
+  "Return the sequence of paths the configuration map was merged from."
+  [config]
+  (::paths (meta config)))
+
+
 (defn merge-settings
   "Merge configuration maps together."
   ([] nil)
@@ -117,7 +126,12 @@
                  (set? x) (into x y)
                  (map? x) (merge x y)
                  :else y)))]
-     (merge-with merge-values a b)))
+     (if (= (take-last (count (source-paths b)) (source-paths a))
+            (source-paths b))
+       a
+       (with-meta
+         (merge-with merge-values a b)
+         (update (meta a) ::paths (fnil into []) (source-paths b))))))
   ([a b & more]
    (reduce merge-settings a (cons b more))))
 
@@ -193,17 +207,11 @@
                           ex))))
       (as-> config
         (if (s/valid? ::settings config)
-          (vary-meta config assoc ::path path)
+          (vary-meta config assoc ::paths [path])
           (throw (ex-info (str "Invalid configuration loaded from file: " path
                                "\n" (s/explain-str ::settings config))
                           {:type ::invalid
                            :path path})))))))
-
-
-(defn source-path
-  "Return the path a given configuration map was read from."
-  [config]
-  (::path (meta config)))
 
 
 (defn dir-config

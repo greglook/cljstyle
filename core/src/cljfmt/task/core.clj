@@ -30,7 +30,7 @@
       (p/logf "Using cljfmt configuration from %d sources for %s:\n%s"
               (count configs)
               label
-              (str/join "\n" (map config/source-path configs)))
+              (str/join "\n" (mapcat config/source-paths configs)))
       (p/logf "Using default cljfmt configuration for %s"
               label))
     (apply config/merge-settings config/default-config configs)))
