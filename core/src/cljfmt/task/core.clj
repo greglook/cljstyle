@@ -71,7 +71,7 @@
 
 (defn- report-stats
   "General result reporting logic."
-  [options results]
+  [results]
   (let [counts (:counts results)
         total-files (apply + (vals counts))
         diff-lines (apply + (keep :diff-lines (vals (:results results))))
@@ -84,7 +84,7 @@
             total-files
             (:elapsed results -1.0))
     (p/log (pr-str stats))
-    (when-let [stats-file (:stats options)]
+    (when-let [stats-file (p/option :stats)]
       (write-stats! stats-file stats))))
 
 
@@ -191,7 +191,7 @@
 
 (defn- check-source
   "Check a single source file and produce a result."
-  [options config path ^File file]
+  [config path ^File file]
   (let [original (slurp file)
         revised (format/reformat-string original config)]
     (if (= original revised)
@@ -201,7 +201,7 @@
         {:type :incorrect
          :debug (str "Source file " path " is formatted incorrectly")
          :info (cond-> diff
-                 (not (:no-color options))
+                 (not (p/option :no-color))
                  (diff/colorize))
          :diff-lines (diff/count-changes diff)}))))
 
@@ -209,9 +209,9 @@
 (defn check-sources
   "Implementation of the `check` command."
   [paths]
-  (let [results (walk-files! (partial check-source p/*options*) paths)
+  (let [results (walk-files! check-source paths)
         counts (:counts results)]
-    (report-stats p/*options* results)
+    (report-stats results)
     (when-not (empty? (:errors results))
       (p/printerrf "Failed to process %d files" (count (:errors results)))
       (System/exit 3))
@@ -234,7 +234,7 @@
 
 (defn- fix-source
   "Fix a single source file and produce a result."
-  [options config path ^File file]
+  [config path ^File file]
   (let [original (slurp file)
         revised (format/reformat-string original config)]
     (if (= original revised)
@@ -249,9 +249,9 @@
 (defn fix-sources
   "Implementation of the `fix` command."
   [paths]
-  (let [results (walk-files! (partial fix-source p/*options*) paths)
+  (let [results (walk-files! fix-source paths)
         counts (:counts results)]
-    (report-stats p/*options* results)
+    (report-stats results)
     (when-not (empty? (:errors results))
       (p/printerrf "Failed to process %d files" (count (:errors results)))
       (System/exit 3))
