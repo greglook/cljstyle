@@ -9,6 +9,29 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ...
 
+## [0.8.1] - 2019-08-01
+
+### Added
+- In addition to the file status counts, task stats now include the total number
+  of files, the elapsed time, and the number of lines present in the diff (if
+  applicable).
+- A new `--stats FILE` option allows writing the task statistics to a file after
+  processing is complete. The file name may end in `.edn` or `.tsv` to control
+  the output format.
+
+### Changed
+- Most task code moved into core `cljfmt` library so it can be used by plugins
+  if desired.
+- Retain full list of config paths as metadata for debugging.
+
+### Fixed
+- Search roots are canonicalized now to handle `.` and `..` properly.
+- Searching up the directory hierarchy for parent config files no longer
+  double-loads configuration in the current directory.
+- Print options now correctly propagate to subtasks, so passing `--verbose` and
+  `--no-color` will work on the tool output.
+- Using the `config` task on a file will produce the correct config list now.
+
 ## [0.8.0] - 2019-07-27
 
 This is a significant release which revamps the tooling entirely. Instead of a
@@ -39,6 +62,7 @@ functionality.
 
 Legacy project release.
 
-[Unreleased]: https://github.com/greglook/cljfmt/compare/0.8.0...HEAD
+[Unreleased]: https://github.com/greglook/cljfmt/compare/0.8.1...HEAD
+[0.8.1]: https://github.com/greglook/cljfmt/compare/0.8.0...0.8.1
 [0.8.0]: https://github.com/greglook/cljfmt/compare/0.7.0...0.8.0
 [0.7.0]: https://github.com/greglook/cljfmt/compare/0.5.6...0.7.0
