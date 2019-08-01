@@ -1,4 +1,4 @@
-(ns cljfmt.zloc
+(ns cljfmt.format.zloc
   "Common utility functions for using rewrite-clj zippers."
   (:refer-clojure :exclude [reader-conditional?])
   (:require

@@ -1,4 +1,4 @@
-(ns cljfmt.ns
+(ns cljfmt.format.ns
   (:require
     [clojure.string :as str]
     [clojure.zip :as zip]

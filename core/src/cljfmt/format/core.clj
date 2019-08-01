@@ -1,10 +1,10 @@
-(ns cljfmt.core
+(ns cljfmt.format.core
   (:require
     [cljfmt.config :as config]
-    [cljfmt.fn :as fn]
-    [cljfmt.indent :as indent]
-    [cljfmt.ns :as ns]
-    [cljfmt.zloc :as zl]
+    [cljfmt.format.fn :as fn]
+    [cljfmt.format.indent :as indent]
+    [cljfmt.format.ns :as ns]
+    [cljfmt.format.zloc :as zl]
     [clojure.java.io :as io]
     [clojure.zip :as zip]
     [rewrite-clj.node :as n]

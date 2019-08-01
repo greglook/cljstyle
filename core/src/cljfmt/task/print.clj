@@ -1,12 +1,27 @@
-(ns cljfmt.tool.util
+(ns cljfmt.task.print
   "Common utilities for output and option sharing."
   (:require
     [clojure.string :as str]))
 
 
+;; ## Options
+
 (def ^:dynamic *options*
   "Runtime options."
   {})
+
+
+(defmacro with-options
+  "Evaluate the expressions in `body` with the print options bound to `opts`."
+  [opts & body]
+  `(binding [*options* ~opts]
+     ~@body))
+
+
+(defn option
+  "Return the value set for the given option, if any."
+  [k]
+  (get *options* k))
 
 
 
@@ -50,7 +65,7 @@
 (defn log
   "Log a message which will only be printed when verbose output is enabled."
   [& messages]
-  (when (:verbose *options*)
+  (when (option :verbose)
     (apply printerr messages))
   nil)
 
@@ -59,7 +74,7 @@
   "Log a formatted message which will only be printed when verbose output is
   enabled."
   [message & fmt-args]
-  (when (:verbose *options*)
+  (when (option :verbose)
     (apply printerrf message fmt-args))
   nil)
 

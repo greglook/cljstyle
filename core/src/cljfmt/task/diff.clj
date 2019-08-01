@@ -1,7 +1,7 @@
-(ns cljfmt.tool.diff
+(ns cljfmt.task.diff
   "Diff-handling code for cljfmt fixes."
   (:require
-    [cljfmt.tool.util :refer [colorize]]
+    [cljfmt.task.print :as p]
     [clojure.java.io :as io]
     [clojure.string :as str])
   (:import
@@ -34,10 +34,18 @@
       3)))
 
 
-(defn colorize-diff
+(defn count-changes
+  "Count how many lines involve actual changes in the diff output."
+  [diff]
+  (let [additions (count (re-seq #"(?m)^(\+(?!\+\+).*)$" diff))
+        deletions (count (re-seq #"(?m)^(-(?!--).*)$" diff))]
+    (+ additions deletions)))
+
+
+(defn colorize
   "Apply ANSI color coding to the supplied diff text."
   [diff-text]
   (-> diff-text
-      (str/replace #"(?m)^(@@.*@@)$"       (colorize "$1" :cyan))
-      (str/replace #"(?m)^(\+(?!\+\+).*)$" (colorize "$1" :green))
-      (str/replace #"(?m)^(-(?!--).*)$"    (colorize "$1" :red))))
+      (str/replace #"(?m)^(@@.*@@)$"       (p/colorize "$1" :cyan))
+      (str/replace #"(?m)^(\+(?!\+\+).*)$" (p/colorize "$1" :green))
+      (str/replace #"(?m)^(-(?!--).*)$"    (p/colorize "$1" :red))))

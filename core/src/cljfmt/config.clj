@@ -10,10 +10,7 @@
     [clojure.spec.alpha :as s]
     [clojure.string :as str])
   (:import
-    java.io.File
-    (java.nio.file
-      Files
-      LinkOption)))
+    java.io.File))
 
 
 ;; ## Specs
@@ -104,6 +101,15 @@
    :file-ignore #{}})
 
 
+
+;; ## Utilities
+
+(defn source-paths
+  "Return the sequence of paths the configuration map was merged from."
+  [config]
+  (::paths (meta config)))
+
+
 (defn merge-settings
   "Merge configuration maps together."
   ([] nil)
@@ -120,7 +126,12 @@
                  (set? x) (into x y)
                  (map? x) (merge x y)
                  :else y)))]
-     (merge-with merge-values a b)))
+     (if (= (take-last (count (source-paths b)) (source-paths a))
+            (source-paths b))
+       a
+       (with-meta
+         (merge-with merge-values a b)
+         (update (meta a) ::paths (fnil into []) (source-paths b))))))
   ([a b & more]
    (reduce merge-settings a (cons b more))))
 
@@ -128,10 +139,16 @@
 
 ;; ## File Utilities
 
-(defn readable-file?
-  "True if the given `File` is a regular file the process can read."
+(defn readable?
+  "True if the process can read the given `File`."
   [^File file]
-  (and file (.isFile file) (.canRead file)))
+  (and file (.canRead file)))
+
+
+(defn file?
+  "True if the given `File` represents a regular file."
+  [^File file]
+  (and file (.isFile file)))
 
 
 (defn directory?
@@ -140,20 +157,12 @@
   (and file (.isDirectory file)))
 
 
-(defn owner?
-  "True if the given `File` is owned by the current user."
-  [^File file]
-  (let [path (.toPath file)
-        owner (Files/getOwner path (into-array LinkOption []))
-        user (System/getenv "USER")]
-    (= user (.getName owner))))
-
-
 (defn source-file?
   "True if the file is a recognized source file."
   [config ^File file]
-  (and (re-seq (:file-pattern config) (.getName file))
-       (readable-file? file)))
+  (and (file? file)
+       (readable? file)
+       (re-seq (:file-pattern config) (.getName file))))
 
 
 (defn ignored?
@@ -198,17 +207,11 @@
                           ex))))
       (as-> config
         (if (s/valid? ::settings config)
-          (vary-meta config assoc ::path path)
+          (vary-meta config assoc ::paths [path])
           (throw (ex-info (str "Invalid configuration loaded from file: " path
                                "\n" (s/explain-str ::settings config))
                           {:type ::invalid
                            :path path})))))))
-
-
-(defn source-path
-  "Return the path a given configuration map was read from."
-  [config]
-  (::path (meta config)))
 
 
 (defn dir-config
@@ -217,7 +220,7 @@
   or is invalid."
   [^File dir]
   (let [file (io/file dir file-name)]
-    (when (readable-file? file)
+    (when (and (file? file) (readable? file))
       (read-config file))))
 
 
@@ -226,14 +229,16 @@
   files. Returns a sequence of configuration maps read, with shallower paths
   ordered earlier.
 
-  The search will terminate after `limit` recursions or once it hits the
-  filesystem root or a directory not owned by the user."
-  [dir limit]
+  Note that the search begins with the _parent_ of the starting file, so will
+  not include the configuration in `start` if it is a directory. The search
+  will terminate after `limit` recursions or once it hits the filesystem root
+  or a directory the user can't read."
+  [start limit]
   {:pre [(pos-int? limit)]}
   (loop [configs ()
-         dir (.getAbsoluteFile (io/file dir))
+         dir (some-> start io/file .getAbsoluteFile .getCanonicalFile .getParentFile)
          limit limit]
-    (if (and (pos? limit) (directory? dir) (owner? dir))
+    (if (and (pos? limit) (directory? dir) (readable? dir))
       ;; Look for config file and recurse upward.
       (recur (if-let [config (dir-config dir)]
                (cons config configs)

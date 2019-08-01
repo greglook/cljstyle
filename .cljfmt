@@ -1,0 +1,4 @@
+;; vim: filetype=clojure
+{:padding-lines 2
+ :max-consecutive-blank-lines 3
+ :file-ignore #{".git" "target"}}

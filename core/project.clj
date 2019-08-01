@@ -1,4 +1,4 @@
-(defproject mvxcvi/cljfmt "0.8.0"
+(defproject mvxcvi/cljfmt "0.8.1"
   :description "A library for formatting Clojure code"
   :url "https://github.com/greglook/cljfmt"
   :scm {:dir ".."}
@@ -11,7 +11,12 @@
   :dependencies
   [[org.clojure/clojure "1.10.0"]
    [org.clojure/tools.reader "1.3.2"]
+   [com.googlecode.java-diff-utils/diffutils "1.2.1"]
    [rewrite-clj "0.6.1"]]
+
+  :hiera
+  {:cluster-depth 2
+   :vertical false}
 
   :profiles
   {:repl

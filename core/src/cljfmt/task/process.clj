@@ -1,8 +1,8 @@
-(ns cljfmt.tool.process
+(ns cljfmt.task.process
   "Code for discovering and processing source files."
   (:require
     [cljfmt.config :as config]
-    [cljfmt.tool.util :as u]
+    [cljfmt.task.print :as p]
     [clojure.java.io :as io])
   (:import
     java.io.File
@@ -31,18 +31,18 @@
   [results result]
   ;; Side effects.
   (when-let [message (:debug result)]
-    (when (:verbose results)
-      (u/printerr message)))
+    (when (p/option :verbose)
+      (p/printerr message)))
   (when-let [message (:info result)]
     (println message)
     (flush))
   (when-let [message (:warn result)]
-    (u/printerr message))
+    (p/printerr message))
   (when-let [^Exception ex (:error result)]
     (binding [*out* *err*]
-      (if (:verbose results)
-        (u/print-cause-trace ex)
-        (u/print-throwable ex))
+      (if (p/option :verbose)
+        (p/print-cause-trace ex)
+        (p/print-throwable ex))
       (flush)))
   ;; Update results map.
   (let [result-type (:type result)
@@ -64,6 +64,7 @@
   source file `file`."
   [process! results config ^File root ^File file]
   (let [path (relativize-path root file)
+        options p/*options*
         report! (fn report!
                   [data]
                   (let [result (assoc data :file file :path path)]
@@ -71,36 +72,37 @@
     (proxy [RecursiveAction] []
       (compute
         []
-        (cond
-          (config/ignored? config file)
-          (report!
-            {:type :ignored
-             :debug (str "Ignoring file " path)})
+        (p/with-options options
+          (cond
+            (config/ignored? config file)
+            (report!
+              {:type :ignored
+               :debug (str "Ignoring file " path)})
 
-          (config/source-file? config file)
-          (try
-            (let [result (process! config path file)]
-              (report! result))
-            (catch Exception ex
-              (report!
-                {:type :process-error
-                 :warn (str "Error while processing file " path)
-                 :error ex})))
+            (config/source-file? config file)
+            (try
+              (let [result (process! config path file)]
+                (report! result))
+              (catch Exception ex
+                (report!
+                  {:type :process-error
+                   :warn (str "Error while processing file " path)
+                   :error ex})))
 
-          (config/directory? file)
-          (try
-            (let [config' (config/merge-settings config (config/dir-config file))
-                  file->task #(processing-action process! results config' root %)
-                  subtasks (mapv file->task (.listFiles file))]
-              (ForkJoinTask/invokeAll ^java.util.Collection subtasks))
-            (catch Exception ex
-              (report!
-                {:type :search-error
-                 :warn (str "Error while searching directory " path)
-                 :error ex})))
+            (config/directory? file)
+            (try
+              (let [config' (config/merge-settings config (config/dir-config file))
+                    file->task #(processing-action process! results config' root %)
+                    subtasks (mapv file->task (.listFiles file))]
+                (ForkJoinTask/invokeAll ^java.util.Collection subtasks))
+              (catch Exception ex
+                (report!
+                  {:type :search-error
+                   :warn (str "Error while searching directory " path)
+                   :error ex})))
 
-          :else
-          (report! {:type :unrelated}))))))
+            :else
+            (report! {:type :unrelated})))))))
 
 
 (defn walk-files!
@@ -130,6 +132,6 @@
                       {})))
     (send results identity)
     (when-not (await-for 5000 results)
-      (u/printerr "WARNING: results not fully reported after 5 second timeout"))
+      (p/printerr "WARNING: results not fully reported after 5 second timeout"))
     (let [elapsed (/ (- (System/nanoTime) start) 1e6)]
       (assoc @results :elapsed elapsed))))
