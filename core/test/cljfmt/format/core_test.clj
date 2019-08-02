@@ -23,6 +23,23 @@
          (reformat-string "(t/defrecord Foo\n [x]\nCloseable\n(close [_]\n(prn x)))"))))
 
 
+(deftest namespaced-maps
+  (is (= "#:a{:one 1\n    :two 2}"
+         (reformat-string "#:a{:one 1\n    :two 2}")))
+  (is (= "#:a{:one 1\n    :two 2}"
+         (reformat-string "#:a{:one 1\n    :two 2}" {:insert-missing-whitespace? false})))
+  (is (= "#:a {:one 1\n     :two 2}"
+         (reformat-string "#:a {:one 1\n     :two 2}")))
+  (is (= "#:a {:one 1\n     :two 2}"
+         (reformat-string "#:a {:one 1\n     :two 2}" {:insert-missing-whitespace? false})))
+  (is (= "(let [foo #:abc\n          {:d 1}] (:d foo))"
+         (reformat-string "(let [foo #:abc\n{:d 1}] (:d foo))")))
+  (is (= "#:abc\n{:d 1}"
+         (reformat-string "#:abc\n {:d 1}")))
+  (is (= "#:abc\n{:d 1}"
+         (reformat-string "#:abc\n{:d 1}"))))
+
+
 (deftest comment-handling
   (testing "inline comments"
     (is (= "(let [;foo\n      x (foo bar\n             baz)]\n  x)"
@@ -84,7 +101,4 @@
            (reformat-string "#?@(:clj foo\n:cljs bar)"))))
   (testing "reader macros"
     (is (= "#inst\n\"2018-01-01T00:00:00.000-00:00\""
-           (reformat-string "#inst\n\"2018-01-01T00:00:00.000-00:00\""))))
-  (testing "map prefixes"
-    (is (= "#:abc\n{:d 1}"
-           (reformat-string "#:abc\n{:d 1}")))))
+           (reformat-string "#inst\n\"2018-01-01T00:00:00.000-00:00\"")))))

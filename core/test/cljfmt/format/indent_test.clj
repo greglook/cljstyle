@@ -93,5 +93,7 @@
 (deftest embedded-structures
   (is (= "(let [foo {:x 1\n           :y 2}]\n  (:x foo))"
          (reindent-string "(let [foo {:x 1\n:y 2}]\n(:x foo))")))
+  (is (= "(let [foo\n      {:x 1\n       :y 2}]  (:x foo))"
+         (reindent-string "(let [foo\n{:x 1\n:y 2}]  (:x foo))")))
   (is (= "(if foo\n  (do bar\n      baz)\n  quz)"
          (reindent-string "(if foo\n(do bar\nbaz)\nquz)"))))
