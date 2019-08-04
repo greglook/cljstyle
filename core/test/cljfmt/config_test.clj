@@ -2,6 +2,7 @@
   (:require
     [cljfmt.config :as config]
     [cljfmt.test-util]
+    [clojure.java.io :as io]
     [clojure.spec.alpha :as s]
     [clojure.test :refer [deftest testing is]]))
 
@@ -100,3 +101,62 @@
              {:key {:a 1, :c 1}}
              {:key {:b 2}}
              {:key {:a 3}})))))
+
+
+(deftest config-reading
+  (let [test-dir (io/file "target/test-config/reading")
+        cfg-file (io/file test-dir ".cljfmt")]
+    (try
+      (io/make-parents cfg-file)
+      (.deleteOnExit cfg-file)
+      (testing "basic reads"
+        (spit cfg-file "{:padding-lines 8}")
+        (is (= {:padding-lines 8} (config/read-config cfg-file)))
+        (is (= [(.getAbsolutePath cfg-file)]
+               (::config/paths (meta (config/read-config cfg-file))))))
+      (testing "syntax error"
+        (spit cfg-file "{")
+        (is (thrown-with-data? {:type ::config/invalid
+                                :path (.getAbsolutePath cfg-file)}
+              (config/read-config cfg-file))))
+      (testing "validity error"
+        (spit cfg-file "{:indentation? foo}")
+        (is (thrown-with-data? {:type ::config/invalid
+                                :path (.getAbsolutePath cfg-file)}
+              (config/read-config cfg-file))))
+      (finally
+        (when (.exists cfg-file)
+          (.delete cfg-file))))))
+
+
+(deftest config-hierarchy
+  (let [test-dir (io/file "target/test-config/hierarchy")
+        a-config (io/file test-dir "a" ".cljfmt")
+        abc-config (io/file test-dir "a" "b" "c" ".cljfmt")
+        abd-config (io/file test-dir "a" "b" "d" ".cljfmt")
+        foo-clj (io/file test-dir "a" "b" "c" "foo.clj")
+        bar-clj (io/file test-dir "a" "b" "d" "e" "bar.clj")
+        write! (fn write!
+                 [file content]
+                 (io/make-parents file)
+                 (spit file content)
+                 (.deleteOnExit file))]
+    (try
+      (write! a-config (prn-str {:padding-lines 8}))
+      (write! abc-config (prn-str {:padding-lines 4}))
+      (write! abd-config (prn-str {:file-ignore #{"f"}}))
+      (write! foo-clj "; foo")
+      (write! bar-clj "; bar")
+      (testing "basic reads"
+        (is (= {:padding-lines 8} (config/read-config a-config)))
+        (is (= [(.getAbsolutePath a-config)]
+               (::config/paths (meta (config/read-config a-config))))))
+      (testing "directory configs"
+        (is (nil? (config/dir-config (io/file test-dir "x"))))
+        (is (= {:padding-lines 8} (config/dir-config (io/file test-dir "a")))))
+      (finally
+        (.delete a-config)
+        (.delete abc-config)
+        (.delete abd-config)
+        (.delete foo-clj)
+        (.delete bar-clj)))))
