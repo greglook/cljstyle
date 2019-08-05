@@ -209,6 +209,15 @@
   (testing "namespace forms"
     (is (= "(ns foo.bar.baz)"
            (reformat-string "(  ns\n  foo.bar.baz\n)")))
+    (testing "metadata"
+      (is (= "(ns ^:no-doc foo.bar.meta)"
+             (reformat-string "(ns \n ^:no-doc\n foo.bar.meta   )")))
+      (is (= "(ns ^:internal ^:no-doc foo.bar.meta)"
+             (reformat-string "(ns \n ^:no-doc\n ^:internal    foo.bar.meta   )")))
+      (is (= "(ns ^{:abc 123} foo.bar.meta)"
+             (reformat-string "(ns \n ^{:abc 123}\n foo.bar.meta   )")))
+      (is (= "(ns ^:no-doc ^{:abc 123, :def \"x\"} foo.bar.meta)"
+             (reformat-string "(ns ^{:def \"x\"  } ^:no-doc \n ^{:abc 123}\n foo.bar.meta   )"))))
     (is (= "(ns foo.bar.baz\n  \"ns-level docstring\")"
            (reformat-string "(ns foo.bar.baz\n \"ns-level docstring\"\n)")))
     (is (= "(ns foo.bar.baz\n  \"ns-level docstring\"\n  (:require\n    [foo.bar.qux :refer :all]))"

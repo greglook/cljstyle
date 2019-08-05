@@ -7,7 +7,10 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
-...
+### Fixed
+- Namespace metadata is properly retained.
+  [#11](//github.com/greglook/cljfmt/issues/11)
+
 
 ## [0.8.1] - 2019-08-01
 
@@ -32,6 +35,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
   `--no-color` will work on the tool output.
 - Using the `config` task on a file will produce the correct config list now.
 
+
 ## [0.8.0] - 2019-07-27
 
 This is a significant release which revamps the tooling entirely. Instead of a
@@ -53,10 +57,12 @@ Graal.
 - Removed `lein-cljfmt` project.
 - Removed Clojurescript cross-compiling support.
 
+
 ## [0.7.0] - 2019-05-18
 
 First fork release. Rewrote most of the code and added a bunch of new
 functionality.
+
 
 ## 0.5.6 - 2016-09-29
 
