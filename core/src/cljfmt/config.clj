@@ -23,6 +23,7 @@
 
 ;; Formatting Rules
 (s/def ::indentation? boolean?)
+(s/def ::line-break-functions? boolean?)
 (s/def ::remove-surrounding-whitespace? boolean?)
 (s/def ::remove-trailing-whitespace? boolean?)
 (s/def ::insert-missing-whitespace? boolean?)
@@ -63,6 +64,7 @@
 ;; Config Map
 (s/def ::settings
   (s/keys :opt-un [::indentation?
+                   ::line-break-functions?
                    ::remove-surrounding-whitespace?
                    ::remove-trailing-whitespace?
                    ::insert-missing-whitespace?
@@ -87,6 +89,7 @@
 
 (def default-config
   {:indentation? true
+   :line-break-functions? true
    :remove-surrounding-whitespace? true
    :remove-trailing-whitespace? true
    :insert-missing-whitespace? true
