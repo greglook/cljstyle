@@ -231,9 +231,9 @@
   will terminate after `limit` recursions or once it hits the filesystem root
   or a directory the user can't read."
   [start limit]
-  {:pre [(pos-int? limit)]}
+  {:pre [start (pos-int? limit)]}
   (loop [configs ()
-         dir (some-> start io/file .getAbsoluteFile .getCanonicalFile .getParentFile)
+         dir (-> start io/file .getAbsoluteFile .getCanonicalFile .getParentFile)
          limit limit]
     (if (and (pos? limit) (directory? dir) (readable? dir))
       ;; Look for config file and recurse upward.
