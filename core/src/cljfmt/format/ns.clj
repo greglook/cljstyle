@@ -166,7 +166,7 @@
   (mapcat
     (fn [el]
       (if (contains? #{:list :vector} (n/tag el))
-        (let [[package & classes] (n/children el)]
+        (let [[package & classes] (strip-whitespace-and-newlines (n/children el))]
           (map #(-> (symbol (str (n/sexpr package) \. (n/sexpr %)))
                     (n/token-node)
                     (with-meta (meta %)))

@@ -10,6 +10,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 - Namespace metadata is properly retained.
   [#11](//github.com/greglook/cljfmt/issues/11)
+- Vector import specs no longer cause `UnsupportedOperationException`.
+  [#12](//github.com/greglook/cljfmt/issues/12)
 
 
 ## [0.8.1] - 2019-08-01

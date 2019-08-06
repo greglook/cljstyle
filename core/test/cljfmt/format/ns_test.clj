@@ -94,6 +94,11 @@
    OutputStream InputStream)
   java.time.Instant
   ))")))
+  (is (= "(ns foo
+  (:import
+    goog.async.Debouncer))"
+         (reformat-ns
+           "(ns foo (:import [goog.async Debouncer]))")))
   ,,,)
 
 
