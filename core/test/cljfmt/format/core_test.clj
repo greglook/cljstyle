@@ -32,6 +32,10 @@
          (reformat-string "#:a {:one 1\n     :two 2}")))
   (is (= "#:a {:one 1\n     :two 2}"
          (reformat-string "#:a {:one 1\n     :two 2}" {:insert-missing-whitespace? false})))
+  (is (= "(let [foo #:a{:one 1}] (:a/one foo))"
+         (reformat-string "(let [foo #:a{:one 1}] (:a/one foo))")))
+  (is (= "(let [foo #:a {:one 1}] (:a/one foo))"
+         (reformat-string "(let [foo #:a {:one 1}] (:a/one foo))")))
   (is (= "(let [foo #:abc\n          {:d 1}] (:d foo))"
          (reformat-string "(let [foo #:abc\n{:d 1}] (:d foo))")))
   (is (= "#:abc\n{:d 1}"
