@@ -7,11 +7,25 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+...
+
+
+## [0.8.2] - 2019-08-20
+
 ### Fixed
+- Configuration file paths are tracked more accurately for reporting.
 - Namespace metadata is properly retained.
   [#11](//github.com/greglook/cljfmt/issues/11)
 - Vector import specs no longer cause `UnsupportedOperationException`.
   [#12](//github.com/greglook/cljfmt/issues/12)
+- Namespaced maps are indented correctly and allow for abutting same-line
+  namespace tags.
+  [#6](https://github.com/greglook/cljfmt/issues/6)
+  [#7](https://github.com/greglook/cljfmt/pull/7)
+
+### Changed
+- Many new tests around configuration file loading and merge behavior.
+- Split test namespaces up into more focused areas.
 
 
 ## [0.8.1] - 2019-08-01
@@ -70,7 +84,8 @@ functionality.
 
 Legacy project release.
 
-[Unreleased]: https://github.com/greglook/cljfmt/compare/0.8.1...HEAD
+[Unreleased]: https://github.com/greglook/cljfmt/compare/0.8.2...HEAD
+[0.8.2]: https://github.com/greglook/cljfmt/compare/0.8.1...0.8.2
 [0.8.1]: https://github.com/greglook/cljfmt/compare/0.8.0...0.8.1
 [0.8.0]: https://github.com/greglook/cljfmt/compare/0.7.0...0.8.0
 [0.7.0]: https://github.com/greglook/cljfmt/compare/0.5.6...0.7.0
