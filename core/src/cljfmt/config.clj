@@ -23,6 +23,7 @@
 
 ;; Formatting Rules
 (s/def ::indentation? boolean?)
+(s/def ::line-break-functions? boolean?)
 (s/def ::remove-surrounding-whitespace? boolean?)
 (s/def ::remove-trailing-whitespace? boolean?)
 (s/def ::insert-missing-whitespace? boolean?)
@@ -41,7 +42,7 @@
 
 
 (s/def ::indenter
-  (s/cat :type simple-keyword?
+  (s/cat :type #{:inner :block :stair}
          :args (s/+ nat-int?)))
 
 
@@ -57,12 +58,13 @@
 (s/def ::file-pattern pattern?)
 
 (s/def ::file-ignore-rule (s/or :string string? :pattern pattern?))
-(s/def ::file-ignore (s/coll-of ::file-ignore-rule))
+(s/def ::file-ignore (s/coll-of ::file-ignore-rule :kind set?))
 
 
 ;; Config Map
 (s/def ::settings
   (s/keys :opt-un [::indentation?
+                   ::line-break-functions?
                    ::remove-surrounding-whitespace?
                    ::remove-trailing-whitespace?
                    ::insert-missing-whitespace?
@@ -87,6 +89,7 @@
 
 (def default-config
   {:indentation? true
+   :line-break-functions? true
    :remove-surrounding-whitespace? true
    :remove-trailing-whitespace? true
    :insert-missing-whitespace? true
@@ -126,12 +129,9 @@
                  (set? x) (into x y)
                  (map? x) (merge x y)
                  :else y)))]
-     (if (= (take-last (count (source-paths b)) (source-paths a))
-            (source-paths b))
-       a
-       (with-meta
-         (merge-with merge-values a b)
-         (update (meta a) ::paths (fnil into []) (source-paths b))))))
+     (with-meta
+       (merge-with merge-values a b)
+       (update (meta a) ::paths (fnil into []) (source-paths b)))))
   ([a b & more]
    (reduce merge-settings a (cons b more))))
 
@@ -234,9 +234,9 @@
   will terminate after `limit` recursions or once it hits the filesystem root
   or a directory the user can't read."
   [start limit]
-  {:pre [(pos-int? limit)]}
+  {:pre [start (pos-int? limit)]}
   (loop [configs ()
-         dir (some-> start io/file .getAbsoluteFile .getCanonicalFile .getParentFile)
+         dir (-> start io/file .getAbsoluteFile .getCanonicalFile .getParentFile)
          limit limit]
     (if (and (pos? limit) (directory? dir) (readable? dir))
       ;; Look for config file and recurse upward.

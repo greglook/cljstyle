@@ -63,17 +63,20 @@
   "Parse the ns form at this location, returning a map of the components of the
   namespace definition."
   [zloc]
-  (loop [ns-data {:ns (-> zloc zip/down z/right z/sexpr)}
+  (loop [ns-data (let [ns-sym (-> zloc zip/down z/right z/sexpr)]
+                   {:ns ns-sym
+                    :meta (meta ns-sym)})
          zloc (-> zloc zip/down z/right z/right)]
     (if zloc
       (cond
         (string? (z/sexpr zloc))
-          (recur (assoc ns-data :doc (z/node zloc))
-                 (z/right zloc))
+        (recur (assoc ns-data :doc (z/node zloc))
+               (z/right zloc))
+
         (z/list? zloc)
-          (let [[header & elements] (n/children (parse-list-with-comments (z/node zloc)))]
-            (recur (assoc ns-data (keyword (n/sexpr header)) (or elements []))
-                   (z/right zloc))))
+        (let [[header & elements] (n/children (parse-list-with-comments (z/node zloc)))]
+          (recur (assoc ns-data (keyword (n/sexpr header)) (or elements []))
+                 (z/right zloc))))
       ; No more nodes.
       ns-data)))
 
@@ -163,7 +166,7 @@
   (mapcat
     (fn [el]
       (if (contains? #{:list :vector} (n/tag el))
-        (let [[package & classes] (n/children el)]
+        (let [[package & classes] (strip-whitespace-and-newlines (n/children el))]
           (map #(-> (symbol (str (n/sexpr package) \. (n/sexpr %)))
                     (n/token-node)
                     (with-meta (meta %)))
@@ -218,6 +221,26 @@
 
 
 ;; ## Namespace Rendering
+
+(defn- render-ns-symbol
+  [ns-data]
+  (let [ns-meta (not-empty (:meta ns-data))
+        flags (->> ns-meta
+                   (filter (comp true? val))
+                   (map key)
+                   (set)
+                   (sort)
+                   (reverse))
+        other-meta (apply dissoc ns-meta flags)]
+    (reduce
+      (fn flag-meta
+        [data flag]
+        (n/meta-node (n/keyword-node flag) data))
+      (cond->> (n/token-node (:ns ns-data))
+        (seq other-meta)
+        (n/meta-node other-meta))
+      flags)))
+
 
 (defn- render-inline
   [kw elements]
@@ -292,7 +315,7 @@
     (concat
       [(n/token-node 'ns)
        (n/spaces 1)
-       (n/token-node (:ns ns-data))]
+       (render-ns-symbol ns-data)]
       (into
         []
         (comp (remove nil?)

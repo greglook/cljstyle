@@ -236,7 +236,12 @@
   [zloc]
   (and (zl/element? zloc)
        (not (zl/reader-macro? (zip/up zloc)))
-       (zl/element? (zip/right zloc))))
+       (zl/element? (zip/right zloc))
+       ;; allow abutting namespaced maps
+       (not= :namespaced-map (-> zloc
+                                 (zip/up)
+                                 (z/node)
+                                 (n/tag)))))
 
 
 (defn insert-missing-whitespace
@@ -323,7 +328,7 @@
     (:line-break-functions? config true)
     (line-break-functions)
 
-    ; TODO: line-break-types
+    ;; TODO: line-break-types
     (:remove-consecutive-blank-lines? config true)
     (remove-consecutive-blank-lines (:max-consecutive-blank-lines config 2))
 

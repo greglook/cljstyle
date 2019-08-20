@@ -166,6 +166,9 @@ disabled:
 * `:indentation?`
   True if cljfmt should correct the indentation of your code.
 
+* `:line-break-functions?`
+  True if cljfmt should enforce line breaks in function definitions.
+
 * `:remove-surrounding-whitespace?`
   True if cljfmt should remove whitespace surrounding inner forms. This will
   convert `(  foo  )` to `(foo)`.
