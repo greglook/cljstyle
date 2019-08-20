@@ -14,7 +14,8 @@
   {:meta "^", :meta* "#^", :vector "[",       :map "{"
    :list "(", :eval "#=",  :uneval "#_",      :fn "#("
    :set "#{", :deref "@",  :reader-macro "#", :unquote "~"
-   :var "#'", :quote "'",  :syntax-quote "`", :unquote-splicing "~@"})
+   :var "#'", :quote "'",  :syntax-quote "`", :unquote-splicing "~@",
+   :namespaced-map "#"})
 
 
 
@@ -74,8 +75,13 @@
           (recur p new-worklist)
           (apply str new-worklist)))
       (if-let [p (zip/up zloc)]
-        ;; newline cannot be introduced by start-element
-        (recur p (cons (start-element (n/tag (z/node p))) worklist))
+        ;; if a namespaced map's body is on a newline, don't add the
+        ;; start-element to the list of indentation
+        (if (and (= :namespaced-map (n/tag (z/node p)))
+                 (line-break-next? (z/next p)))
+          (recur p worklist)
+          ;; newline cannot be introduced by start-element
+          (recur p (cons (start-element (n/tag (z/node p))) worklist)))
         (apply str worklist)))))
 
 

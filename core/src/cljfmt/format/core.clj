@@ -236,7 +236,12 @@
   [zloc]
   (and (zl/element? zloc)
        (not (zl/reader-macro? (zip/up zloc)))
-       (zl/element? (zip/right zloc))))
+       (zl/element? (zip/right zloc))
+       ;; allow abutting namespaced maps
+       (not= :namespaced-map (-> zloc
+                                 (zip/up)
+                                 (z/node)
+                                 (n/tag)))))
 
 
 (defn insert-missing-whitespace
