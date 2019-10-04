@@ -14,6 +14,9 @@
 
 
 (deftest general-forms
+  (is (= "(thing 'ns :bar)"
+         (reformat-ns "(thing 'ns :bar)"))
+      "doesn't affect random ns symbols")
   (is (= "(ns foo.bar.baz)"
          (reformat-ns "(  ns\n  foo.bar.baz\n)")))
   (is (= "(ns foo.bar.baz\n  \"ns-level docstring\")"
