@@ -32,8 +32,7 @@
   (and (= :list (z/tag zloc))
        (let [form-sym (zl/form-symbol (z/down zloc))]
          (and (symbol? form-sym)
-              (or (= "fn" (name form-sym))
-                  (= "defn" (name form-sym))
+              (or (contains? #{"fn" "defn" "defn-"} (name form-sym))
                   (and (vector-node? (z/up zloc))
                        (no-prev? zloc vector-node?)
                        (= 'letfn (zl/form-symbol (z/up zloc)))))))))
@@ -68,8 +67,8 @@
          (zl/token? unwrapped)
          (no-prev? zloc arg-vector?)
          (symbol? (z/sexpr unwrapped))
-         (not (contains? #{"fn" "defn"} (name (z/sexpr unwrapped))))
-         (contains? #{[] ["fn"] ["defn"]} (map name (preceeding-symbols zloc))))))
+         (not (contains? #{"fn" "defn" "defn-"} (name (z/sexpr unwrapped))))
+         (contains? #{[] ["fn"] ["defn"] ["defn-"]} (map name (preceeding-symbols zloc))))))
 
 
 (defn fn-to-name-or-args-space?
@@ -110,5 +109,5 @@
   "True if this location is inside a `defn` or a multi-line form."
   [zloc]
   (or (when-let [fsym (zl/form-symbol zloc)]
-        (and (symbol? fsym) (= "defn" (name fsym))))
+        (and (symbol? fsym) (= "defn-" (name fsym))))
       (zl/multiline? (z/up zloc))))
