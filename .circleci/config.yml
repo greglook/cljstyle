@@ -1,16 +1,23 @@
-version: 2
+version: 2.1
 
-jobs:
-  build:
-    working_directory: ~/repo
+# Common executor configuration
+executors:
+  clojure:
     docker:
       - image: circleci/clojure:lein-2.9.1
+    working_directory: ~/repo
+
+
+# Job definitions
+jobs:
+  test:
+    executor: clojure
     steps:
       - checkout
       - restore_cache:
           keys:
-            - v1-{{ checksum "core/project.clj" }}
-            - v1-
+            - v1-test-{{ checksum "core/project.clj" }}
+            - v1-test-
       - run:
           command: lein deps
           pwd: core
@@ -20,16 +27,62 @@ jobs:
       - run:
           command: lein test
           pwd: core
+      - save_cache:
+          key: v1-test-{{ checksum "core/project.clj" }}
+          paths:
+            - ~/.m2
+
+  style:
+    executor: clojure
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-test-{{ checksum "core/project.clj" }}
+            - v1-test-
       - run:
+          name: Install cljfmt
+          command: lein install
+          pwd: core
+      - run:
+          name: Check formatting
+          command: lein run -- check ..
+          pwd: tool
+
+  coverage:
+    executor: clojure
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-coverage-{{ checksum "core/project.clj" }}
+            - v1-coverage-
+            - v1-test-
+      - run:
+          name: Generate test coverage
           command: lein cloverage --codecov
           pwd: core
       - save_cache:
           paths:
             - ~/.m2
-          key: v1-{{ checksum "core/project.clj" }}
+          key: v1-coverage-{{ checksum "core/project.clj" }}
       - store_artifacts:
           path: core/target/coverage
           destination: coverage
       - run:
           name: Publish Coverage
           command: 'bash <(curl -s https://codecov.io/bash) -f core/target/coverage/codecov.json'
+
+
+# Workflow definitions
+workflows:
+  version: 2
+  build:
+    jobs:
+      - test
+      - style:
+          requires:
+            - test
+      - coverage:
+          requires:
+            - test
