@@ -135,7 +135,9 @@
 
 (defmulti ^:private indenter-fn
   "Multimethod for applying indentation rules to forms."
-  (fn [rule-key [rule-type & args]] rule-type))
+  (fn dispatch
+    [rule-key [rule-type & args]]
+    rule-type))
 
 
 (defn- make-indenter
@@ -156,11 +158,12 @@
   [[rule-key _]]
   (cond
     (symbol? rule-key)
-      (if (namespace rule-key)
-        (str 0 rule-key)
-        (str 1 rule-key))
+    (if (namespace rule-key)
+      (str 0 rule-key)
+      (str 1 rule-key))
+
     (pattern? rule-key)
-      (str 2 rule-key)))
+    (str 2 rule-key)))
 
 
 (defn- indent-matches?
@@ -168,10 +171,11 @@
   [rule-key sym]
   (cond
     (and (symbol? rule-key) (symbol? sym))
-      (or (= rule-key sym)
-          (= rule-key (symbol (name sym))))
+    (or (= rule-key sym)
+        (= rule-key (symbol (name sym))))
+
     (pattern? rule-key)
-      (re-find rule-key (str sym))))
+    (re-find rule-key (str sym))))
 
 
 (defn- custom-indent
@@ -195,13 +199,16 @@
         gp  (-> zloc z/up z/up)]
     (cond
       (zl/reader-conditional? gp)
-        (coll-indent zloc)
+      (coll-indent zloc)
+
       (#{:list :fn} tag)
-        (custom-indent zloc indents)
+      (custom-indent zloc indents)
+
       (#{:meta :meta* :reader-macro} tag)
-        (indent-amount (z/up zloc) indents)
+      (indent-amount (z/up zloc) indents)
+
       :else
-        (coll-indent zloc))))
+      (coll-indent zloc))))
 
 
 

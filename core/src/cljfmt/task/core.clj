@@ -4,8 +4,8 @@
     [cljfmt.config :as config]
     [cljfmt.format.core :as format]
     [cljfmt.task.diff :as diff]
-    [cljfmt.task.process :as process]
     [cljfmt.task.print :as p]
+    [cljfmt.task.process :as process]
     [clojure.java.io :as io]
     [clojure.pprint :refer [pprint]]
     [clojure.string :as str])

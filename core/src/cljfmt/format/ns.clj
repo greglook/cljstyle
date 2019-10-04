@@ -309,7 +309,7 @@
           (group-imports)
           (sort-by key)
           (mapcat (partial apply format-import-group opts))
-          (render-block :import)) ]))
+          (render-block :import))]))
 
 
 (defn- render-ns-form
