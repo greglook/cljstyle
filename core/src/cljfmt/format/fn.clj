@@ -109,5 +109,5 @@
   "True if this location is inside a `defn` or a multi-line form."
   [zloc]
   (or (when-let [fsym (zl/form-symbol zloc)]
-        (and (symbol? fsym) (= "defn-" (name fsym))))
+        (and (symbol? fsym) (contains? #{"defn" "defn-"} (name fsym))))
       (zl/multiline? (z/up zloc))))
