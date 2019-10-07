@@ -26,14 +26,28 @@
   (nil? (z/find-next zloc zip/left p?)))
 
 
+(defn- fn-sym?
+  "True if the symbol is a function"
+  [symbol & {:keys [exclude-anonymous?]
+             :or {exclude-anonymous? false}}]
+
+  (let [name (name symbol)]
+    (cond
+
+      exclude-anonymous?
+      (contains? #{"defn" "defn-"} name)
+
+      :else
+      (contains? #{"fn" "defn" "defn-"} name))))
+
+
 (defn- fn-form?
   "True if the node at this location is a function form."
   [zloc]
   (and (= :list (z/tag zloc))
        (let [form-sym (zl/form-symbol (z/down zloc))]
          (and (symbol? form-sym)
-              (or (= "fn" (name form-sym))
-                  (= "defn" (name form-sym))
+              (or (fn-sym? form-sym)
                   (and (vector-node? (z/up zloc))
                        (no-prev? zloc vector-node?)
                        (= 'letfn (zl/form-symbol (z/up zloc)))))))))
@@ -68,8 +82,11 @@
          (zl/token? unwrapped)
          (no-prev? zloc arg-vector?)
          (symbol? (z/sexpr unwrapped))
-         (not (contains? #{"fn" "defn"} (name (z/sexpr unwrapped))))
-         (contains? #{[] ["fn"] ["defn"]} (map name (preceeding-symbols zloc))))))
+         (not (fn-sym? (z/sexpr unwrapped)))
+         (let [preceeding (preceeding-symbols zloc)]
+           (or (empty? preceeding)
+               (and (= 1 (count preceeding))
+                    (fn-sym? (first preceeding))))))))
 
 
 (defn fn-to-name-or-args-space?
@@ -110,5 +127,5 @@
   "True if this location is inside a `defn` or a multi-line form."
   [zloc]
   (or (when-let [fsym (zl/form-symbol zloc)]
-        (and (symbol? fsym) (= "defn" (name fsym))))
+        (and (symbol? fsym) (fn-sym? fsym :exclude-anonymous? true)))
       (zl/multiline? (z/up zloc))))
