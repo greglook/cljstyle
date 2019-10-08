@@ -28,17 +28,9 @@
 
 (defn- fn-sym?
   "True if the symbol is a function"
-  [symbol & {:keys [exclude-anonymous?]
-             :or {exclude-anonymous? false}}]
-
-  (let [name (name symbol)]
-    (cond
-
-      exclude-anonymous?
-      (contains? #{"defn" "defn-"} name)
-
-      :else
-      (contains? #{"fn" "defn" "defn-"} name))))
+  [sym]
+  (and (symbol? sym)
+       (contains? #{"fn" "defn" "defn-"} (name sym))))
 
 
 (defn- fn-form?
@@ -127,5 +119,7 @@
   "True if this location is inside a `defn` or a multi-line form."
   [zloc]
   (or (when-let [fsym (zl/form-symbol zloc)]
-        (and (symbol? fsym) (fn-sym? fsym :exclude-anonymous? true)))
+        (and (symbol? fsym)
+             (fn-sym? fsym)
+             (not= "fn" (name fsym))))
       (zl/multiline? (z/up zloc))))
