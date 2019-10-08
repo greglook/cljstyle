@@ -7,7 +7,11 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
-...
+### Fixed
+- The cljfmt codebase now adheres to its own style rules.
+- Private functions defined with `defn-` are no longer ignored by function
+  rules.
+  [#17](//github.com/greglook/cljfmt/issues/17)
 
 
 ## [0.8.2] - 2019-08-20
