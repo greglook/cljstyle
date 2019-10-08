@@ -47,8 +47,7 @@
 (deftest comment-handling
   (testing "inline comments"
     (is (= "(let [;foo\n      x (foo bar\n             baz)]\n  x)"
-           (reformat-string "(let [;foo\n x (foo bar\n baz)]\n x)")))
-    ,,,)
+           (reformat-string "(let [;foo\n x (foo bar\n baz)]\n x)"))))
   (testing "leading comments"
     (is (= ";foo\n(def x 1)"
            (reformat-string ";foo\n(def x 1)")))

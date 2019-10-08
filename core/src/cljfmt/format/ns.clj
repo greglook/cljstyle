@@ -13,7 +13,10 @@
 (defn ns-node?
   "True if the node at this location is a namespace declaration."
   [zloc]
-  (= 'ns (as-> (zip/down zloc) zl (and (= :token (z/tag zl)) (z/sexpr zl)))))
+  (and (z/list? zloc)
+       (let [zl (zip/down zloc)]
+         (and (= :token (z/tag zl))
+              (= 'ns (z/sexpr zl))))))
 
 
 (defn- chomp-comment
@@ -306,7 +309,7 @@
           (group-imports)
           (sort-by key)
           (mapcat (partial apply format-import-group opts))
-          (render-block :import)) ]))
+          (render-block :import))]))
 
 
 (defn- render-ns-form

@@ -14,6 +14,9 @@
 
 
 (deftest general-forms
+  (is (= "(thing 'ns :bar)"
+         (reformat-ns "(thing 'ns :bar)"))
+      "doesn't affect random ns symbols")
   (is (= "(ns foo.bar.baz)"
          (reformat-ns "(  ns\n  foo.bar.baz\n)")))
   (is (= "(ns foo.bar.baz\n  \"ns-level docstring\")"
@@ -41,7 +44,7 @@
     [clojure.spec :as s]
     [clojure.string :as str]))"
          (reformat-ns
-"(ns foo.bar
+           "(ns foo.bar
   \"Functions for working with bars.\"
   (:refer-clojure :exclude [keys])
   (:require [clojure.string :as str]
@@ -62,7 +65,7 @@
     [clojure.set :as set]
     [clojure.string :as str]))"
          (reformat-ns
-"(ns abc.xyz (:require (clojure [set :as set]
+           "(ns abc.xyz (:require (clojure [set :as set]
 [string :as str]
 [pprint :refer [pp]]) [abc.def :as def]))")))
   (is (= "(ns abc.xyz
@@ -72,12 +75,11 @@
     ; about set
     [clojure.set :as set]))"
          (reformat-ns
-"(ns abc.xyz (:require
+           "(ns abc.xyz (:require
   (clojure ; about set
     [set :as set])
   ; about def
-  [abc.def :as def]))")))
-    ,,,)
+  [abc.def :as def]))"))))
 
 
 (deftest ns-import
@@ -89,7 +91,7 @@
       OutputStream)
     java.time.Instant))"
          (reformat-ns
-"(ns foo.bar (:import java.io.IOException
+           "(ns foo.bar (:import java.io.IOException
  (java.io
    OutputStream InputStream)
   java.time.Instant
@@ -98,12 +100,10 @@
   (:import
     goog.async.Debouncer))"
          (reformat-ns
-           "(ns foo (:import [goog.async Debouncer]))")))
-  ,,,)
+           "(ns foo (:import [goog.async Debouncer]))"))))
 
 
 (deftest ns-genclass
   (is (= "(ns abc.def
   (:gen-class))"
-         (reformat-ns "(ns abc.def (:gen-class))")))
-  ,,,)
+         (reformat-ns "(ns abc.def (:gen-class))"))))
