@@ -250,9 +250,7 @@
              [x.y.z :as z]
              ])))"))))
   ;; TODO: more test cases
-  (testing "inside libspec"
-    ,,,)
-  (testing "inside import"
-    ,,,)
-  (testing "complex combinations"
-    ,,,))
+  ;; - inside libspec
+  ;; - inside import?
+  ;; - complex combos
+  ,,,)

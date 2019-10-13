@@ -270,8 +270,7 @@
       (vec)
       (as-> parts
         [(symbol (str/join "." (pop parts)))
-         (with-meta (symbol (peek parts))
-                    (meta import-class-node))])))
+         (with-meta (symbol (peek parts)) (meta import-class-node))])))
 
 
 (defn- group-imports
@@ -458,7 +457,6 @@
                   (n/list-node))])])))
       (interpose [(n/newlines 1)])
       (into [] cat))))
-
 
 
 
