@@ -9,8 +9,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 - Reader conditional macros in namespace forms are correctly handled at the top
-  level and inside `:require` type forms. Some other cases (such as conditionals
-  inside a libspec) may still cause errors.
+  level, inside `:require` type forms, and inside libspecs. Some other cases
+  (such as conditionals inside `:import`) may still cause errors.
   [#5](//github.com/greglook/cljfmt/issues/5)
 - Don't swallow comments on import package groups.
   [#10](//github.com/greglook/cljfmt/issues/10)

@@ -249,8 +249,32 @@
 #?@(:cljs [
              [x.y.z :as z]
              ])))"))))
+  (testing "inside libspec"
+    (is (= "(ns a.b.c
+  (:require
+    [a.b.d :as d]
+    [#?(:clj clj-time.core
+        :cljs cljs-time.core) :as time]
+    [p.q.r :as r]))"
+           (reformat-ns
+             "(ns a.b.c
+  (:require
+    [#?(:clj clj-time.core
+        :cljs cljs-time.core) :as time]
+    [p.q.r :as r]
+    [a.b.d :as d]))")))
+    (is (= "(ns a.b.c
+  (:require
+    [a.b.d :as d]
+    [#?(:clj clj-time.core :cljs cljs-time.core) :as time]
+    [p.q.r :as r]))"
+           (reformat-ns
+             "(ns a.b.c
+  (:require
+    [#?(:clj clj-time.core :cljs cljs-time.core) :as time]
+    [p.q.r :as r]
+    [a.b.d :as d]))"))))
   ;; TODO: more test cases
-  ;; - inside libspec
   ;; - inside import?
   ;; - complex combos
   ,,,)

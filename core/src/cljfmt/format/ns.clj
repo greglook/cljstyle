@@ -183,7 +183,10 @@
     :token
     (n/sexpr el)
     :vector
-    (n/sexpr (first (n/children el)))
+    (let [ns-sym (first (n/children el))]
+      (if (= :reader-macro (n/tag ns-sym))
+        (-> ns-sym n/children second n/sexpr second)
+        (n/sexpr ns-sym)))
     :reader-macro
     (let [token (-> el n/children first n/sexpr)]
       (-> (n/children el)
