@@ -96,6 +96,17 @@
   (str/includes? (z/string zloc) "\n"))
 
 
+(defn syntax-quoted?
+  "True if the location is inside a macro syntax quote."
+  [zloc]
+  (loop [zloc zloc]
+    (if zloc
+      (if (= :syntax-quote (n/tag (z/node zloc)))
+        true
+        (recur (zip/up zloc)))
+      false)))
+
+
 (defn- remove-namespace
   "Remove the namespace from a symbol. Non-symbol arguments are returned
   unchanged."

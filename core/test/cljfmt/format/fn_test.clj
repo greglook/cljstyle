@@ -70,3 +70,19 @@
          (reformat-string "(defn- foo\n([x]\n(foo)\n(bar)))")))
   (is (= "(defn- ^:deprecated foo\n  \"Deprecated method.\"\n  [x]\n  123)"
          (reformat-string "(defn- ^:deprecated foo \"Deprecated method.\"\n[x]\n123)"))))
+
+
+(deftest quoted-forms
+  (is (= "(let [x 123
+      y 456]
+  `(defn ~foo
+     ~(str \"foo bar \" x)
+     [a# b#]
+     ~y))"
+         (reformat-string
+           "(let [x 123
+      y 456]
+  `(defn ~foo
+     ~(str \"foo bar \" x)
+     [a# b#]
+     ~y))"))))

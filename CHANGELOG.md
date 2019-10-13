@@ -16,6 +16,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
   [#10](//github.com/greglook/cljfmt/issues/10)
 - Preserve commas when removing surrounding whitespace.
   [#14](//github.com/greglook/cljfmt/issues/14)
+- Don't apply function line-breaking rules to forms within a syntax-quote.
 
 ## [0.8.3] - 2019-10-08
 

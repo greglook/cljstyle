@@ -95,17 +95,21 @@
   `break?` returns true on the location or a single space character if false."
   [form p? break?]
   (transform
-    form edit-all p?
-    (fn [zloc]
+    form edit-all
+    (fn match?
+      [zloc]
+      (and (p? zloc) (not (zl/syntax-quoted? zloc))))
+    (fn change
+      [zloc]
       (if (break? zloc)
-        ; break space
+        ;; break space
         (if (zl/zlinebreak? zloc)
           (z/right zloc)
           (-> zloc
               (zip/replace (n/newlines 1))
               (zip/right)
               (eat-whitespace)))
-        ; inline space
+        ;; inline space
         (-> zloc
             (zip/replace (whitespace 1))
             (zip/right)
@@ -113,7 +117,7 @@
 
 
 (defn line-break-functions
-  "Transform this form by applying line-breaks to `defn` and `fn` forms."
+  "Transform this form by applying line-breaks to function definition forms."
   [form]
   (-> form
       (break-whitespace
