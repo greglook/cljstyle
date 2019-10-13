@@ -165,9 +165,39 @@
              "(ns x.y.z (:require [a.b.q :as q])
   #?(:clj (:import a.b.c.E x.y.Y a.b.c.D)
      :cljs (:import [goog.foo Bar] [goog.baz Qux Thing])))"))))
-  ;; TODO: test cases
   (testing "inside require"
-    ,,,)
+    (is (= "(ns a.b.c
+  (:require
+    [a.b.d :as d]
+    #?(:clj [clj-time.core :as time]
+       :cljs [cljs-time.core :as time])
+    [f.g.h :as h :refer [x y]]))"
+           (reformat-ns
+             "(ns a.b.c
+  (:require
+    #?(   :clj [clj-time.core :as time]
+     :cljs [cljs-time.core :as time]
+      ) [f.g.h :as h :refer [x y]]
+          [a.b.d :as d]))")))
+    (is (= "(ns foo.bar
+  (:require
+    [a.b.c :as c]
+    #?@(:clj [[foo.core :as foo]
+              [foo.bar :as bar]])
+    [p.q.r :as r :refer [x y]]
+    #?@(:cljs [[x.y.z :as z]])))"
+           (reformat-ns
+             "(ns foo.bar
+            (:require
+        #?@(:clj [
+             [foo.core :as foo]
+        [foo.bar :as bar]])
+[a.b.c :as c] [p.q.r :as r :refer [x y]]
+
+#?@(:cljs [
+             [x.y.z :as z]
+             ])))"))))
+  ;; TODO: more test cases
   (testing "inside libspec"
     ,,,)
   (testing "inside import"

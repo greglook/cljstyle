@@ -7,30 +7,6 @@
     [rewrite-clj.zip :as z]))
 
 
-(def indent-size 2)
-
-
-;; Rules:
-;; When rendering conditionals, sort the branches by key. If all branches are
-;; oneliners, render it with keys and values on the same line. For multiline
-;; branches, render them with keys and values on different lines.
-;;
-;; For top-level conditionals, group them based on the key of their first branch.
-;; - `#?(:a (:foo ,,,) :b (:bar ,,,))` would overall have key `:foo`.
-;; - within a group for a given key, put the conditionals after that group.
-;; - If an embedded form is `:require` or `:require-macros`, apply namespace
-;;   requirement ordering to it
-;; - If an embedded form is `:import`, apply import grouping to it
-;;
-;; For single conditionals inside a require form, sort them like a namespace
-;; inside the list. For expanded conditionals, sort them internally. Sort them
-;; in the list by the first element.
-;;
-;; For conditionals inside a require around the first symbol, expand into a
-;; top-level form.
-
-
-
 ;; ## Parsing Functions
 
 (defn- chomp-comment
@@ -81,10 +57,11 @@
                                  assoc ::comments comments))
                 []]
 
-               (zl/reader-conditional? el)
+               (and (= :reader-macro (n/tag el))
+                    (contains? #{"?" "?@"} (-> el n/children first n/sexpr str)))
                [(conj elements (vary-meta
                                  el assoc
-                                 ::spliced? (= "?@" (-> el z/down zl/token-value str))
+                                 ::spliced? (= "?@" (-> el n/children first n/sexpr str))
                                  ::comments comments))
                 []]
 
@@ -141,6 +118,9 @@
 
 ;; ## Rendering Functions
 
+(def indent-size 2)
+
+
 (defn- render-inline
   "Render a namespace group as a single-line form."
   [kw elements]
@@ -164,13 +144,14 @@
 
 ;; ## Required Namespaces
 
-(defn- vectorize-require-symbol
+(defn- vectorize-libspec
   "If the given element node is a symbol, wrap it in a vector node. If it's a
   vector, return as-is."
   [element]
   (case (n/tag element)
     :token (n/vector-node [element])
-    :vector element))
+    :vector element
+    :reader-macro element))
 
 
 (defn- expand-require-group
@@ -182,7 +163,8 @@
           prefix (name (n/sexpr prefix))]
       (into []
             (map
-              (fn [el]
+              (fn expand
+                [el]
                 (let [[ns-sym & more] (if (= :vector (n/tag el))
                                         (n/children el)
                                         [el])]
@@ -191,17 +173,27 @@
                       (n/vector-node)
                       (with-meta (meta el))))))
             elements))
-    [(vectorize-require-symbol element)]))
+    [(vectorize-libspec element)]))
 
 
-(defn- sort-requires
-  "Sort a group of required namespace elements."
-  [elements]
-  (sort-by
-    (fn require-key
-      [e]
-      (n/sexpr (first (n/children e))))
-    elements))
+(defn- libspec-sort-key
+  "Return a key suitable for sorting a collection."
+  [el]
+  (case (n/tag el)
+    :token
+    (n/sexpr el)
+    :vector
+    (n/sexpr (first (n/children el)))
+    :reader-macro
+    (let [token (-> el n/children first n/sexpr)]
+      (-> (n/children el)
+          (second)
+          (n/sexpr)
+          (second)
+          (cond->
+            (= "?@" (str token))
+            (first))
+          (first)))))
 
 
 (defn- render-requires*
@@ -210,7 +202,7 @@
   (when (seq elements)
     (->> elements
          (mapcat expand-require-group)
-         (sort-requires)
+         (sort-by libspec-sort-key)
          (mapcat expand-comments)
          (render-block base-indent kw))))
 
