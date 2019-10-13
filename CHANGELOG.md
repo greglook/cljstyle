@@ -18,6 +18,11 @@ This project adheres to [Semantic Versioning](http://semver.org/).
   [#14](//github.com/greglook/cljfmt/issues/14)
 - Don't apply function line-breaking rules to forms within a syntax-quote.
 
+### Added
+- New `:require-eof-newline?` configuration option will ensure that all source
+  files end with a newline character.
+  [#15](//github.com/greglook/cljfmt/issues/15)
+
 ## [0.8.3] - 2019-10-08
 
 ### Fixed

@@ -33,6 +33,7 @@
 (s/def ::padding-lines nat-int?)
 (s/def ::rewrite-namespaces? boolean?)
 (s/def ::single-import-break-width nat-int?)
+(s/def ::require-eof-newline? boolean?)
 
 
 ;; Indentation Rules
@@ -74,6 +75,7 @@
                    ::padding-lines
                    ::rewrite-namespaces?
                    ::single-import-break-width
+                   ::require-eof-newline?
                    ::indents
                    ::file-pattern
                    ::file-ignore]))
@@ -99,6 +101,7 @@
    :padding-lines 2
    :rewrite-namespaces? true
    :single-import-break-width 30
+   :require-eof-newline? true
    :indents default-indents
    :file-pattern #"\.clj[csx]?$"
    :file-ignore #{}})

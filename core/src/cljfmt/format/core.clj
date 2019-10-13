@@ -6,6 +6,7 @@
     [cljfmt.format.ns :as ns]
     [cljfmt.format.zloc :as zl]
     [clojure.java.io :as io]
+    [clojure.string :as str]
     [clojure.zip :as zip]
     [rewrite-clj.node :as n]
     [rewrite-clj.parser :as p]
@@ -360,3 +361,16 @@
    (-> (p/parse-string-all form-string)
        (reformat-form config)
        (n/string))))
+
+
+(defn reformat-file
+  "Like `reformat-string` but applies to an entire file. Will honor
+  `:require-eof-newline?`."
+  ([file-text]
+   (reformat-file file-text config/default-config))
+  ([file-text config]
+   (let [text' (reformat-string file-text config)]
+     (if (and (:require-eof-newline? config)
+              (not (str/ends-with? text' "\n")))
+       (str text' "\n")
+       text'))))

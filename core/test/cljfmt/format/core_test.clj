@@ -1,6 +1,6 @@
 (ns cljfmt.format.core-test
   (:require
-    [cljfmt.format.core :refer [reformat-string]]
+    [cljfmt.format.core :refer [reformat-string reformat-file]]
     [clojure.test :refer :all]))
 
 
@@ -105,3 +105,9 @@
   (testing "reader macros"
     (is (= "#inst\n\"2018-01-01T00:00:00.000-00:00\""
            (reformat-string "#inst\n\"2018-01-01T00:00:00.000-00:00\"")))))
+
+
+(deftest eof-newlines
+  (is (= ":x" (reformat-file ":x" {:require-eof-newline? false})))
+  (is (= ":x\n" (reformat-file ":x" {:require-eof-newline? true})))
+  (is (= ":x\n" (reformat-file ":x\n" {:require-eof-newline? true}))))

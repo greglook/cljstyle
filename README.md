@@ -149,10 +149,12 @@ You can configure the way `cljfmt` looks for source files with the following
 settings:
 
 * `:file-pattern`
+
   Pattern to match against filenames to determine which files to check. Includes
   all Clojure, ClojureScript, and cross-compiled files by default.
 
 * `:file-ignore`
+
   Set of strings or patterns of files to ignore. Strings are matched against
   file and directory names exactly; patterns are matched against the entire
   (relative) file path. Ignored files will not be checked and ignored
@@ -164,42 +166,56 @@ settings:
 disabled:
 
 * `:indentation?`
+
   True if cljfmt should correct the indentation of your code.
 
 * `:line-break-functions?`
+
   True if cljfmt should enforce line breaks in function definitions.
 
 * `:remove-surrounding-whitespace?`
+
   True if cljfmt should remove whitespace surrounding inner forms. This will
   convert `(  foo  )` to `(foo)`.
 
 * `:remove-trailing-whitespace?`
+
   True if cljfmt should remove trailing whitespace in lines. This will convert
   `(foo)   \n` to `(foo)\n`.
 
 * `:insert-missing-whitespace?`
+
   True if cljfmt should insert whitespace missing from between elements. This
   will convert `(foo(bar))` to `(foo (bar))`.
 
 * `:remove-consecutive-blank-lines?`
+
   True if cljfmt should collapse consecutive blank lines. Any runs of empty
   lines longer than `:max-consecutive-blank-lines` will be truncated to the
   configured limit. The default limit is 2. This will convert
   `(foo)\n\n\n\n(bar)` to `(foo)\n\n\n(bar)`.
 
 * `:insert-padding-lines?`
+
   Whether cljfmt should insert blank lines between certain top-level forms. Any
   multi-line form will be padded with at least `:padding-lines` empty lines
   between it and other non-comment forms. The defaults is 2 lines.
 
 * `:rewrite-namespaces?`
+
   Whether cljfmt should rewrite namespace forms to standardize their layout.
 
 * `:single-import-break-width`
+
   Control the threshold for breaking a single class import into a package import
   group. If the combined package and class name would be longer than this limit,
-  it is represented as a group, otherwise it is inlined into a qualified class
-  symbol.
+  it is represented as a singleton group. Classes under this threshold may be
+  either fully qualified or grouped.
+
+* `:require-eof-newline?`
+
+  Require all files to end with a newline character. One will be added if it is
+  not present.
 
 ### Indentation rules
 
