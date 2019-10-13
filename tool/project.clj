@@ -1,4 +1,4 @@
-(defproject mvxcvi/cljfmt-tool "0.8.4-SNAPSHOT"
+(defproject mvxcvi/cljfmt-tool "0.9.0-SNAPSHOT"
   :description "An executable tool for running cljfmt."
   :url "https://github.com/greglook/cljfmt"
   :scm {:dir ".."}
@@ -8,7 +8,7 @@
   :dependencies
   [[org.clojure/clojure "1.9.0"]
    [org.clojure/tools.cli "0.4.2"]
-   [mvxcvi/cljfmt "0.8.4-SNAPSHOT"]]
+   [mvxcvi/cljfmt "0.9.0-SNAPSHOT"]]
 
   :main cljfmt.tool.main
 
@@ -16,7 +16,7 @@
   {:repl
    {:source-paths ["dev"]
     :dependencies
-    [[org.clojure/tools.namespace "0.3.0"]]
+    [[org.clojure/tools.namespace "0.3.1"]]
     :repl-options
     {:init-ns user}}
 

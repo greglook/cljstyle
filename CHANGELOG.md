@@ -18,6 +18,10 @@ This project adheres to [Semantic Versioning](http://semver.org/).
   [#14](//github.com/greglook/cljfmt/issues/14)
 - Don't apply function line-breaking rules to forms within a syntax-quote.
 
+### Changed
+- Imported classes under the `:single-import-break-width` threshold which were
+  already in a package group will not be forced into a qualified class symbol.
+
 ### Added
 - New `:require-eof-newline?` configuration option will ensure that all source
   files end with a newline character.
