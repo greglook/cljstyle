@@ -12,6 +12,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
   level and inside `:require` type forms. Some other cases (such as conditionals
   inside a libspec) may still cause errors.
   [#5](//github.com/greglook/cljfmt/issues/5)
+- Don't swallow comments on import package groups.
+  [#10](//github.com/greglook/cljfmt/issues/10)
 
 ## [0.8.3] - 2019-10-08
 

@@ -248,10 +248,14 @@
   sequence containing the argument element."
   [element]
   (if (contains? #{:list :vector} (n/tag element))
-    (let [[package & classes] (strip-whitespace (n/children element))]
-      (map #(-> (symbol (str (n/sexpr package) \. (n/sexpr %)))
-                (n/token-node)
-                (with-meta (meta %)))
+    (let [[package & classes] (strip-whitespace (n/children element))
+          pkg-comments (::comments (meta element))]
+      (map (fn expand-group
+             [class-node]
+             (-> (symbol (str (n/sexpr package) \. (n/sexpr class-node)))
+                 (n/token-node)
+                 (with-meta (assoc (meta class-node)
+                                   ::group-comments pkg-comments))))
            classes))
     [(vary-meta element assoc ::qualified-import true)]))
 
@@ -277,21 +281,32 @@
   (->> imports
        (map split-import-package)
        (reduce
-         (fn [groups [package class-name]]
+         (fn collect-classes
+           [groups [package class-name]]
            (update groups package (fnil conj #{}) class-name))
-         {})))
+         {})
+       (map
+         (fn assign-group-comments
+           [[package class-names]]
+           (if-let [comments (::group-comments (meta (first class-names)))]
+             [(vary-meta package assoc ::comments comments) class-names]
+             [package class-names])))
+       (into {})))
 
 
 (defn- format-import-group*
   "Format a group of imported classes as a list node."
   [base-indent package class-names]
-  (n/list-node
+  (->
     (->> (sort class-names)
          (mapcat expand-comments)
          (mapcat (partial list
                           (n/newlines 1)
                           (n/spaces (+ base-indent (* 2 indent-size)))))
-         (cons (n/token-node package)))))
+         (cons (n/token-node package)))
+    (n/list-node)
+    (with-meta (meta package))
+    (expand-comments)))
 
 
 (defn- format-import-group
@@ -310,9 +325,9 @@
             (with-meta (meta class-name))
             (expand-comments))
         ;; Format singleton group.
-        [(format-import-group* base-indent package class-names)]))
+        (format-import-group* base-indent package class-names)))
     ;; Multiple classes, always use a group.
-    [(format-import-group* base-indent package class-names)]))
+    (format-import-group* base-indent package class-names)))
 
 
 (defn- render-imports*

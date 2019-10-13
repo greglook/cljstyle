@@ -101,7 +101,28 @@
     (goog.async
       Debouncer)))"
          (reformat-ns
-           "(ns foo (:import [goog.async Debouncer]))"))))
+           "(ns foo (:import [goog.async Debouncer]))")))
+  (testing "comments"
+    (is (= "(ns foo
+  (:import
+    ;; Single-class imports can be collapsed into a symbol
+    clojure.lang.Keyword
+    ;; Otherwise break the class names out onto new lines
+    (java.io
+      ;; input stream comment
+      InputStream
+      ;; output stream comment
+      OutputStream)))"
+           (reformat-ns
+             "(ns foo
+  (:import
+    ;; Single-class imports can be collapsed into a symbol
+    clojure.lang.Keyword
+    ;; Otherwise break the class names out onto new lines
+    (java.io ;; output stream comment
+             OutputStream
+        ;; input stream comment
+      InputStream)))")))))
 
 
 (deftest ns-genclass
