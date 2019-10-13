@@ -217,8 +217,12 @@
   "True if the node at this location is part of whitespace surrounding a
   top-level form."
   [zloc]
-  (and (zl/top? (z/up zloc))
-       (surrounding? zloc zl/zwhitespace?)))
+  (letfn [(blank?
+            [zloc]
+            (and (zl/zwhitespace? zloc)
+                 (not= :comma (n/tag (z/node zloc)))))]
+    (and (zl/top? (z/up zloc))
+         (surrounding? zloc blank?))))
 
 
 (defn remove-surrounding-whitespace
@@ -238,10 +242,8 @@
        (not (zl/reader-macro? (zip/up zloc)))
        (zl/element? (zip/right zloc))
        ;; allow abutting namespaced maps
-       (not= :namespaced-map (-> zloc
-                                 (zip/up)
-                                 (z/node)
-                                 (n/tag)))))
+       (not= :namespaced-map
+             (-> zloc zip/up z/node n/tag))))
 
 
 (defn insert-missing-whitespace

@@ -14,6 +14,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
   [#5](//github.com/greglook/cljfmt/issues/5)
 - Don't swallow comments on import package groups.
   [#10](//github.com/greglook/cljfmt/issues/10)
+- Preserve commas when removing surrounding whitespace.
+  [#14](//github.com/greglook/cljfmt/issues/14)
 
 ## [0.8.3] - 2019-10-08
 

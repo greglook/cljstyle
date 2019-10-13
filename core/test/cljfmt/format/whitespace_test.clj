@@ -80,3 +80,36 @@
     (is (= "( foo bar )\n( foo baz )\n"
            (reformat-string "( foo bar )   \n( foo baz )\n"
                             {:remove-surrounding-whitespace? false})))))
+
+
+(deftest comma-placeholders
+  (testing "general usage"
+    (is (= ",,," (reformat-string ",,,"))))
+  (testing "collection tails"
+    (is (= "(def thing
+  [:one  ; a comment
+   :two  ; another comment
+   ,,,])"
+           (reformat-string
+             "(def thing
+  [:one  ; a comment
+   :two  ; another comment
+   ,,,])")))
+    (is (= "(def thing
+  #{:one 1  ; a comment
+    :two 2  ; another comment
+    ,,,})"
+           (reformat-string
+             "(def thing
+  #{:one 1  ; a comment
+    :two 2  ; another comment
+    ,,,})")))
+    (is (= "(def thing
+  {:one 1  ; a comment
+   :two 2  ; another comment
+   ,,,})"
+           (reformat-string
+             "(def thing
+  {:one 1  ; a comment
+   :two 2  ; another comment
+   ,,,})")))))
