@@ -128,7 +128,17 @@
 (deftest ns-genclass
   (is (= "(ns abc.def
   (:gen-class))"
-         (reformat-ns "(ns abc.def (:gen-class))"))))
+         (reformat-ns "(ns abc.def (:gen-class))")))
+  (is (= "(ns ab.cd.ef
+  (:gen-class
+    :name ab.cd.EFThing
+    :extends foo.bar.AbstractThing)
+  (:require
+    [foo.bar :as bar]))"
+         (reformat-ns "(ns ab.cd.ef
+              (:require [foo.bar :as bar])
+        (:gen-class :name ab.cd.EFThing :extends foo.bar.AbstractThing)
+                  )"))))
 
 
 (deftest reader-conditionals
@@ -185,7 +195,28 @@
            (reformat-ns
              "(ns x.y.z (:require [a.b.q :as q])
   #?(:clj (:import a.b.c.E x.y.Y a.b.c.D)
-     :cljs (:import [goog.foo Bar] [goog.baz Qux Thing])))"))))
+     :cljs (:import [goog.foo Bar] [goog.baz Qux Thing])))")))
+    (is (= "(ns x.y.z
+  (:require
+    [a.b.q :as q])
+  #?(:clj
+     (:import
+       (a.b.c
+         D
+         E)
+       x.y.Y))
+  #?(:cljs
+     (:import
+       (goog.baz
+         Qux
+         Thing)
+       (goog.foo
+         Bar))))"
+           (reformat-ns
+             "(ns x.y.z
+  #?(:clj (:import a.b.c.E x.y.Y a.b.c.D))
+             (:require [a.b.q :as q])
+  #?(:cljs (:import [goog.foo Bar] [goog.baz Qux Thing])))"))))
   (testing "inside require"
     (is (= "(ns a.b.c
   (:require

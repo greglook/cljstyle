@@ -440,21 +440,24 @@
   "Render top-level reader-conditional macros."
   [opts elements]
   (when (seq elements)
-    (mapcat
-      (fn expand-conditional
-        [branches]
-        (let [spliced? (::spliced? (meta branches))
-              base-indent (+ indent-size (if spliced? 4 3))]
-          [(n/spaces indent-size)
-           (n/reader-macro-node
-             [(n/token-node (symbol (if spliced? "?@" "?")))
-              (->>
-                branches
-                (map (partial render-reader-branch opts base-indent))
-                (interpose [(n/newlines 1) (n/spaces base-indent)])
-                (into [] cat)
-                (n/list-node))])]))
-       elements)))
+    (->>
+      elements
+      (map
+        (fn expand-conditional
+          [branches]
+          (let [spliced? (::spliced? (meta branches))
+                base-indent (+ indent-size (if spliced? 4 3))]
+            [(n/spaces indent-size)
+             (n/reader-macro-node
+               [(n/token-node (symbol (if spliced? "?@" "?")))
+                (->>
+                  branches
+                  (map (partial render-reader-branch opts base-indent))
+                  (interpose [(n/newlines 1) (n/spaces base-indent)])
+                  (into [] cat)
+                  (n/list-node))])])))
+      (interpose [(n/newlines 1)])
+      (into [] cat))))
 
 
 
