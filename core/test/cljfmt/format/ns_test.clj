@@ -98,7 +98,8 @@
   ))")))
   (is (= "(ns foo
   (:import
-    goog.async.Debouncer))"
+    (goog.async
+      Debouncer)))"
          (reformat-ns
            "(ns foo (:import [goog.async Debouncer]))"))))
 
@@ -107,3 +108,69 @@
   (is (= "(ns abc.def
   (:gen-class))"
          (reformat-ns "(ns abc.def (:gen-class))"))))
+
+
+(deftest reader-conditionals
+  (testing "top level"
+    (is (= "(ns foo.bar.baz
+  (:require
+    [a.b.c :as c]
+    [x.y.z :as z])
+  #?(:cljs
+     (:require-macros
+       [q.r.s :refer [x y]])))"
+           (reformat-ns
+             "(ns foo.bar.baz
+  (:require [a.b.c :as c] [x.y.z :as z])
+  #?(:cljs (:require-macros
+              [q.r.s :refer [x y]])))")))
+    (is (= "(ns a.b.c
+  #?(:clj
+     (:require
+       [q.r.j :refer [x y]])
+     :cljs
+     (:require-macros
+       [q.r.s :refer [x y]])))"
+           (reformat-ns
+             "(ns a.b.c
+  #?(:cljs (:require-macros [q.r.s :refer [x y]])
+         :clj  (:require [q.r.j :refer [x y]])))")))
+    (is (= "(ns a.b.c
+  (:require
+    [q.r.j :refer [x y]])
+  #?@(:clj
+      [(:gen-class) (:import foo.bar.Bar foo.baz.Qux)]))"
+           (reformat-ns
+             "(ns a.b.c (:require
+            [q.r.j :refer [x y]])
+      #?@(:clj [(:gen-class) (:import foo.bar.Bar foo.baz.Qux)]
+           ))")))
+    (is (= "(ns x.y.z
+  (:require
+    [a.b.q :as q])
+  #?(:clj
+     (:import
+       (a.b.c
+         D
+         E)
+       x.y.Y)
+     :cljs
+     (:import
+       (goog.baz
+         Qux
+         Thing)
+       (goog.foo
+         Bar))))"
+           (reformat-ns
+             "(ns x.y.z (:require [a.b.q :as q])
+  #?(:clj (:import a.b.c.E x.y.Y a.b.c.D)
+     :cljs (:import [goog.foo Bar] [goog.baz Qux Thing])))"))))
+  ;; TODO: test cases
+  (testing "inside require"
+    ,,,)
+  (testing "inside libspec"
+    ,,,)
+  (testing "inside import"
+    ,,,)
+  (testing "complex combinations"
+    ,,,))
