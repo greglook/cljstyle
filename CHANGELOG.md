@@ -5,7 +5,11 @@ All notable changes to this project will be documented in this file, which
 follows the conventions of [keepachangelog.com](http://keepachangelog.com/).
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+
 ## [Unreleased]
+
+The biggest change in this release is renaming the project to `cljstyle` to
+better differentiate it from the original `cljfmt`.
 
 ### Fixed
 - Reader conditional macros in namespace forms are correctly handled at the top
@@ -24,9 +28,10 @@ This project adheres to [Semantic Versioning](http://semver.org/).
   already in a package group will not be forced into a qualified class symbol.
 
 ### Added
-- New `:require-eof-newline?` configuration option will ensure that all source
+- The `:require-eof-newline?` configuration option will ensure that all source
   files end with a newline character.
   [#15](//github.com/greglook/cljstyle/issues/15)
+- Completion logic for zshell in [`completion.zsh`](util/completion.zsh).
 
 ## [0.8.3] - 2019-10-08
 
@@ -107,7 +112,7 @@ First fork release. Rewrote most of the code and added a bunch of new
 functionality.
 
 
-## 0.5.6 - 2016-09-29
+## [0.5.6] - 2016-09-29
 
 Legacy project release.
 
@@ -118,3 +123,4 @@ Legacy project release.
 [0.8.1]: https://github.com/greglook/cljstyle/compare/0.8.0...0.8.1
 [0.8.0]: https://github.com/greglook/cljstyle/compare/0.7.0...0.8.0
 [0.7.0]: https://github.com/greglook/cljstyle/compare/0.5.6...0.7.0
+[0.5.6]: https://github.com/greglook/cljform/releases/tag/0.5.6
