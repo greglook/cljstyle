@@ -132,6 +132,9 @@
         (constantly true))
       (break-whitespace
         fn/post-args-space?
+        fn/defn-or-multiline?)
+      (break-whitespace
+        fn/pre-body-space?
         fn/defn-or-multiline?)))
 
 

@@ -26,50 +26,53 @@
 
 
 (deftest function-forms
-  (is (= "(fn [x y] x)"
-         (reformat-string "(fn [x y] x)")))
-  (is (= "(fn [x y]\n  x)"
-         (reformat-string "(fn\n  [x y]\n  x)")))
-  (is (= "(fn foo [x y] x)"
-         (reformat-string "(fn foo [x y] x)")))
-  (is (= "(fn foo\n  [x y]\n  x)"
-         (reformat-string "(fn foo [x y]\nx)")))
-  (is (= "(fn ([x]\n     (foo)\n     (bar)))"
-         (reformat-string "(fn\n([x]\n(foo)\n(bar)))")))
-  (is (= "(defn foo\n  [x y]\n  x)"
-         (reformat-string "(defn foo [x y] x)")))
-  (is (= "(defn foo\n  [x y]\n  x)"
-         (reformat-string "(defn foo [x y]\n  x)")))
-  (is (= "(defn foo\n  \"docs\"\n  [x y]\n  x)"
-         (reformat-string "(defn foo \"docs\" [x y] x)")))
-  (is (= "(defn foo\n  \"docs\"\n  [x y]\n  x)"
-         (reformat-string "(defn foo \"docs\" [x y]\n  x)")))
-  (is (= "(defn foo\n  \"docs\"\n  [x y]\n  x)"
-         (reformat-string "(defn foo \"docs\"\n[x y]x)")))
-  (is (= "(defn foo\n  \"docs\"\n  [x y]\n  x)"
-         (reformat-string "(defn foo\n\"docs\"\n[x y] \nx)")))
-  (is (= "(defn foo\n  ([x]\n   (foo)\n   (bar)))"
-         (reformat-string "(defn foo\n([x]\n(foo)\n(bar)))")))
-  (is (= "(defn ^:deprecated foo\n  \"Deprecated method.\"\n  [x]\n  123)"
-         (reformat-string "(defn ^:deprecated foo \"Deprecated method.\"\n[x]\n123)")))
-
-  ;; private function forms
-  (is (= "(defn- foo\n  [x y]\n  x)"
-         (reformat-string "(defn- foo [x y] x)")))
-  (is (= "(defn- foo\n  [x y]\n  x)"
-         (reformat-string "(defn- foo [x y]\n  x)")))
-  (is (= "(defn- foo\n  \"docs\"\n  [x y]\n  x)"
-         (reformat-string "(defn- foo \"docs\" [x y] x)")))
-  (is (= "(defn- foo\n  \"docs\"\n  [x y]\n  x)"
-         (reformat-string "(defn- foo \"docs\" [x y]\n  x)")))
-  (is (= "(defn- foo\n  \"docs\"\n  [x y]\n  x)"
-         (reformat-string "(defn- foo \"docs\"\n[x y]x)")))
-  (is (= "(defn- foo\n  \"docs\"\n  [x y]\n  x)"
-         (reformat-string "(defn- foo\n\"docs\"\n[x y] \nx)")))
-  (is (= "(defn- foo\n  ([x]\n   (foo)\n   (bar)))"
-         (reformat-string "(defn- foo\n([x]\n(foo)\n(bar)))")))
-  (is (= "(defn- ^:deprecated foo\n  \"Deprecated method.\"\n  [x]\n  123)"
-         (reformat-string "(defn- ^:deprecated foo \"Deprecated method.\"\n[x]\n123)"))))
+  (testing "anonymous functions"
+    (is (= "(fn [x y] x)"
+           (reformat-string "(fn [x y] x)")))
+    (is (= "(fn [x y]\n  x)"
+           (reformat-string "(fn\n  [x y]\n  x)")))
+    (is (= "(fn foo [x y] x)"
+           (reformat-string "(fn foo [x y] x)")))
+    (is (= "(fn foo\n  [x y]\n  x)"
+           (reformat-string "(fn foo [x y]\nx)")))
+    (is (= "(fn\n  ([x]\n   (foo)\n   (bar)))"
+           (reformat-string "(fn\n([x]\n(foo)\n(bar)))")))
+    (is (= "(fn\n  ([x]\n   (foo)\n   (bar))\n  ([x y]\n   (baz x y)))"
+           (reformat-string "(fn\n([x]\n(foo)\n(bar))\n([x y]\n(baz x y)))"))))
+  (testing "function definitions"
+    (is (= "(defn foo\n  [x y]\n  x)"
+           (reformat-string "(defn foo [x y] x)")))
+    (is (= "(defn foo\n  [x y]\n  x)"
+           (reformat-string "(defn foo [x y]\n  x)")))
+    (is (= "(defn foo\n  \"docs\"\n  [x y]\n  x)"
+           (reformat-string "(defn foo \"docs\" [x y] x)")))
+    (is (= "(defn foo\n  \"docs\"\n  [x y]\n  x)"
+           (reformat-string "(defn foo \"docs\" [x y]\n  x)")))
+    (is (= "(defn foo\n  \"docs\"\n  [x y]\n  x)"
+           (reformat-string "(defn foo \"docs\"\n[x y]x)")))
+    (is (= "(defn foo\n  \"docs\"\n  [x y]\n  x)"
+           (reformat-string "(defn foo\n\"docs\"\n[x y] \nx)")))
+    (is (= "(defn foo\n  ([x]\n   (foo)\n   (bar)))"
+           (reformat-string "(defn foo\n([x]\n(foo)\n(bar)))")))
+    (is (= "(defn ^:deprecated foo\n  \"Deprecated method.\"\n  [x]\n  123)"
+           (reformat-string "(defn ^:deprecated foo \"Deprecated method.\"\n[x]\n123)"))))
+  (testing "private functions"
+    (is (= "(defn- foo\n  [x y]\n  x)"
+           (reformat-string "(defn- foo [x y] x)")))
+    (is (= "(defn- foo\n  [x y]\n  x)"
+           (reformat-string "(defn- foo [x y]\n  x)")))
+    (is (= "(defn- foo\n  \"docs\"\n  [x y]\n  x)"
+           (reformat-string "(defn- foo \"docs\" [x y] x)")))
+    (is (= "(defn- foo\n  \"docs\"\n  [x y]\n  x)"
+           (reformat-string "(defn- foo \"docs\" [x y]\n  x)")))
+    (is (= "(defn- foo\n  \"docs\"\n  [x y]\n  x)"
+           (reformat-string "(defn- foo \"docs\"\n[x y]x)")))
+    (is (= "(defn- foo\n  \"docs\"\n  [x y]\n  x)"
+           (reformat-string "(defn- foo\n\"docs\"\n[x y] \nx)")))
+    (is (= "(defn- foo\n  ([x]\n   (foo)\n   (bar)))"
+           (reformat-string "(defn- foo\n([x]\n(foo)\n(bar)))")))
+    (is (= "(defn- ^:deprecated foo\n  \"Deprecated method.\"\n  [x]\n  123)"
+           (reformat-string "(defn- ^:deprecated foo \"Deprecated method.\"\n[x]\n123)")))))
 
 
 (deftest quoted-forms

@@ -17,6 +17,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - Preserve commas when removing surrounding whitespace.
   [#14](//github.com/greglook/cljstyle/issues/14)
 - Don't apply function line-breaking rules to forms within a syntax-quote.
+- Anonymous functions with multiple arity forms are line-broken properly.
 
 ### Changed
 - Imported classes under the `:single-import-break-width` threshold which were

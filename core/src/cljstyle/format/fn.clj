@@ -90,6 +90,16 @@
        (no-prev? zloc (some-fn fn-name? arg-vector?))))
 
 
+(defn pre-body-space?
+  "True if this location is whitespace before a function arity body."
+  [zloc]
+  (and (zl/zwhitespace? zloc)
+       (fn-form? (z/up zloc))
+       (let [r (z/right zloc)]
+         ;(prn :next-form (z/node r) (z/tag r))
+         (= :list (some-> zloc z/right z/tag)))))
+
+
 (defn post-name-space?
   "True if the node at this location is whitespace immediately following a
   function name."
