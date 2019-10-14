@@ -1,10 +1,10 @@
-(ns cljfmt.format.core
+(ns cljstyle.format.core
   (:require
-    [cljfmt.config :as config]
-    [cljfmt.format.fn :as fn]
-    [cljfmt.format.indent :as indent]
-    [cljfmt.format.ns :as ns]
-    [cljfmt.format.zloc :as zl]
+    [cljstyle.config :as config]
+    [cljstyle.format.fn :as fn]
+    [cljstyle.format.indent :as indent]
+    [cljstyle.format.ns :as ns]
+    [cljstyle.format.zloc :as zl]
     [clojure.java.io :as io]
     [clojure.string :as str]
     [clojure.zip :as zip]
@@ -16,7 +16,7 @@
 
 (def default-indents
   "Default indentation rules included with the library."
-  (read-string (slurp (io/resource "cljfmt/indents.clj"))))
+  (read-string (slurp (io/resource "cljstyle/indents.clj"))))
 
 
 
@@ -24,12 +24,12 @@
 
 (defn- ignored-meta?
   "True if the node at this location represents metadata tagging a form to be
-  ignored by cljfmt."
+  ignored by cljstyle."
   [zloc]
   (and (= :meta (z/tag zloc))
        (when-let [m (z/sexpr (z/next zloc))]
-         (or (= :cljfmt/ignore m)
-             (:cljfmt/ignore m)))))
+         (or (= :cljstyle/ignore m)
+             (:cljstyle/ignore m)))))
 
 
 (defn- comment-form?

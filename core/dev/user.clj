@@ -1,8 +1,8 @@
 (ns user
   (:require
-    [cljfmt.config :as config]
-    [cljfmt.format.core :as cljfmt]
-    [cljfmt.format.zloc :as zl]
+    [cljstyle.config :as config]
+    [cljstyle.format.core :as cljstyle]
+    [cljstyle.format.zloc :as zl]
     [clojure.java.io :as io]
     [clojure.repl :refer :all]
     [clojure.string :as str]

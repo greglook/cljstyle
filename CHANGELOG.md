@@ -11,11 +11,11 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - Reader conditional macros in namespace forms are correctly handled at the top
   level, inside `:require` type forms, and inside libspecs. Some other cases
   (such as conditionals inside `:import`) may still cause errors.
-  [#5](//github.com/greglook/cljfmt/issues/5)
+  [#5](//github.com/greglook/cljstyle/issues/5)
 - Don't swallow comments on import package groups.
-  [#10](//github.com/greglook/cljfmt/issues/10)
+  [#10](//github.com/greglook/cljstyle/issues/10)
 - Preserve commas when removing surrounding whitespace.
-  [#14](//github.com/greglook/cljfmt/issues/14)
+  [#14](//github.com/greglook/cljstyle/issues/14)
 - Don't apply function line-breaking rules to forms within a syntax-quote.
 
 ### Changed
@@ -25,15 +25,15 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 - New `:require-eof-newline?` configuration option will ensure that all source
   files end with a newline character.
-  [#15](//github.com/greglook/cljfmt/issues/15)
+  [#15](//github.com/greglook/cljstyle/issues/15)
 
 ## [0.8.3] - 2019-10-08
 
 ### Fixed
-- The cljfmt codebase now adheres to its own style rules.
+- The project codebase now adheres to its own style rules.
 - Private functions defined with `defn-` are no longer ignored by function
   rules.
-  [#17](//github.com/greglook/cljfmt/issues/17)
+  [#17](//github.com/greglook/cljstyle/issues/17)
 
 
 ## [0.8.2] - 2019-08-20
@@ -41,13 +41,13 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 - Configuration file paths are tracked more accurately for reporting.
 - Namespace metadata is properly retained.
-  [#11](//github.com/greglook/cljfmt/issues/11)
+  [#11](//github.com/greglook/cljstyle/issues/11)
 - Vector import specs no longer cause `UnsupportedOperationException`.
-  [#12](//github.com/greglook/cljfmt/issues/12)
+  [#12](//github.com/greglook/cljstyle/issues/12)
 - Namespaced maps are indented correctly and allow for abutting same-line
   namespace tags.
-  [#6](https://github.com/greglook/cljfmt/issues/6)
-  [#7](https://github.com/greglook/cljfmt/pull/7)
+  [#6](https://github.com/greglook/cljstyle/issues/6)
+  [#7](https://github.com/greglook/cljstyle/pull/7)
 
 ### Changed
 - Many new tests around configuration file loading and merge behavior.
@@ -110,9 +110,10 @@ functionality.
 
 Legacy project release.
 
-[Unreleased]: https://github.com/greglook/cljfmt/compare/0.8.3...HEAD
-[0.8.3]: https://github.com/greglook/cljfmt/compare/0.8.2...0.8.3
-[0.8.2]: https://github.com/greglook/cljfmt/compare/0.8.1...0.8.2
-[0.8.1]: https://github.com/greglook/cljfmt/compare/0.8.0...0.8.1
-[0.8.0]: https://github.com/greglook/cljfmt/compare/0.7.0...0.8.0
-[0.7.0]: https://github.com/greglook/cljfmt/compare/0.5.6...0.7.0
+
+[Unreleased]: https://github.com/greglook/cljstyle/compare/0.8.3...HEAD
+[0.8.3]: https://github.com/greglook/cljstyle/compare/0.8.2...0.8.3
+[0.8.2]: https://github.com/greglook/cljstyle/compare/0.8.1...0.8.2
+[0.8.1]: https://github.com/greglook/cljstyle/compare/0.8.0...0.8.1
+[0.8.0]: https://github.com/greglook/cljstyle/compare/0.7.0...0.8.0
+[0.7.0]: https://github.com/greglook/cljstyle/compare/0.5.6...0.7.0

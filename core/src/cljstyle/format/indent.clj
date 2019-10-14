@@ -1,6 +1,6 @@
-(ns cljfmt.format.indent
+(ns cljstyle.format.indent
   (:require
-    [cljfmt.format.zloc :as zl]
+    [cljstyle.format.zloc :as zl]
     [clojure.string :as str]
     [clojure.zip :as zip]
     [rewrite-clj.node :as n]

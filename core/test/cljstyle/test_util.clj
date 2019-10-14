@@ -1,4 +1,4 @@
-(ns cljfmt.test-util
+(ns cljstyle.test-util
   "Unit testing utilities."
   (:require
     [clojure.spec.alpha :as s]

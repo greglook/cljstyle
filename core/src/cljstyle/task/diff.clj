@@ -1,7 +1,7 @@
-(ns cljfmt.task.diff
-  "Diff-handling code for cljfmt fixes."
+(ns cljstyle.task.diff
+  "Diff-handling code for cljstyle fixes."
   (:require
-    [cljfmt.task.print :as p]
+    [cljstyle.task.print :as p]
     [clojure.java.io :as io]
     [clojure.string :as str])
   (:import

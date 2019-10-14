@@ -1,10 +1,10 @@
-(ns cljfmt.tool.main
-  "Main entry for cljfmt tool."
+(ns cljstyle.tool.main
+  "Main entry for cljstyle tool."
   (:gen-class)
   (:require
-    [cljfmt.config :as config]
-    [cljfmt.task.core :as task]
-    [cljfmt.task.print :as p]
+    [cljstyle.config :as config]
+    [cljstyle.task.core :as task]
+    [cljstyle.task.print :as p]
     [clojure.tools.cli :as cli]))
 
 
@@ -19,7 +19,7 @@
 (defn- print-general-usage
   "Print general usage help for the tool."
   [summary]
-  (println "Usage: cljfmt [options] <command> [args...]")
+  (println "Usage: cljstyle [options] <command> [args...]")
   (newline)
   (println "Commands:")
   (println "    find      Find files which would be processed.")
@@ -68,7 +68,7 @@
           "fix"     (task/fix-sources args)
           "config"  (task/show-config args)
           "version" (task/print-version args)
-          (do (p/printerr "Unknown cljfmt command:" command)
+          (do (p/printerr "Unknown cljstyle command:" command)
               (System/exit 1))))
       (catch Exception ex
         (binding [*out* *err*]

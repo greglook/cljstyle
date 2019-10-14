@@ -1,6 +1,6 @@
-(ns cljfmt.format.fn
+(ns cljstyle.format.fn
   (:require
-    [cljfmt.format.zloc :as zl]
+    [cljstyle.format.zloc :as zl]
     [clojure.zip :as zip]
     [rewrite-clj.zip :as z]))
 

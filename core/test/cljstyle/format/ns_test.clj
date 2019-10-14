@@ -1,6 +1,6 @@
-(ns cljfmt.format.ns-test
+(ns cljstyle.format.ns-test
   (:require
-    [cljfmt.format.core :as fmt]
+    [cljstyle.format.core :as fmt]
     [clojure.test :refer [deftest testing is]]))
 
 

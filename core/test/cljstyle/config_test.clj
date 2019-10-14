@@ -1,7 +1,7 @@
-(ns cljfmt.config-test
+(ns cljstyle.config-test
   (:require
-    [cljfmt.config :as config]
-    [cljfmt.test-util]
+    [cljstyle.config :as config]
+    [cljstyle.test-util]
     [clojure.java.io :as io]
     [clojure.spec.alpha :as s]
     [clojure.test :refer [deftest testing is]]))
@@ -142,7 +142,7 @@
 
 (deftest config-reading
   (let [test-dir (io/file "target/test-config/reading")
-        cfg-file (io/file test-dir ".cljfmt")]
+        cfg-file (io/file test-dir ".cljstyle")]
     (try
       (io/make-parents cfg-file)
       (.deleteOnExit cfg-file)
@@ -185,20 +185,20 @@
 
 ;; Test hierarchy:
 ;; a
-;; ├── .cljfmt
+;; ├── .cljstyle
 ;; └── b
 ;;     ├── c
-;;     │   ├── .cljfmt
+;;     │   ├── .cljstyle
 ;;     │   └── foo.clj
 ;;     └── d
-;;         ├── .cljfmt
+;;         ├── .cljstyle
 ;;         └── e
 ;;             └── bar.clj
 (deftest config-hierarchy
   (let [test-dir (io/file "target/test-config/hierarchy")
-        a-config (io/file test-dir "a" ".cljfmt")
-        abc-config (io/file test-dir "a" "b" "c" ".cljfmt")
-        abd-config (io/file test-dir "a" "b" "d" ".cljfmt")
+        a-config (io/file test-dir "a" ".cljstyle")
+        abc-config (io/file test-dir "a" "b" "c" ".cljstyle")
+        abd-config (io/file test-dir "a" "b" "d" ".cljstyle")
         foo-clj (io/file test-dir "a" "b" "c" "foo.clj")
         bar-clj (io/file test-dir "a" "b" "d" "e" "bar.clj")
         write! (fn write!

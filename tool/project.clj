@@ -1,6 +1,6 @@
-(defproject mvxcvi/cljfmt-tool "0.9.0-SNAPSHOT"
-  :description "An executable tool for running cljfmt."
-  :url "https://github.com/greglook/cljfmt"
+(defproject mvxcvi/cljstyle-tool "0.9.0-SNAPSHOT"
+  :description "An executable tool for running cljstyle."
+  :url "https://github.com/greglook/cljstyle"
   :scm {:dir ".."}
   :license {:name "Public Domain"
             :url "http://unlicense.org/"}
@@ -8,9 +8,9 @@
   :dependencies
   [[org.clojure/clojure "1.9.0"]
    [org.clojure/tools.cli "0.4.2"]
-   [mvxcvi/cljfmt "0.9.0-SNAPSHOT"]]
+   [mvxcvi/cljstyle "0.9.0-SNAPSHOT"]]
 
-  :main cljfmt.tool.main
+  :main cljstyle.tool.main
 
   :profiles
   {:repl
@@ -22,5 +22,5 @@
 
    :uberjar
    {:target-path "target/uberjar"
-    :uberjar-name "cljfmt.jar"
+    :uberjar-name "cljstyle.jar"
     :aot :all}})

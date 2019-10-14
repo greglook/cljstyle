@@ -1,6 +1,6 @@
-(ns cljfmt.format.core-test
+(ns cljstyle.format.core-test
   (:require
-    [cljfmt.format.core :refer [reformat-string reformat-file]]
+    [cljstyle.format.core :refer [reformat-string reformat-file]]
     [clojure.test :refer :all]))
 
 
@@ -82,8 +82,8 @@
 
 
 (deftest ignored-forms
-  (is (= "^:cljfmt/ignore\n(def x\n 123\n  456)"
-         (reformat-string "^:cljfmt/ignore\n(def x\n 123\n  456)"))))
+  (is (= "^:cljstyle/ignore\n(def x\n 123\n  456)"
+         (reformat-string "^:cljstyle/ignore\n(def x\n 123\n  456)"))))
 
 
 (deftest fuzzy-matches

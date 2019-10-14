@@ -1,10 +1,10 @@
-cljfmt
-======
+cljstyle
+========
 
-[![CircleCI](https://circleci.com/gh/greglook/cljfmt.svg?style=shield&circle-token=9576040ebe39e81406823481c98dc55a39d03c4d)](https://circleci.com/gh/greglook/cljfmt)
-[![codecov](https://codecov.io/gh/greglook/cljfmt/branch/master/graph/badge.svg)](https://codecov.io/gh/greglook/cljfmt)
+[![CircleCI](https://circleci.com/gh/greglook/cljstyle.svg?style=shield&circle-token=9576040ebe39e81406823481c98dc55a39d03c4d)](https://circleci.com/gh/greglook/cljstyle)
+[![codecov](https://codecov.io/gh/greglook/cljstyle/branch/master/graph/badge.svg)](https://codecov.io/gh/greglook/cljstyle)
 
-`cljfmt` is a tool for formatting Clojure code.
+`cljstyle` is a tool for formatting Clojure code.
 
 It can turn something like this:
 
@@ -31,108 +31,108 @@ provide more capabilities and configurability.
 
 ## Installation
 
-Releases are published on the [GitHub project](https://github.com/greglook/cljfmt/releases).
+Releases are published on the [GitHub project](https://github.com/greglook/cljstyle/releases).
 The native binaries are self-contained, so to install them simply place them on
 your path.
 
 
 ## Usage
 
-The `cljfmt` tool supports several different commands for checking source files.
+The `cljstyle` tool supports several different commands for checking source files.
 
 ### Check and Fix
 
 To check the formatting of your source files, use:
 
 ```
-cljfmt check
+cljstyle check
 ```
 
 If the formatting of any source file is incorrect, a diff will be supplied
-showing the problem, and what cljfmt thinks it should be.
+showing the problem, and what cljstyle thinks it should be.
 
 If you want to check only a specific file, or several specific files,
 you can do that, too:
 
 ```
-cljfmt check src/foo/core.clj
+cljstyle check src/foo/core.clj
 ```
 
 Once you've identified formatting issues, you can choose to ignore them, fix
-them manually, or let cljfmt fix them with:
+them manually, or let cljstyle fix them with:
 
 ```
-cljfmt fix
+cljstyle fix
 ```
 
 As with the `check` task, you can choose to fix a specific file:
 
 ```
-cljfmt fix src/foo/core.clj
+cljstyle fix src/foo/core.clj
 ```
 
 ### Debugging
 
-For inspecting what cljfmt is doing, one tool is to specify the `--verbose`
+For inspecting what cljstyle is doing, one tool is to specify the `--verbose`
 flag, which will cause additional debugging output to be printed. There are also
 a few extra commands which can help understand what's happening.
 
-The `find` command will print what files would be checked by cljfmt. It will
+The `find` command will print what files would be checked by cljstyle. It will
 print each file path to standard output on a new line:
 
 ```
-cljfmt find [path...]
+cljstyle find [path...]
 ```
 
-The `config` command will show what configuration settings cljfmt would use to
+The `config` command will show what configuration settings cljstyle would use to
 process the specified files or files in the current directory:
 
 ```
-cljfmt config [path]
+cljstyle config [path]
 ```
 
 Finally, `version` will show what version of the tool you're using:
 
 ```
-cljfmt version
+cljstyle version
 ```
 
 
 ## Configuration
 
-The `cljfmt` tool comes with a sensible set of default configuration built-in,
-and reads additional configuration from `.cljfmt` files which may be placed
-in any directories to control cljfmt's behavior on files in those subtrees.
+The `cljstyle` tool comes with a sensible set of default configuration built-in,
+and reads additional configuration from `.cljstyle` files which may be placed
+in any directories to control cljstyle's behavior on files in those subtrees.
 These files are regular Clojure files which should contain a map of settings to
 use:
 
 ```clojure
-;; cljfmt configuration
+;; cljstyle configuration
 {:max-blank-lines 3
  :file-ignore #{"checkouts" "target"}}
 ```
 
-When `cljfmt` is run, it searches upwards in the filesystem to find parent
+When `cljstyle` is run, it searches upwards in the filesystem to find parent
 configuration, and as it searches in directories it will merge in local config
 files. For example, in a tree like the following:
 
 ```
 a
-├── .cljfmt
+├── .cljstyle
 └── b
     ├── c
-    │   ├── .cljfmt
+    │   ├── .cljstyle
     │   └── foo.clj
     └── d
-        ├── .cljfmt
+        ├── .cljstyle
         └── e
             └── bar.clj
 ```
 
-Running `cljfmt` in directory `c` would use `a/.cljfmt` as the base
-configuration and would combine in the `a/b/c/.cljfmt` configuration to check
+Running `cljstyle` in directory `c` would use `a/.cljstyle` as the base
+configuration and would combine in the `a/b/c/.cljstyle` configuration to check
 `foo.clj`. Running it directly from directory `e` would look upwards and use the
-combination of `a/.cljfmt` and `a/b/d/.cljfmt` for `bar.clj`.
+combination of `a/.cljstyle` and `a/b/d/.cljstyle` for `bar.clj`.
 
 Configuration maps are merged together in depth-order, so that more local
 settings take precedence. As with Leiningen profiles, you can add metadata
@@ -145,7 +145,7 @@ new indents that are merged with the defaults, you can use the `:replace` hint:
 
 ### File Settings
 
-You can configure the way `cljfmt` looks for source files with the following
+You can configure the way `cljstyle` looks for source files with the following
 settings:
 
 * `:file-pattern`
@@ -162,48 +162,48 @@ settings:
 
 ### Format Rules
 
-`cljfmt` has many formatting rules, and these can be selectively enabled or
+`cljstyle` has many formatting rules, and these can be selectively enabled or
 disabled:
 
 * `:indentation?`
 
-  True if cljfmt should correct the indentation of your code.
+  Whether cljstyle should correct the indentation of your code.
 
 * `:line-break-functions?`
 
-  True if cljfmt should enforce line breaks in function definitions.
+  Whether cljstyle should enforce line breaks in function definitions.
 
 * `:remove-surrounding-whitespace?`
 
-  True if cljfmt should remove whitespace surrounding inner forms. This will
+  Whether cljstyle should remove whitespace surrounding inner forms. This will
   convert `(  foo  )` to `(foo)`.
 
 * `:remove-trailing-whitespace?`
 
-  True if cljfmt should remove trailing whitespace in lines. This will convert
+  Whether cljstyle should remove trailing whitespace in lines. This will convert
   `(foo)   \n` to `(foo)\n`.
 
 * `:insert-missing-whitespace?`
 
-  True if cljfmt should insert whitespace missing from between elements. This
+  Whether cljstyle should insert whitespace missing from between elements. This
   will convert `(foo(bar))` to `(foo (bar))`.
 
 * `:remove-consecutive-blank-lines?`
 
-  True if cljfmt should collapse consecutive blank lines. Any runs of empty
+  Whether cljstyle should collapse consecutive blank lines. Any runs of empty
   lines longer than `:max-consecutive-blank-lines` will be truncated to the
   configured limit. The default limit is 2. This will convert
   `(foo)\n\n\n\n(bar)` to `(foo)\n\n\n(bar)`.
 
 * `:insert-padding-lines?`
 
-  Whether cljfmt should insert blank lines between certain top-level forms. Any
+  Whether cljstyle should insert blank lines between certain top-level forms. Any
   multi-line form will be padded with at least `:padding-lines` empty lines
   between it and other non-comment forms. The defaults is 2 lines.
 
 * `:rewrite-namespaces?`
 
-  Whether cljfmt should rewrite namespace forms to standardize their layout.
+  Whether cljstyle should rewrite namespace forms to standardize their layout.
 
 * `:single-import-break-width`
 
@@ -341,7 +341,7 @@ of indentation if they are on their own line:
 
 ## Ignoring Forms
 
-By default, cljfmt will ignore forms which are wrapped in a `(comment ...)` form
+By default, cljstyle will ignore forms which are wrapped in a `(comment ...)` form
 or preceeded by the discard macro `#_`. You can also optionally disable
-formatting rules from matching a form by tagging it with `^:cljfmt/ignore`
+formatting rules from matching a form by tagging it with `^:cljstyle/ignore`
 metadata - this is often useful for macros.

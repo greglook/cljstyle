@@ -41,7 +41,7 @@ jobs:
             - v1-test-{{ checksum "core/project.clj" }}
             - v1-test-
       - run:
-          name: Install cljfmt
+          name: Install core project
           command: lein install
           pwd: core
       - run:

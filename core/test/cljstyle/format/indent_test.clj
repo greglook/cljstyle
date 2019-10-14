@@ -1,7 +1,7 @@
-(ns cljfmt.format.indent-test
+(ns cljstyle.format.indent-test
   (:require
-    [cljfmt.config :as config]
-    [cljfmt.format.core :refer [reformat-string]]
+    [cljstyle.config :as config]
+    [cljstyle.format.core :refer [reformat-string]]
     [clojure.test :refer :all]))
 
 

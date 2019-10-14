@@ -1,8 +1,8 @@
-(ns cljfmt.task.process
+(ns cljstyle.task.process
   "Code for discovering and processing source files."
   (:require
-    [cljfmt.config :as config]
-    [cljfmt.task.print :as p]
+    [cljstyle.config :as config]
+    [cljstyle.task.print :as p]
     [clojure.java.io :as io])
   (:import
     java.io.File

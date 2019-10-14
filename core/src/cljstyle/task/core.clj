@@ -1,11 +1,11 @@
-(ns cljfmt.task.core
-  "Core cljfmt task implementations."
+(ns cljstyle.task.core
+  "Core cljstyle task implementations."
   (:require
-    [cljfmt.config :as config]
-    [cljfmt.format.core :as format]
-    [cljfmt.task.diff :as diff]
-    [cljfmt.task.print :as p]
-    [cljfmt.task.process :as process]
+    [cljstyle.config :as config]
+    [cljstyle.format.core :as format]
+    [cljstyle.task.diff :as diff]
+    [cljstyle.task.print :as p]
+    [cljstyle.task.process :as process]
     [clojure.java.io :as io]
     [clojure.pprint :refer [pprint]]
     [clojure.string :as str])
@@ -27,11 +27,11 @@
   [label ^File file]
   (let [configs (config/find-parents file 25)]
     (if (seq configs)
-      (p/logf "Using cljfmt configuration from %d sources for %s:\n%s"
+      (p/logf "Using cljstyle configuration from %d sources for %s:\n%s"
               (count configs)
               label
               (str/join "\n" (mapcat config/source-paths configs)))
-      (p/logf "Using default cljfmt configuration for %s"
+      (p/logf "Using default cljstyle configuration for %s"
               label))
     (apply config/merge-settings config/default-config configs)))
 
@@ -93,7 +93,7 @@
 
 (def version
   "Project version string."
-  (if-let [props-file (io/resource "META-INF/maven/mvxcvi/cljfmt/pom.properties")]
+  (if-let [props-file (io/resource "META-INF/maven/mvxcvi/cljstyle/pom.properties")]
     (with-open [props-reader (io/reader props-file)]
       (let [props (doto (java.util.Properties.)
                     (.load props-reader))
@@ -109,7 +109,7 @@
   [args]
   (when (seq args)
     (binding [*out* *err*]
-      (println "cljfmt version command takes no arguments")
+      (println "cljstyle version command takes no arguments")
       (flush)
       (System/exit 1)))
   (println version)
@@ -122,7 +122,7 @@
 (defn print-config-usage
   "Print help for the config command."
   []
-  (println "Usage: cljfmt [options] config [path]")
+  (println "Usage: cljstyle [options] config [path]")
   (newline)
   (println "Show the merged configuration which would be used to format the file or")
   (println "directory at the given path. Uses the current directory if one is not given."))
@@ -133,7 +133,7 @@
   [paths]
   (when (< 1 (count paths))
     (binding [*out* *err*]
-      (println "cljfmt config command takes at most one argument")
+      (println "cljstyle config command takes at most one argument")
       (flush)
       (System/exit 1)))
   (let [^File file (first (search-roots paths))
@@ -152,7 +152,7 @@
 (defn print-find-usage
   "Print help for the find command."
   []
-  (println "Usage: cljfmt [options] find [paths...]")
+  (println "Usage: cljstyle [options] find [paths...]")
   (newline)
   (println "Search for files which would be checked for errors. Prints the relative")
   (println "path to each file."))
@@ -183,7 +183,7 @@
 (defn print-check-usage
   "Print help for the check command."
   []
-  (println "Usage: cljfmt [options] check [paths...]")
+  (println "Usage: cljstyle [options] check [paths...]")
   (newline)
   (println "Check source files for formatting errors. Prints a diff of all malformed lines")
   (println "found and exits with an error if any files have format errors."))
@@ -227,7 +227,7 @@
 (defn print-fix-usage
   "Print help for the fix command."
   []
-  (println "Usage: cljfmt [options] fix [paths...]")
+  (println "Usage: cljstyle [options] fix [paths...]")
   (newline)
   (println "Edit source files in place to correct formatting errors."))
 

@@ -1,7 +1,7 @@
-(ns cljfmt.config
+(ns cljstyle.config
   "Configuration is provided by a map of keyword settings to values.
 
-  Config may be provided by a Clojure file named `.cljfmt`. These files files
+  Config may be provided by a Clojure file named `.cljstyle`. These files files
   may be sprinkled about the file tree; each file applies configuration to the
   subtree rooted in the directory the file resides in, with deeper files
   merging and overriding their parents."
@@ -86,7 +86,7 @@
 
 (def default-indents
   "Default indentation rules included with the library."
-  (read-string (slurp (io/resource "cljfmt/indents.clj"))))
+  (read-string (slurp (io/resource "cljstyle/indents.clj"))))
 
 
 (def default-config
@@ -189,8 +189,8 @@
 ;; ## Configuration Files
 
 (def ^:const file-name
-  "Name which indicates a cljfmt configuration file."
-  ".cljfmt")
+  "Name which indicates a cljstyle configuration file."
+  ".cljstyle")
 
 
 (defn read-config
@@ -218,7 +218,7 @@
 
 
 (defn dir-config
-  "Return the map of cljfmt configuration from the file in the given directory,
+  "Return the map of cljstyle configuration from the file in the given directory,
   if it exists and is readable. Returns nil if the configuration is not present
   or is invalid."
   [^File dir]
@@ -228,7 +228,7 @@
 
 
 (defn find-parents
-  "Search upwards from the given directory, collecting cljfmt configuration
+  "Search upwards from the given directory, collecting cljstyle configuration
   files. Returns a sequence of configuration maps read, with shallower paths
   ordered earlier.
 
