@@ -8,6 +8,11 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+...
+
+
+## [0.9.0] - 2019-10-13
+
 The biggest change in this release is renaming the project to `cljstyle` to
 better differentiate it from the original `cljfmt`.
 
@@ -117,7 +122,8 @@ functionality.
 Legacy project release.
 
 
-[Unreleased]: https://github.com/greglook/cljstyle/compare/0.8.3...HEAD
+[Unreleased]: https://github.com/greglook/cljstyle/compare/0.9.0...HEAD
+[0.9.0]: https://github.com/greglook/cljstyle/compare/0.8.3...0.9.0
 [0.8.3]: https://github.com/greglook/cljstyle/compare/0.8.2...0.8.3
 [0.8.2]: https://github.com/greglook/cljstyle/compare/0.8.1...0.8.2
 [0.8.1]: https://github.com/greglook/cljstyle/compare/0.8.0...0.8.1
