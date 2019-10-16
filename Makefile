@@ -4,11 +4,17 @@
 
 version := $(shell grep defproject core/project.clj | cut -d ' ' -f 3 | tr -d \")
 platform := $(shell uname -s | tr '[:upper:]' '[:lower:]')
-release_name := cljstyle_$(version)_$(platform)
+release_name = cljstyle_$(version)_$(platform)
 
 lib_install_path := $(HOME)/.m2/repository/mvxcvi/cljstyle/$(version)/cljstyle-$(version).jar
 tool_uberjar_path := tool/target/uberjar/cljstyle.jar
 
+# Rewrite darwin as a more recognizable OS
+ifeq ($(platform),darwin)
+platform := macos
+endif
+
+# Ensure Graal is available
 ifndef GRAAL_HOME
 $(error GRAAL_HOME is not set)
 endif
