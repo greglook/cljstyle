@@ -217,6 +217,17 @@ disabled:
   Require all files to end with a newline character. One will be added if it is
   not present.
 
+* `:list-indent-size`
+
+  Control indent size of list. The default is 2 spaces. If this setting is 1,
+  lists are formatted as follows.
+```clojure
+(foo
+ bar
+ baz)
+```
+
+
 ### Indentation rules
 
 There are a few types of indentation rules that can be applied to forms. These
