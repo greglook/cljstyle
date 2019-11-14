@@ -120,11 +120,11 @@
 
 (defn- list-indent
   "Determine how indented a list at the current location should be."
-  [zloc]
+  [zloc list-indent-size]
   (if (and (some-> zloc zip/leftmost zip/right zl/skip-whitespace zl/zlinebreak?)
            (-> zloc z/leftmost z/tag (= :token)))
     (+ (-> zloc zip/up margin)
-       indent-size
+       list-indent-size
        (if (= :fn (-> zloc z/up z/tag))
          1
          0))
@@ -136,15 +136,15 @@
 (defmulti ^:private indenter-fn
   "Multimethod for applying indentation rules to forms."
   (fn dispatch
-    [rule-key [rule-type & args]]
+    [rule-key [rule-type & args] list-indent-size]
     rule-type))
 
 
 (defn- make-indenter
   "Construct an indentation function by mapping the multimethod over the
   configured rule bodies."
-  [[rule-key opts]]
-  (apply some-fn (map (partial indenter-fn rule-key) opts)))
+  [list-indent-size [rule-key opts]]
+  (apply some-fn (map #(indenter-fn rule-key % list-indent-size) opts)))
 
 
 (defn- pattern?
@@ -181,20 +181,20 @@
 (defn- custom-indent
   "Look up custom indentation rules for the node at this location. Returns the
   number of spaces to indent the node."
-  [zloc indents]
+  [zloc indents list-indent-size]
   (if (empty? indents)
-    (list-indent zloc)
+    (list-indent zloc list-indent-size)
     (let [indenter (->> (sort-by indent-order indents)
-                        (map make-indenter)
+                        (map (partial make-indenter list-indent-size))
                         (apply some-fn))]
       (or (indenter zloc)
-          (list-indent zloc)))))
+          (list-indent zloc list-indent-size)))))
 
 
 (defn indent-amount
   "Calculates the number of spaces the node at this location should be
   indented, based on the available custom indent rules."
-  [zloc indents]
+  [zloc indents list-indent-size]
   (let [tag (-> zloc z/up z/tag)
         gp  (-> zloc z/up z/up)]
     (cond
@@ -202,10 +202,10 @@
       (coll-indent zloc)
 
       (#{:list :fn} tag)
-      (custom-indent zloc indents)
+      (custom-indent zloc indents list-indent-size)
 
       (#{:meta :meta* :reader-macro} tag)
-      (indent-amount (z/up zloc) indents)
+      (indent-amount (z/up zloc) indents list-indent-size)
 
       :else
       (coll-indent zloc))))
@@ -243,7 +243,7 @@
 
 
 (defmethod indenter-fn :inner
-  [rule-key [_ depth idx]]
+  [rule-key [_ depth idx] list-indent-size]
   (fn [zloc] (inner-indent zloc rule-key depth idx)))
 
 
@@ -272,17 +272,17 @@
 (defn- block-indent
   "Calculate how many spaces the node at this location should be indented as a
   block. Returns nil if the rule does not apply."
-  [zloc rule-key idx]
+  [zloc rule-key idx list-indent-size]
   (when (indent-matches? rule-key (zl/form-symbol-full zloc))
     (if (and (some-> zloc (nth-form (inc idx)) first-form-in-line?)
              (> (index-of zloc) idx))
       (inner-indent zloc rule-key 0 nil)
-      (list-indent zloc))))
+      (list-indent zloc list-indent-size))))
 
 
 (defmethod indenter-fn :block
-  [rule-key [_ idx]]
-  (fn [zloc] (block-indent zloc rule-key idx)))
+  [rule-key [_ idx] list-indent-size]
+  (fn [zloc] (block-indent zloc rule-key idx list-indent-size)))
 
 
 
@@ -304,5 +304,5 @@
 
 
 (defmethod indenter-fn :stair
-  [rule-key [_ idx]]
+  [rule-key [_ idx] list-indent-size]
   (fn [zloc] (stair-indent zloc rule-key idx)))

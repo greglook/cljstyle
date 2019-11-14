@@ -23,6 +23,7 @@
 
 ;; Formatting Rules
 (s/def ::indentation? boolean?)
+(s/def ::list-indent-size nat-int?)
 (s/def ::line-break-functions? boolean?)
 (s/def ::remove-surrounding-whitespace? boolean?)
 (s/def ::remove-trailing-whitespace? boolean?)
@@ -77,6 +78,7 @@
                    ::single-import-break-width
                    ::require-eof-newline?
                    ::indents
+                   ::list-indent-size
                    ::file-pattern
                    ::file-ignore]))
 
@@ -103,6 +105,7 @@
    :single-import-break-width 30
    :require-eof-newline? true
    :indents default-indents
+   :list-indent-size 2
    :file-pattern #"\.clj[csx]?$"
    :file-ignore #{}})
 

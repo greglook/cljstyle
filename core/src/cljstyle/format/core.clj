@@ -271,8 +271,8 @@
 
 (defn- indent-line
   "Apply indentation to the line beginning at this location."
-  [zloc indents]
-  (let [width (indent/indent-amount zloc indents)]
+  [zloc indents list-indent-size]
+  (let [width (indent/indent-amount zloc indents list-indent-size)]
     (if (pos? width)
       (zip/insert-right zloc (whitespace width))
       zloc)))
@@ -280,14 +280,14 @@
 
 (defn indent
   "Transform this form by indenting all lines their proper amounts."
-  [form indents]
-  (transform form edit-all indent/should-indent? #(indent-line % indents)))
+  [form indents list-indent-size]
+  (transform form edit-all indent/should-indent? #(indent-line % indents list-indent-size)))
 
 
 (defn reindent
   "Transform this form by rewriting all line indentation."
-  [form indents]
-  (indent (unindent form) indents))
+  [form indents list-indent-size]
+  (indent (unindent form) indents list-indent-size))
 
 
 
@@ -346,7 +346,7 @@
     (insert-padding-lines (:padding-lines config 2))
 
     (:indentation? config true)
-    (reindent (:indents config config/default-indents))
+    (reindent (:indents config config/default-indents) (:list-indent-size config 2))
 
     (:rewrite-namespaces? config true)
     (rewrite-namespaces config)
