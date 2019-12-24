@@ -88,6 +88,7 @@
       (write-stats! stats-file stats))))
 
 
+
 ;; ## Version Command
 
 (def version
@@ -113,6 +114,7 @@
       (System/exit 1)))
   (println version)
   (flush))
+
 
 
 ;; ## Config Command
@@ -172,6 +174,7 @@
             total
             (:elapsed results -1.0))
     (p/log (pr-str counts))))
+
 
 
 ;; ## Check Command
@@ -255,6 +258,7 @@
       (p/printerrf "Corrected formatting of %d files" (:fixed counts)))))
 
 
+
 ;; ## Pipe Command
 
 (defn print-pipe-usage
@@ -268,7 +272,7 @@
 (defn pipe
   "Implementation of the `pipe` command."
   []
-  (let [cwd ^File (io/file (System/getProperty "user.dir"))
-        config (load-configs (.getPath cwd) cwd)]
+  (let [cwd (System/getProperty "user.dir")
+        config (load-configs cwd (io/file cwd))]
     (print (format/reformat-file (slurp *in*) config))
     (flush)))
