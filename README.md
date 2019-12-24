@@ -44,19 +44,14 @@ For a simple vim integration copy the following into your `vimrc`
 ```vimscript
 
 function! Cljstyle()
-    let filename = expand('%:p')
     let cwd = getcwd()
-    let pos = getpos('.')
-
-    " Change to the directory of the file and run cljstyle
-    let fileDir = strpart(filename, 0, stridx(filename, "/"))
-    execute "cd " . fileDir
+    let winsave = winsaveview()
+    execute "cd" . expand('%:p:h')
 
     :%!cljstyle pipe
 
-    " Change back to the working directory
-    execute "cd " . cwd
-    call setpos('.', pos)
+    execute "cd" . cwd
+    call winrestview(winsave)
 
 endfunction
 

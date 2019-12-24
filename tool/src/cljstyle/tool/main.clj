@@ -64,15 +64,15 @@
     ;; Execute requested command.
     (try
       (p/with-options options
-                      (case command
-                        "find"    (task/find-sources args)
-                        "check"   (task/check-sources args)
-                        "fix"     (task/fix-sources args)
-                        "config"  (task/show-config args)
-                        "pipe"    (task/pipe)
-                        "version" (task/print-version args)
-                        (do (p/printerr "Unknown cljstyle command:" command)
-                            (System/exit 1))))
+        (case command
+          "find"    (task/find-sources args)
+          "check"   (task/check-sources args)
+          "fix"     (task/fix-sources args)
+          "config"  (task/show-config args)
+          "pipe"    (task/pipe)
+          "version" (task/print-version args)
+          (do (p/printerr "Unknown cljstyle command:" command)
+              (System/exit 1))))
       (catch Exception ex
         (binding [*out* *err*]
           (if (= ::config/invalid (:type (ex-data ex)))
