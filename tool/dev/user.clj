@@ -1,6 +1,7 @@
 (ns user
   (:require
     [cljstyle.config :as config]
+    [cljstyle.task.core :as core]
     [cljstyle.task.process :as process]
     [clojure.java.io :as io]
     [clojure.repl :refer :all]
