@@ -8,7 +8,9 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
-...
+### Added
+- The `pipe` command will fix any formatting issues reading from stdin and
+  writing to stdout.
 
 
 ## [0.9.0] - 2019-10-13

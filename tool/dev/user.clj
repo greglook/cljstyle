@@ -1,8 +1,8 @@
 (ns user
   (:require
     [cljstyle.config :as config]
-    [cljstyle.core :as cljstyle]
-    [cljstyle.tool.process :as process]
+    [cljstyle.task.core :as core]
+    [cljstyle.task.process :as process]
     [clojure.java.io :as io]
     [clojure.repl :refer :all]
     [clojure.string :as str]

@@ -258,3 +258,23 @@
     (if (zero? (:fixed counts 0))
       (p/logf "All %d files formatted correctly" (:correct counts))
       (p/printerrf "Corrected formatting of %d files" (:fixed counts)))))
+
+
+
+;; ## Pipe Command
+
+(defn print-pipe-usage
+  "Print help for the `pipe` command."
+  []
+  (println "Usage: cljstyle [options] pipe")
+  (newline)
+  (println "Reads from stdin and fixes formatting errors piping the results to stdout."))
+
+
+(defn pipe
+  "Implementation of the `pipe` command."
+  []
+  (let [cwd (System/getProperty "user.dir")
+        config (load-configs cwd (io/file cwd))]
+    (print (format/reformat-file (slurp *in*) config))
+    (flush)))
