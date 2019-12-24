@@ -146,6 +146,7 @@
     (pprint config)))
 
 
+
 ;; ## Find Command
 
 (defn print-find-usage
@@ -218,6 +219,7 @@
       (p/printerrf "%d files formatted incorrectly" (:incorrect counts))
       (System/exit 2))
     (p/logf "All %d files formatted correctly" (:correct counts))))
+
 
 
 ;; ## Fix Command
