@@ -25,6 +25,7 @@
   (println "    find      Find files which would be processed.")
   (println "    check     Check source files and print a diff for errors.")
   (println "    fix       Edit source files to fix formatting errors.")
+  (println "    pipe      Fixes formatting errors from stdin and pipes the results to stdout.")
   (println "    config    Show config used for a given path.")
   (println "    version   Print program version information.")
   (newline)
@@ -50,6 +51,7 @@
         "find"   (task/print-find-usage)
         "check"  (task/print-check-usage)
         "fix"    (task/print-fix-usage)
+        "pipe"   (task/print-pipe-usage)
         "config" (task/print-config-usage)
         (print-general-usage (parsed :summary)))
       (flush)
@@ -62,14 +64,15 @@
     ;; Execute requested command.
     (try
       (p/with-options options
-        (case command
-          "find"    (task/find-sources args)
-          "check"   (task/check-sources args)
-          "fix"     (task/fix-sources args)
-          "config"  (task/show-config args)
-          "version" (task/print-version args)
-          (do (p/printerr "Unknown cljstyle command:" command)
-              (System/exit 1))))
+                      (case command
+                        "find"    (task/find-sources args)
+                        "check"   (task/check-sources args)
+                        "fix"     (task/fix-sources args)
+                        "config"  (task/show-config args)
+                        "pipe"    (task/pipe)
+                        "version" (task/print-version args)
+                        (do (p/printerr "Unknown cljstyle command:" command)
+                            (System/exit 1))))
       (catch Exception ex
         (binding [*out* *err*]
           (if (= ::config/invalid (:type (ex-data ex)))
