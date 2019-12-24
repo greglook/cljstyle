@@ -35,6 +35,39 @@ Releases are published on the [GitHub project](https://github.com/greglook/cljst
 The native binaries are self-contained, so to install them simply place them on
 your path.
 
+## Editor Integration
+
+### Vim
+
+For a simple vim integration copy the following into your `vimrc`
+
+```vimscript
+
+function! Cljstyle()
+    let filename = expand('%:p')
+    let cwd = getcwd()
+    let pos = getpos('.')
+
+    " Change to the directory of the file and run cljstyle
+    let fileDir = strpart(filename, 0, stridx(filename, "/"))
+    execute "cd " . fileDir
+
+    :%!cljstyle pipe
+
+    " Change back to the working directory
+    execute "cd " . cwd
+    call setpos('.', pos)
+
+endfunction
+
+command! Cljstyle :undojoin | call Cljstyle()
+
+```
+
+Calling `Cljstyle` will run `cljstyle pipe` on the current buffer.
+
+You can optionally add `autocmd BufWritePre *.cl* Cljstyle` to auto cljstyle on save.
+
 
 ## Usage
 
