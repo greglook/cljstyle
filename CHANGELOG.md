@@ -17,6 +17,12 @@ This project adheres to [Semantic Versioning](http://semver.org/).
   code to stdout.
   [#22](//github.com/greglook/cljstyle/pull/22)
 
+### Fixed
+- Clojurescript files using shadow-cljs style strings in libspecs for external
+  JS libs will now work.
+  [#20](//github.com/greglook/cljstyle/issues/20)
+  [#23](//github.com/greglook/cljstyle/pull/23)
+
 ## [0.9.0] - 2019-10-13
 
 The biggest change in this release is renaming the project to `cljstyle` to

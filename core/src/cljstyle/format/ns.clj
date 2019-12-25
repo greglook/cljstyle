@@ -205,7 +205,7 @@
   (when (seq elements)
     (->> elements
          (mapcat expand-require-group)
-         (sort-by (comp name libspec-sort-key))
+         (sort-by (comp str libspec-sort-key))
          (mapcat expand-comments)
          (render-block base-indent kw))))
 
