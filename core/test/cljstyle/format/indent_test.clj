@@ -7,24 +7,39 @@
 
 (defn reindent-string
   ([form-string]
-   (reindent-string form-string config/default-indents))
+   (reindent-string form-string config/default-indents 2))
   ([form-string indents]
+   (reindent-string form-string indents 2))
+  ([form-string indents list-indent-size]
    (reformat-string form-string {:indentation? true
-                                 :indents indents})))
+                                 :indents indents
+                                 :list-indent-size list-indent-size})))
 
 
 (deftest list-indentation
   (is (= "(foo bar\n     baz\n     quz)"
          (reindent-string "(foo bar\nbaz\nquz)")))
   (is (= "(foo\n  bar\n  baz)"
-         (reindent-string "(foo\n bar\nbaz)"))))
+         (reindent-string "(foo\n bar\nbaz)")))
+  (is (= "(foo\n bar\n baz)"
+         (reindent-string "(foo\n  bar\nbaz)"
+                          config/default-indents
+                          1))))
 
 
 (deftest block-indentation
   (is (= "(if (= x 1)\n  :foo\n  :bar)"
          (reindent-string "(if (= x 1)\n:foo\n:bar)")))
+  (is (= "(if (= x 1)\n  :foo\n  :bar)"
+         (reindent-string "(if (= x 1)\n:foo\n:bar)"
+                          config/default-indents
+                          1)))
   (is (= "(do\n  (foo)\n  (bar))"
          (reindent-string "(do\n(foo)\n(bar))")))
+  (is (= "(do\n  (foo)\n  (bar))"
+         (reindent-string "(do\n(foo)\n(bar))"
+                          config/default-indents
+                          1)))
   (is (= "(do (foo)\n    (bar))"
          (reindent-string "(do (foo)\n(bar))")))
   (is (= "(deftype Foo\n  [x]\n  Bar)"
@@ -38,6 +53,10 @@
   (is (= "(cond\n  a?\n    a\n  b?\n    b)"
          (reindent-string "(cond  \na?\n a\nb?\n  b)"
                           {'cond [[:stair 0]]})))
+  (is (= "(cond\n  a?\n    a\n  b?\n    b)"
+         (reindent-string "(cond  \na?\n a\nb?\n  b)"
+                          {'cond [[:stair 0]]}
+                          1)))
   (is (= "(condp = (:k x)\n  a?\n    a\n  b?\n    b)"
          (reindent-string "(condp = (:k x)\n a?\n a\nb?\n      b)"
                           {'condp [[:stair 2]]})))
@@ -73,6 +92,10 @@
 (deftest inner-indentation
   (is (= "(letfn [(foo\n          [x]\n          (* x x))]\n  (foo 5))"
          (reindent-string "(letfn [(foo [x]\n(* x x))]\n(foo 5))")))
+  (is (= "(letfn [(foo\n          [x]\n          (* x x))]\n  (foo 5))"
+         (reindent-string "(letfn [(foo [x]\n(* x x))]\n(foo 5))"
+                          config/default-indents
+                          1)))
   (is (= "(reify Closeable\n  (close [_]\n    (prn :closed)))"
          (reindent-string "(reify Closeable\n(close [_]\n(prn :closed)))")))
   (is (= "(defrecord Foo\n  [x]\n  Closeable\n  (close [_]\n    (prn x)))"
@@ -96,4 +119,8 @@
   (is (= "(let [foo\n      {:x 1\n       :y 2}]  (:x foo))"
          (reindent-string "(let [foo\n{:x 1\n:y 2}]  (:x foo))")))
   (is (= "(if foo\n  (do bar\n      baz)\n  quz)"
-         (reindent-string "(if foo\n(do bar\nbaz)\nquz)"))))
+         (reindent-string "(if foo\n(do bar\nbaz)\nquz)")))
+  (is (= "(if foo\n  (do bar\n      baz)\n  (quz\n   foo\n   bar))"
+         (reindent-string "(if foo\n(do bar\nbaz)\n(quz  \n  foo\nbar))"
+                          config/default-indents
+                          1))))

@@ -23,6 +23,7 @@
 
 ;; Formatting Rules
 (s/def ::indentation? boolean?)
+(s/def ::list-indent-size nat-int?)
 (s/def ::line-break-functions? boolean?)
 (s/def ::remove-surrounding-whitespace? boolean?)
 (s/def ::remove-trailing-whitespace? boolean?)
@@ -77,6 +78,7 @@
                    ::single-import-break-width
                    ::require-eof-newline?
                    ::indents
+                   ::list-indent-size
                    ::file-pattern
                    ::file-ignore]))
 
@@ -91,6 +93,7 @@
 
 (def default-config
   {:indentation? true
+   :list-indent-size 2
    :line-break-functions? true
    :remove-surrounding-whitespace? true
    :remove-trailing-whitespace? true
