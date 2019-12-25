@@ -66,6 +66,8 @@
 ;; Config Map
 (s/def ::settings
   (s/keys :opt-un [::indentation?
+                   ::list-indent-size
+                   ::indents
                    ::line-break-functions?
                    ::remove-surrounding-whitespace?
                    ::remove-trailing-whitespace?
@@ -77,8 +79,6 @@
                    ::rewrite-namespaces?
                    ::single-import-break-width
                    ::require-eof-newline?
-                   ::indents
-                   ::list-indent-size
                    ::file-pattern
                    ::file-ignore]))
 
@@ -94,6 +94,7 @@
 (def default-config
   {:indentation? true
    :list-indent-size 2
+   :indents default-indents
    :line-break-functions? true
    :remove-surrounding-whitespace? true
    :remove-trailing-whitespace? true
@@ -105,7 +106,6 @@
    :rewrite-namespaces? true
    :single-import-break-width 30
    :require-eof-newline? true
-   :indents default-indents
    :file-pattern #"\.clj[csx]?$"
    :file-ignore #{}})
 

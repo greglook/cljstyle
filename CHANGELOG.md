@@ -9,8 +9,13 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 
 ### Added
+- The `:list-indent-size` configuration option allows the default indentation
+  amount for lists to be adjusted.
+  [#8](//github.com/greglook/cljstyle/issues/8)
+  [#21](//github.com/greglook/cljstyle/pull/21)
 - The `pipe` command reads Clojure code from stdin and writes the reformatted
   code to stdout.
+  [#22](//github.com/greglook/cljstyle/pull/22)
 
 ## [0.9.0] - 2019-10-13
 
