@@ -12,6 +12,7 @@ _cljstyle() {
         "1:command:((find\\:'Find files which would be processed'
                      check\\:'Check source files and print a diff for errors'
                      fix\\:'Edit source files to fix formatting errors'
+                     pipe\\:'Read stdin and write reformatted to stdout'
                      config\\:'Show config used for a given path'
                      version\\:'Print program version information'))" \
         "*::path:_files"
