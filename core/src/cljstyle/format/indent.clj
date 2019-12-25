@@ -136,7 +136,7 @@
 (defmulti ^:private indenter-fn
   "Multimethod for applying indentation rules to forms."
   (fn dispatch
-    [rule-key [rule-type & args] list-indent-size]
+    [rule-key list-indent-size [rule-type & args]]
     rule-type))
 
 
@@ -144,7 +144,7 @@
   "Construct an indentation function by mapping the multimethod over the
   configured rule bodies."
   [list-indent-size [rule-key opts]]
-  (apply some-fn (map #(indenter-fn rule-key % list-indent-size) opts)))
+  (apply some-fn (map (partial indenter-fn rule-key list-indent-size) opts)))
 
 
 (defn- pattern?
@@ -181,7 +181,7 @@
 (defn- custom-indent
   "Look up custom indentation rules for the node at this location. Returns the
   number of spaces to indent the node."
-  [zloc indents list-indent-size]
+  [zloc list-indent-size indents]
   (if (empty? indents)
     (list-indent zloc list-indent-size)
     (let [indenter (->> (sort-by indent-order indents)
@@ -194,7 +194,7 @@
 (defn indent-amount
   "Calculates the number of spaces the node at this location should be
   indented, based on the available custom indent rules."
-  [zloc indents list-indent-size]
+  [zloc list-indent-size indents]
   (let [tag (-> zloc z/up z/tag)
         gp  (-> zloc z/up z/up)]
     (cond
@@ -202,10 +202,10 @@
       (coll-indent zloc)
 
       (#{:list :fn} tag)
-      (custom-indent zloc indents list-indent-size)
+      (custom-indent zloc list-indent-size indents)
 
       (#{:meta :meta* :reader-macro} tag)
-      (indent-amount (z/up zloc) indents list-indent-size)
+      (indent-amount (z/up zloc) list-indent-size indents)
 
       :else
       (coll-indent zloc))))
@@ -243,7 +243,7 @@
 
 
 (defmethod indenter-fn :inner
-  [rule-key [_ depth idx] list-indent-size]
+  [rule-key list-indent-size [_ depth idx]]
   (fn [zloc] (inner-indent zloc rule-key depth idx)))
 
 
@@ -281,7 +281,7 @@
 
 
 (defmethod indenter-fn :block
-  [rule-key [_ idx] list-indent-size]
+  [rule-key list-indent-size [_ idx]]
   (fn [zloc] (block-indent zloc rule-key idx list-indent-size)))
 
 
@@ -304,5 +304,5 @@
 
 
 (defmethod indenter-fn :stair
-  [rule-key [_ idx] list-indent-size]
+  [rule-key list-indent-size [_ idx]]
   (fn [zloc] (stair-indent zloc rule-key idx)))
