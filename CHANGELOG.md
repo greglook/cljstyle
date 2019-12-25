@@ -8,6 +8,11 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+...
+
+
+## [0.10.0] - 2019-12-25
+
 ### Added
 - The `:list-indent-size` configuration option allows the default indentation
   amount for lists to be adjusted.
@@ -22,6 +27,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
   JS libs will now work.
   [#20](//github.com/greglook/cljstyle/issues/20)
   [#23](//github.com/greglook/cljstyle/pull/23)
+
 
 ## [0.9.0] - 2019-10-13
 
@@ -49,6 +55,7 @@ better differentiate it from the original `cljfmt`.
   files end with a newline character.
   [#15](//github.com/greglook/cljstyle/issues/15)
 - Completion logic for zshell in [`completion.zsh`](util/completion.zsh).
+
 
 ## [0.8.3] - 2019-10-08
 
@@ -134,7 +141,8 @@ functionality.
 Legacy project release.
 
 
-[Unreleased]: https://github.com/greglook/cljstyle/compare/0.9.0...HEAD
+[Unreleased]: https://github.com/greglook/cljstyle/compare/0.10.0...HEAD
+[0.10.0]: https://github.com/greglook/cljstyle/compare/0.9.0...0.10.0
 [0.9.0]: https://github.com/greglook/cljstyle/compare/0.8.3...0.9.0
 [0.8.3]: https://github.com/greglook/cljstyle/compare/0.8.2...0.8.3
 [0.8.2]: https://github.com/greglook/cljstyle/compare/0.8.1...0.8.2
