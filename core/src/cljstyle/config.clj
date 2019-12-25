@@ -93,6 +93,7 @@
 
 (def default-config
   {:indentation? true
+   :list-indent-size 2
    :line-break-functions? true
    :remove-surrounding-whitespace? true
    :remove-trailing-whitespace? true
@@ -105,7 +106,6 @@
    :single-import-break-width 30
    :require-eof-newline? true
    :indents default-indents
-   :list-indent-size 2
    :file-pattern #"\.clj[csx]?$"
    :file-ignore #{}})
 

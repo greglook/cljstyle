@@ -169,6 +169,16 @@ disabled:
 
   Whether cljstyle should correct the indentation of your code.
 
+* `:list-indent-size`
+
+  Control indent size of list. The default is 2 spaces. If this setting is 1,
+  lists are formatted as follows.
+```clojure
+(foo
+ bar
+ baz)
+```
+
 * `:line-break-functions?`
 
   Whether cljstyle should enforce line breaks in function definitions.
@@ -216,17 +226,6 @@ disabled:
 
   Require all files to end with a newline character. One will be added if it is
   not present.
-
-* `:list-indent-size`
-
-  Control indent size of list. The default is 2 spaces. If this setting is 1,
-  lists are formatted as follows.
-```clojure
-(foo
- bar
- baz)
-```
-
 
 ### Indentation rules
 
