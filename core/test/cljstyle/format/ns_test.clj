@@ -278,3 +278,13 @@
   ;; - inside import?
   ;; - complex combos
   ,,,)
+
+
+(deftest shadow-cljs-requires
+  (is (= "(ns foo
+  (:require
+    [bar.core :as bar]
+    [\"caz\" :as caz]))"
+         (reformat-ns
+           "(ns foo (:require [\"caz\" :as caz] [bar.core :as bar]))"))
+      "sorts a require with a mixture of strings and symbol namespaces"))
