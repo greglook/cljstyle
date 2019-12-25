@@ -4,29 +4,54 @@ cljstyle
 [![CircleCI](https://circleci.com/gh/greglook/cljstyle.svg?style=shield&circle-token=9576040ebe39e81406823481c98dc55a39d03c4d)](https://circleci.com/gh/greglook/cljstyle)
 [![codecov](https://codecov.io/gh/greglook/cljstyle/branch/master/graph/badge.svg)](https://codecov.io/gh/greglook/cljstyle)
 
-`cljstyle` is a tool for formatting Clojure code.
-
-It can turn something like this:
+`cljstyle` is a tool for formatting Clojure code. It can take something messy
+like this:
 
 ```clojure
-( let [x 3
-    y 4]
-  (+ (* x x
-  )(* y y)
+(  ns
+ foo.bar.baz  "some doc"
+    (:require (foo.bar [abc :as abc]
+        def))
+    (:use foo.bar.qux)
+    (:import foo.bar.qux.Foo
+      ;; Need this for the thing
+      foo.bar.qux.Bar)
+    )
+
+(defn hello "says hi" (
+      [] (hello "world")
+  ) ([name]
+  ( println "Hello," name  )
   ))
 ```
 
-Into nicely formatted Clojure code like this:
+...and restyle it into nicely-formatted code like this:
 
 ```clojure
-(let [x 3
-      y 4]
-  (+ (* x x) (* y y)))
+(ns foo.bar.baz
+  "some doc"
+  (:require
+    [foo.bar.abc :as abc]
+    [foo.bar.def]
+    [foo.bar.qux :refer :all])
+  (:import
+    (foo.bar.qux
+      ;; Need this for the thing
+      Bar
+      Foo)))
+
+
+(defn hello
+  "says hi"
+  ([] (hello "world"))
+  ([name]
+   (println "Hello," name)))
 ```
 
 Note that this is a rewrite of the original
 [weavejester/cljfmt](https://github.com/weavejester/cljfmt/issues) tool to
-provide more capabilities and configurability.
+provide more capabilities and configurability as well as a native-compiled
+binary.
 
 
 ## Installation
