@@ -60,34 +60,6 @@ Releases are published on the [GitHub project](https://github.com/greglook/cljst
 The native binaries are self-contained, so to install them simply place them on
 your path.
 
-## Editor Integration
-
-### Vim
-
-For a simple vim integration copy the following into your `vimrc`
-
-```vimscript
-
-function! Cljstyle()
-    let cwd = getcwd()
-    let winsave = winsaveview()
-    execute "cd" . expand('%:p:h')
-
-    :%!cljstyle pipe
-
-    execute "cd" . cwd
-    call winrestview(winsave)
-
-endfunction
-
-command! Cljstyle :undojoin | call Cljstyle()
-
-```
-
-Calling `Cljstyle` will run `cljstyle pipe` on the current buffer.
-
-You can optionally add `autocmd BufWritePre *.cl* Cljstyle` to auto cljstyle on save.
-
 
 ## Usage
 
@@ -124,6 +96,17 @@ As with the `check` task, you can choose to fix a specific file:
 cljstyle fix src/foo/core.clj
 ```
 
+### Editors
+
+The `pipe` command offers a simple integration hook by reading Clojure code from
+stdin and writing the reformatted code to stdout:
+
+```
+cljstyle pipe < in.clj > out.clj
+```
+
+See the [editor integration](doc/editors.md) docs for more details.
+
 ### Debugging
 
 For inspecting what cljstyle is doing, one tool is to specify the `--verbose`
@@ -153,253 +136,11 @@ cljstyle version
 
 ## Configuration
 
-The `cljstyle` tool comes with a sensible set of default configuration built-in,
-and reads additional configuration from `.cljstyle` files which may be placed
-in any directories to control cljstyle's behavior on files in those subtrees.
-These files are regular Clojure files which should contain a map of settings to
-use:
-
-```clojure
-;; cljstyle configuration
-{:max-blank-lines 3
- :file-ignore #{"checkouts" "target"}}
-```
-
-When `cljstyle` is run, it searches upwards in the filesystem to find parent
-configuration, and as it searches in directories it will merge in local config
-files. For example, in a tree like the following:
-
-```
-a
-├── .cljstyle
-└── b
-    ├── c
-    │   ├── .cljstyle
-    │   └── foo.clj
-    └── d
-        ├── .cljstyle
-        └── e
-            └── bar.clj
-```
-
-Running `cljstyle` in directory `c` would use `a/.cljstyle` as the base
-configuration and would combine in the `a/b/c/.cljstyle` configuration to check
-`foo.clj`. Running it directly from directory `e` would look upwards and use the
-combination of `a/.cljstyle` and `a/b/d/.cljstyle` for `bar.clj`.
-
-Configuration maps are merged together in depth-order, so that more local
-settings take precedence. As with Leiningen profiles, you can add metadata
-hints. If you want to override all existing indents, instead of just supplying
-new indents that are merged with the defaults, you can use the `:replace` hint:
-
-```clojure
-{:indents ^:replace {#".*" [[:inner 0]]}}
-```
-
-### File Settings
-
-You can configure the way `cljstyle` looks for source files with the following
-settings:
-
-* `:file-pattern`
-
-  Pattern to match against filenames to determine which files to check. Includes
-  all Clojure, ClojureScript, and cross-compiled files by default.
-
-* `:file-ignore`
-
-  Set of strings or patterns of files to ignore. Strings are matched against
-  file and directory names exactly; patterns are matched against the entire
-  (relative) file path. Ignored files will not be checked and ignored
-  directories will not be recursed into.
-
-### Format Rules
-
-`cljstyle` has many formatting rules, and these can be selectively enabled or
-disabled:
-
-* `:indentation?`
-
-  Whether cljstyle should correct the indentation of your code.
-
-* `:list-indent-size`
-
-  Control indent size of list. The default is 2 spaces. If this setting is 1,
-  lists are formatted as follows.
-```clojure
-(foo
- bar
- baz)
-```
-
-* `:line-break-functions?`
-
-  Whether cljstyle should enforce line breaks in function definitions.
-
-* `:remove-surrounding-whitespace?`
-
-  Whether cljstyle should remove whitespace surrounding inner forms. This will
-  convert `(  foo  )` to `(foo)`.
-
-* `:remove-trailing-whitespace?`
-
-  Whether cljstyle should remove trailing whitespace in lines. This will convert
-  `(foo)   \n` to `(foo)\n`.
-
-* `:insert-missing-whitespace?`
-
-  Whether cljstyle should insert whitespace missing from between elements. This
-  will convert `(foo(bar))` to `(foo (bar))`.
-
-* `:remove-consecutive-blank-lines?`
-
-  Whether cljstyle should collapse consecutive blank lines. Any runs of empty
-  lines longer than `:max-consecutive-blank-lines` will be truncated to the
-  configured limit. The default limit is 2. This will convert
-  `(foo)\n\n\n\n(bar)` to `(foo)\n\n\n(bar)`.
-
-* `:insert-padding-lines?`
-
-  Whether cljstyle should insert blank lines between certain top-level forms. Any
-  multi-line form will be padded with at least `:padding-lines` empty lines
-  between it and other non-comment forms. The defaults is 2 lines.
-
-* `:rewrite-namespaces?`
-
-  Whether cljstyle should rewrite namespace forms to standardize their layout.
-
-* `:single-import-break-width`
-
-  Control the threshold for breaking a single class import into a package import
-  group. If the combined package and class name would be longer than this limit,
-  it is represented as a singleton group. Classes under this threshold may be
-  either fully qualified or grouped.
-
-* `:require-eof-newline?`
-
-  Require all files to end with a newline character. One will be added if it is
-  not present.
-
-### Indentation rules
-
-There are a few types of indentation rules that can be applied to forms. These
-are configured by a map of rule targets to indenters. Each rule is specified
-with either a symbol or a regular expression pattern. Rules are matched against
-forms in the following order:
-
-1. Check the qualified form symbol against the rule, including namespace.
-2. Check the _name_ of the form symbol against the rule symbol.
-3. If the rule is a pattern, match it against the form symbol string.
-
-This ordering allows you to provide specific rules for overlapping symbols from
-different namespaces, e.g. differentiating `d/catch` from `catch`.
-
-#### Inner rules
-
-An `:inner` rule will apply a constant indentation to all elements at
-a fixed depth. So an indent rule:
-
-```clojure
-{foo [[:inner 0]]}
-```
-
-Will indent all elements inside a `foo` form by two spaces:
-
-```clojure
-(foo bar
-  baz
-  bang)
-  ```
-
-While an indent rule like:
-
-```clojure
-{foo [[:inner 1]]}
-```
-
-Will indent all subforms one level in:
-
-```clojure
-(foo bar
-  baz
-  (bang
-    quz
-    qoz))
-```
-
-Sometimes it's useful to limit indentation to one argument of the
-surrounding form. For example, `letfn` uses inner indentation only in
-its binding vector:
-
-```clojure
-(letfn [(double [x]
-          (* x 2))]   ;; special indentation here
-  (let [y (double 2)
-        z (double 3)]
-    (println y
-             z)))     ;; but not here
-```
-
-To achieve this, an additional index argument may be used:
-
-```clojure
-{letfn [[:inner 2 0]]}
-```
-
-This will limit the inner indent to depth 2 in argument 0.
-
-#### Block rules
-
-A `:block` rule is a little smarter. This will act like an inner
-indent only if there's a line break before a certain number of
-arguments, otherwise it acts like a normal list form.
-
-For example, an indent rule:
-
-```clojure
-{foo [[:block 0]]}
-```
-
-Indents like this, if there are more than 0 arguments on the same line
-as the symbol:
-
-```clojure
-(foo bar
-     baz
-     bang)
-```
-
-But indents at a constant two spaces otherwise:
-
-```clojure
-(foo
-  bar
-  baz
-  bang)
-```
-
-#### Stair rules
-
-A `:stair` rule is similar to `:block`, except that it tries to indent
-test/expression clauses as pairs. This can be used as an alternative styling for
-`case`, `cond`, `cond->`, etc.The expression forms will be given an extra level
-of indentation if they are on their own line:
-
-```clojure
-{cond [[:stair 0]]}
-```
-
-```clojure
-(cond
-  a? :a
-  b? :b)
-
-(cond
-  a?
-    :a
-  b?
-    :b)
-```
+The `cljstyle` tool comes with a sensible set of default configuration built-in
+and may additionally be configured by using a hierarchy of `.cljstyle` files in
+the source tree. The [configuration settings](doc/configuration.md) include
+toggles for format rules, width constraints, and the
+[indentation rules](doc/indentation.md).
 
 
 ## Ignoring Forms

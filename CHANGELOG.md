@@ -9,9 +9,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 
 ### Added
-- The `pipe` command will fix any formatting issues reading from stdin and
-  writing to stdout.
-
+- The `pipe` command reads Clojure code from stdin and writes the reformatted
+  code to stdout.
 
 ## [0.9.0] - 2019-10-13
 
