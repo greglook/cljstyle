@@ -8,7 +8,9 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
-...
+### Fixed
+- The `pipe` command will respect configuration directly in the process working
+  directory. Previously, it only considered parent directories.
 
 
 ## [0.10.0] - 2019-12-25

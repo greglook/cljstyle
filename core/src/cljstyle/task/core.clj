@@ -25,7 +25,7 @@
 (defn- load-configs
   "Load parent configuration files. Returns a merged configuration map."
   [label ^File file]
-  (let [configs (config/find-parents file 25)]
+  (let [configs (config/find-up file 25)]
     (if (seq configs)
       (p/logf "Using cljstyle configuration from %d sources for %s:\n%s"
               (count configs)
@@ -137,12 +137,7 @@
       (flush)
       (System/exit 1)))
   (let [^File file (first (search-roots paths))
-        ;; If the target is a directory, pretend we're loading configuration
-        ;; one level deeper so that the parents include the directory itself.
-        target (if (.isDirectory file)
-                 (io/file file "x")
-                 file)
-        config (load-configs (.getPath file) target)]
+        config (load-configs (.getPath file) file)]
     (pprint config)))
 
 

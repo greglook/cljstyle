@@ -163,6 +163,17 @@
   (and file (.isDirectory file)))
 
 
+(defn canonical-dir
+  "Return the nearest canonical directory for the path. If path resolves to a
+  file, the parent directory is returned."
+  ^File
+  [path]
+  (let [file (-> path io/file .getAbsoluteFile .getCanonicalFile)]
+    (if (.isDirectory file)
+      file
+      (.getParentFile file))))
+
+
 (defn source-file?
   "True if the file is a recognized source file."
   [config ^File file]
@@ -230,19 +241,18 @@
       (read-config file))))
 
 
-(defn find-parents
-  "Search upwards from the given directory, collecting cljstyle configuration
+(defn find-up
+  "Search upwards from a starting path, collecting cljstyle configuration
   files. Returns a sequence of configuration maps read, with shallower paths
   ordered earlier.
 
-  Note that the search begins with the _parent_ of the starting file, so will
-  not include the configuration in `start` if it is a directory. The search
-  will terminate after `limit` recursions or once it hits the filesystem root
-  or a directory the user can't read."
+  The search will include configuration in the starting path if it is a
+  directory, and will terminate after `limit` recursions or once it hits the
+  filesystem root or a directory the user can't read."
   [start limit]
   {:pre [start (pos-int? limit)]}
   (loop [configs ()
-         dir (-> start io/file .getAbsoluteFile .getCanonicalFile .getParentFile)
+         dir (canonical-dir start)
          limit limit]
     (if (and (pos? limit) (directory? dir) (readable? dir))
       ;; Look for config file and recurse upward.

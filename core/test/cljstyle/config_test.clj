@@ -197,6 +197,7 @@
 (deftest config-hierarchy
   (let [test-dir (io/file "target/test-config/hierarchy")
         a-config (io/file test-dir "a" ".cljstyle")
+        abd-dir (io/file test-dir "a" "b" "d")
         abc-config (io/file test-dir "a" "b" "c" ".cljstyle")
         abd-config (io/file test-dir "a" "b" "d" ".cljstyle")
         foo-clj (io/file test-dir "a" "b" "c" "foo.clj")
@@ -219,14 +220,20 @@
       (testing "dir-config"
         (is (nil? (config/dir-config (io/file test-dir "x"))))
         (is (= {:padding-lines 8} (config/dir-config (io/file test-dir "a")))))
-      (testing "find-parents"
+      (testing "find-up"
         (is (= [{:padding-lines 8}
                 {:padding-lines 4}]
-               (config/find-parents foo-clj 3)))
+               (config/find-up foo-clj 3)))
         (is (= [[(.getAbsolutePath a-config)]
                 [(.getAbsolutePath abd-config)]]
-               (map config/source-paths (config/find-parents bar-clj 4))))
-        (is (< 2 (count (config/find-parents foo-clj 100)))))
+               (map config/source-paths (config/find-up bar-clj 4))))
+        (is (< 2 (count (config/find-up foo-clj 100))))
+        (is (= [{:padding-lines 8}
+                {:file-ignore #{"f"}}]
+               (config/find-up abd-dir 3)))
+        (is (= [[(.getAbsolutePath a-config)]
+                [(.getAbsolutePath abd-config)]]
+               (map config/source-paths (config/find-up abd-dir 4)))))
       (finally
         (.delete a-config)
         (.delete abc-config)
