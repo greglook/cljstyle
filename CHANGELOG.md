@@ -148,7 +148,8 @@ functionality.
 Legacy project release.
 
 
-[Unreleased]: https://github.com/greglook/cljstyle/compare/0.10.0...HEAD
+[Unreleased]: https://github.com/greglook/cljstyle/compare/0.10.1...HEAD
+[0.10.1]: https://github.com/greglook/cljstyle/compare/0.10.0...0.10.1
 [0.10.0]: https://github.com/greglook/cljstyle/compare/0.9.0...0.10.0
 [0.9.0]: https://github.com/greglook/cljstyle/compare/0.8.3...0.9.0
 [0.8.3]: https://github.com/greglook/cljstyle/compare/0.8.2...0.8.3
