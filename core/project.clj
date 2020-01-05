@@ -1,4 +1,4 @@
-(defproject mvxcvi/cljstyle "0.10.1-SNAPSHOT"
+(defproject mvxcvi/cljstyle "0.10.1"
   :description "A library for formatting Clojure code"
   :url "https://github.com/greglook/cljstyle"
   :scm {:dir ".."}
