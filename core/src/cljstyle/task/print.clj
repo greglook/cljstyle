@@ -95,11 +95,11 @@
   "Prints a Clojure-oriented view of one element in a stack trace."
   [^StackTraceElement e]
   (let [cls (.getClassName e)
-        method (.getMethodName e)]
-    (let [match (re-matches #"^([A-Za-z0-9_.-]+)\$(\w+)__\d+$" (str cls))]
-      (if (and match (= "invoke" method))
-        (apply printf "%s/%s" (rest match))
-        (printf "%s.%s" cls method))))
+        method (.getMethodName e)
+        match (re-matches #"^([A-Za-z0-9_.-]+)\$(\w+)__\d+$" (str cls))]
+    (if (and match (= "invoke" method))
+      (apply printf "%s/%s" (rest match))
+      (printf "%s.%s" cls method)))
   (printf " (%s:%d)" (or (.getFileName e) "") (.getLineNumber e)))
 
 

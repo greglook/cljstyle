@@ -135,9 +135,10 @@
 
 (defmulti ^:private indenter-fn
   "Multimethod for applying indentation rules to forms."
+  ;; Accepts [rule-key list-indent-size [rule-type & args]]
   (fn dispatch
-    [rule-key list-indent-size [rule-type & args]]
-    rule-type))
+    [_ _ rule]
+    (first rule)))
 
 
 (defn- make-indenter
@@ -243,7 +244,7 @@
 
 
 (defmethod indenter-fn :inner
-  [rule-key list-indent-size [_ depth idx]]
+  [rule-key _ [_ depth idx]]
   (fn [zloc] (inner-indent zloc rule-key depth idx)))
 
 
@@ -304,5 +305,5 @@
 
 
 (defmethod indenter-fn :stair
-  [rule-key list-indent-size [_ idx]]
+  [rule-key _ [_ idx]]
   (fn [zloc] (stair-indent zloc rule-key idx)))

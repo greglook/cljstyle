@@ -155,7 +155,7 @@
 
 (defn- find-source
   "Print information about a single source file."
-  [config path file]
+  [_ path _]
   {:type :found
    :info path})
 

@@ -2,7 +2,7 @@
   (:require
     [cljstyle.config :as config]
     [cljstyle.format.core :refer [reformat-string]]
-    [clojure.test :refer :all]))
+    [clojure.test :refer [deftest is]]))
 
 
 (defn reindent-string

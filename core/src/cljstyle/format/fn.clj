@@ -95,9 +95,7 @@
   [zloc]
   (and (zl/zwhitespace? zloc)
        (fn-form? (z/up zloc))
-       (let [r (z/right zloc)]
-         ;(prn :next-form (z/node r) (z/tag r))
-         (= :list (some-> zloc z/right z/tag)))))
+       (= :list (some-> zloc z/right z/tag))))
 
 
 (defn post-name-space?

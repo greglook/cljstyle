@@ -6,7 +6,7 @@
 
 
 (defmethod test/assert-expr 'thrown-with-data?
-  [msg [_ data expr :as form]]
+  [msg [_ data expr]]
   `(let [expected# ~data
          msg# ~msg]
      (try

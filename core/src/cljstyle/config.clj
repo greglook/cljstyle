@@ -7,8 +7,7 @@
   merging and overriding their parents."
   (:require
     [clojure.java.io :as io]
-    [clojure.spec.alpha :as s]
-    [clojure.string :as str])
+    [clojure.spec.alpha :as s])
   (:import
     java.io.File))
 
@@ -126,15 +125,13 @@
   ([a b]
    (letfn [(merge-values
              [x y]
-             (let [xm (meta x)
-                   ym (meta x)]
-               (cond
-                 (:replace (meta y)) y
-                 (:displace (meta x)) y
-                 (sequential? x) (into x y)
-                 (set? x) (into x y)
-                 (map? x) (merge x y)
-                 :else y)))]
+             (cond
+               (:replace (meta y)) y
+               (:displace (meta x)) y
+               (sequential? x) (into x y)
+               (set? x) (into x y)
+               (map? x) (merge x y)
+               :else y))]
      (with-meta
        (merge-with merge-values a b)
        (update (meta a) ::paths (fnil into []) (source-paths b)))))

@@ -1,7 +1,7 @@
 (ns cljstyle.format.core-test
   (:require
     [cljstyle.format.core :refer [reformat-string reformat-file]]
-    [clojure.test :refer :all]))
+    [clojure.test :refer [deftest testing is]]))
 
 
 (deftest form-parsing

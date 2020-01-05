@@ -3,7 +3,6 @@
     [cljstyle.config :as config]
     [cljstyle.test-util]
     [clojure.java.io :as io]
-    [clojure.spec.alpha :as s]
     [clojure.test :refer [deftest testing is]]))
 
 
