@@ -2,10 +2,11 @@
 
 ### Vim
 
-For a simple vim integration copy the following into your `vimrc`:
+For a simple vim integration copy the following into your `.vimrc` or neovim
+`.config/nvim/init.vim`:
 
 ```vimscript
-function! Cljstyle()
+function! cljstyle()
     let cwd = getcwd()
     let winsave = winsaveview()
     execute "cd" . expand('%:p:h')
@@ -14,16 +15,13 @@ function! Cljstyle()
 
     execute "cd" . cwd
     call winrestview(winsave)
-
 endfunction
-
-command! Cljstyle :undojoin | call Cljstyle()
 ```
 
-Calling `Cljstyle` will run `cljstyle pipe` on the current buffer.
+Calling `cljstyle()` will run `cljstyle pipe` on the current buffer.
 
 You can optionally add this line to auto cljstyle on save:
 
 ```vimscript
-autocmd BufWritePre *.cl* Cljstyle
+autocmd BufWritePre *.clj* call cljstyle()
 ```
