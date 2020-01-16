@@ -132,11 +132,11 @@
 
 (defn- render-block
   "Render a namespace group as a multi-line block."
-  [base-indent kw elements]
+  [opts base-indent kw elements]
   (->> elements
        (mapcat (partial vector
                         (n/newlines 1)
-                        (n/spaces (+ base-indent indent-size))))
+                        (n/spaces (+ base-indent (:list-indent-size opts indent-size)))))
        (list* (n/keyword-node kw))
        (n/list-node)))
 
@@ -201,13 +201,13 @@
 
 (defn- render-requires*
   "Render a `:require` form as a list node."
-  [base-indent kw elements]
+  [opts base-indent kw elements]
   (when (seq elements)
     (->> elements
          (mapcat expand-require-group)
          (sort-by (comp str libspec-sort-key))
          (mapcat expand-comments)
-         (render-block base-indent kw))))
+         (render-block opts base-indent kw))))
 
 
 (defn- replace-loads
@@ -298,13 +298,13 @@
 
 (defn- format-import-group*
   "Format a group of imported classes as a list node."
-  [base-indent package class-names]
+  [opts base-indent package class-names]
   (->
     (->> (sort class-names)
          (mapcat expand-comments)
          (mapcat (partial list
                           (n/newlines 1)
-                          (n/spaces (+ base-indent (* 2 indent-size)))))
+                          (n/spaces (+ base-indent (* 2 (:list-indent-size opts indent-size))))))
          (cons (n/token-node package)))
     (n/list-node)
     (with-meta (meta package))
@@ -327,9 +327,9 @@
             (with-meta (meta class-name))
             (expand-comments))
         ;; Format singleton group.
-        (format-import-group* base-indent package class-names)))
+        (format-import-group* opts base-indent package class-names)))
     ;; Multiple classes, always use a group.
-    (format-import-group* base-indent package class-names)))
+    (format-import-group* opts base-indent package class-names)))
 
 
 (defn- render-imports*
@@ -341,7 +341,7 @@
          (group-imports)
          (sort-by key)
          (mapcat (partial apply format-import-group opts base-indent))
-         (render-block base-indent :import))))
+         (render-block opts base-indent :import))))
 
 
 
@@ -385,7 +385,7 @@
 
 (defn- render-gen-class
   "Render a `:gen-class` form."
-  [elements]
+  [opts elements]
   (when elements
     [(n/spaces indent-size)
      (->> elements
@@ -393,7 +393,7 @@
           (mapcat (fn format-entry
                     [[k v]]
                     [(n/newlines 1)
-                     (n/spaces (* 2 indent-size))
+                     (n/spaces (+ indent-size (:list-indent-size opts indent-size)))
                      k
                      (n/spaces 1)
                      v]))
@@ -403,10 +403,10 @@
 
 (defn- render-requires
   "Render a `:require` form."
-  [kw elements]
+  [opts kw elements]
   (when (seq elements)
     [(n/spaces indent-size)
-     (render-requires* indent-size kw elements)]))
+     (render-requires* opts indent-size kw elements)]))
 
 
 (defn- render-imports
@@ -432,7 +432,7 @@
 
        (contains? #{:require :require-macros} list-kw)
        (let [elements (rest (n/children (parse-list-with-comments clause)))]
-         (render-requires* base-indent list-kw elements))
+         (render-requires* opts base-indent list-kw elements))
 
        :else
        clause)]))
@@ -489,9 +489,9 @@
           (mapcat (partial cons (n/newlines 1))))
         [(render-docstring (:doc ns-data))
          (render-refer-clojure (:refer-clojure ns-data))
-         (render-gen-class (:gen-class ns-data))
-         (render-requires :require (:require ns-data))
-         (render-requires :require-macros (:require-macros ns-data))
+         (render-gen-class opts (:gen-class ns-data))
+         (render-requires opts :require (:require ns-data))
+         (render-requires opts :require-macros (:require-macros ns-data))
          (render-imports opts (:import ns-data))
          (render-reader-conditionals opts (:reader-conditionals ns-data))]))))
 
