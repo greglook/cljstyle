@@ -25,6 +25,7 @@
 (s/def ::list-indent-size nat-int?)
 (s/def ::line-break-vars? boolean?)
 (s/def ::line-break-functions? boolean?)
+(s/def ::reformat-types? boolean?)
 (s/def ::remove-surrounding-whitespace? boolean?)
 (s/def ::remove-trailing-whitespace? boolean?)
 (s/def ::insert-missing-whitespace? boolean?)
@@ -70,6 +71,7 @@
                    ::indents
                    ::line-break-vars?
                    ::line-break-functions?
+                   ::reformat-types?
                    ::remove-surrounding-whitespace?
                    ::remove-trailing-whitespace?
                    ::insert-missing-whitespace?
@@ -98,6 +100,7 @@
    :indents default-indents
    :line-break-vars? true
    :line-break-functions? true
+   :reformat-types? true
    :remove-surrounding-whitespace? true
    :remove-trailing-whitespace? true
    :insert-missing-whitespace? true

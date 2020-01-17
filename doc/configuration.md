@@ -92,6 +92,12 @@ disabled:
 
   Whether cljstyle should enforce line breaks in function definitions.
 
+* `:reformat-types?`
+
+  Whether cljstyle should reformat type-related expressions like `defprotocol`,
+  `deftype`, `defrecord`, `reify`, and `proxy` by inserting line breaks and
+  padding lines.
+
 * `:remove-surrounding-whitespace?`
 
   Whether cljstyle should remove whitespace surrounding inner forms. This will
