@@ -31,7 +31,8 @@
   "True if the node at this location consists of whitespace and is the first
   node on a line."
   [zloc]
-  (and (line-break? (zip/prev zloc)) (zl/whitespace? zloc)))
+  (and (line-break? (zip/prev zloc))
+       (zl/space? zloc)))
 
 
 (defn- comment-next?
@@ -264,7 +265,7 @@
   line."
   [zloc]
   (if-let [zloc (zip/left zloc)]
-    (if (zl/whitespace? zloc)
+    (if (zl/space? zloc)
       (recur zloc)
       (or (z/linebreak? zloc) (zl/comment? zloc)))
     true))

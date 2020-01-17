@@ -230,7 +230,7 @@
   "True if the node at this location represents whitespace trailing a form on a
   line or the final top-level node."
   [zloc]
-  (and (zl/whitespace? zloc)
+  (and (zl/space? zloc)
        (or (z/linebreak? (zip/right zloc))
            (final? zloc))))
 

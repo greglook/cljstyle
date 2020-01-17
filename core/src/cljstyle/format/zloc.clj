@@ -76,7 +76,7 @@
        (contains? #{"?" "?@"} (-> zloc z/down token-value str))))
 
 
-(defn whitespace?
+(defn space?
   "True if the node at this location is whitespace and _not_ a line break
   character."
   [zloc]
@@ -86,7 +86,7 @@
 (defn skip-whitespace
   "Skip to the location of the next non-whitespace node."
   [zloc]
-  (z/skip zip/next whitespace? zloc))
+  (z/skip zip/next space? zloc))
 
 
 (defn multiline?

@@ -33,7 +33,7 @@
 (defn pre-name-space?
   "True if the node at this location is whitespace preceding a var name."
   [zloc]
-  (and (zl/whitespace? zloc)
+  (and (z/whitespace? zloc)
        (name? (z/right zloc))))
 
 
@@ -49,8 +49,7 @@
 (defn around-doc-space?
   "True if the node at this location is whitespace surrounding a var docstring."
   [zloc]
-  (and (or (zl/whitespace? zloc)
-           (z/linebreak? zloc))
+  (and (z/whitespace? zloc)
        (or (docstring? (z/right zloc))
            (docstring? (z/left zloc)))))
 
@@ -60,7 +59,6 @@
   body."
   [zloc]
   (and (z/right zloc)
-       (or (z/linebreak? zloc)
-           (zl/whitespace? zloc))
+       (z/whitespace? zloc)
        (or (name? (z/left zloc))
            (docstring? (z/left zloc)))))
