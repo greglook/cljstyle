@@ -5,8 +5,7 @@
     [clojure.string :as str]
     [clojure.zip :as zip]
     [rewrite-clj.node :as n]
-    [rewrite-clj.zip :as z
-     :refer [skip whitespace-or-comment?]]))
+    [rewrite-clj.zip :as z]))
 
 
 (defn zprn
@@ -17,20 +16,10 @@
   zloc)
 
 
-(def zwhitespace?
-  "True if the node is a whitespace node."
-  z/whitespace?)
-
-
-(def zlinebreak?
-  "True if the node contains a line break."
-  z/linebreak?)
-
-
 (defn comment?
   "True if the node at this location is a comment."
   [zloc]
-  (some-> zloc z/node n/comment?))
+  (= :comment (z/tag zloc)))
 
 
 (defn root?
@@ -49,7 +38,7 @@
   "True if the node at this location represents a syntactically important
   token."
   [zloc]
-  (and zloc (not (whitespace-or-comment? zloc))))
+  (and zloc (not (z/whitespace-or-comment? zloc))))
 
 
 (defn token?
@@ -97,7 +86,7 @@
 (defn skip-whitespace
   "Skip to the location of the next non-whitespace node."
   [zloc]
-  (skip zip/next whitespace? zloc))
+  (z/skip zip/next whitespace? zloc))
 
 
 (defn multiline?

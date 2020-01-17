@@ -24,7 +24,7 @@
 (defn- line-break?
   "True if the node at this location is a linebreak or a comment."
   [zloc]
-  (or (zl/zlinebreak? zloc) (zl/comment? zloc)))
+  (or (z/linebreak? zloc) (zl/comment? zloc)))
 
 
 (defn- indentation?
@@ -121,7 +121,7 @@
 (defn- list-indent
   "Determine how indented a list at the current location should be."
   [zloc list-indent-size]
-  (if (and (some-> zloc zip/leftmost zip/right zl/skip-whitespace zl/zlinebreak?)
+  (if (and (some-> zloc zip/leftmost zip/right zl/skip-whitespace z/linebreak?)
            (-> zloc z/leftmost z/tag (= :token)))
     (+ (-> zloc zip/up margin)
        list-indent-size
@@ -266,7 +266,7 @@
   (if-let [zloc (zip/left zloc)]
     (if (zl/whitespace? zloc)
       (recur zloc)
-      (or (zl/zlinebreak? zloc) (zl/comment? zloc)))
+      (or (z/linebreak? zloc) (zl/comment? zloc)))
     true))
 
 

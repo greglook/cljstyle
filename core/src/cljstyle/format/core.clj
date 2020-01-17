@@ -1,6 +1,8 @@
 (ns cljstyle.format.core
+  "Core formatting logic which ties together all rules."
   (:require
     [cljstyle.config :as config]
+    [cljstyle.format.edit :as edit]
     [cljstyle.format.fn :as fn]
     [cljstyle.format.indent :as indent]
     [cljstyle.format.ns :as ns]
@@ -21,115 +23,19 @@
 
 
 
-;; ## Editing Functions
-
-(defn- ignored-meta?
-  "True if the node at this location represents metadata tagging a form to be
-  ignored by cljstyle."
-  [zloc]
-  (and (= :meta (z/tag zloc))
-       (when-let [m (z/sexpr (z/next zloc))]
-         (or (= :cljstyle/ignore m)
-             (:cljstyle/ignore m)))))
-
-
-(defn- comment-form?
-  "True if the node at this location is a comment form - that is, a list
-  beginning with the `comment` symbol, as opposed to a literal text comment."
-  [zloc]
-  (and (= :list (z/tag zloc))
-       (= 'comment (zl/form-symbol (z/down zloc)))))
-
-
-(defn- discard-macro?
-  "True if the node at this location is a discard reader macro."
-  [zloc]
-  (= :uneval (z/tag zloc)))
-
-
-(defn- ignored?
-  "True if the node at this location is inside an ignored form."
-  [zloc]
-  (some? (z/find zloc z/up (some-fn ignored-meta?
-                                    comment-form?
-                                    discard-macro?))))
-
-
-(defn- edit-all
-  "Edit all nodes in `zloc` matching the predicate by applying `f` to them.
-  Returns the final zipper location."
-  [zloc p? f]
-  (let [p? (fn [zl] (and (p? zl) (not (ignored? zl))))]
-    (loop [zloc (if (p? zloc) (f zloc) zloc)]
-      (if-let [zloc (z/find-next zloc zip/next p?)]
-        (recur (f zloc))
-        zloc))))
-
-
-(defn- transform
-  "Transform this form by parsing it as an EDN syntax tree and applying `zf` to
-  it."
-  [form zf & args]
-  (z/root (apply zf (edn form) args)))
-
-
-(defn- whitespace
-  "Build a new whitespace node with `width` spaces."
-  [width]
-  (n/whitespace-node (apply str (repeat width " "))))
-
-
-
 ;; ## Rule: Line Breaks
-
-(defn- eat-whitespace
-  "Eat whitespace characters, leaving the zipper located at the next
-  non-whitespace node."
-  [zloc]
-  (loop [zloc zloc]
-    (if (or (zl/zlinebreak? zloc)
-            (zl/zwhitespace? zloc))
-      (recur (zip/next (zip/remove zloc)))
-      zloc)))
-
-
-(defn- break-whitespace
-  "Edit the form to replace the whitespace to ensure it has a line-break if
-  `break?` returns true on the location or a single space character if false."
-  [form p? break?]
-  (transform
-    form edit-all
-    (fn match?
-      [zloc]
-      (and (p? zloc) (not (zl/syntax-quoted? zloc))))
-    (fn change
-      [zloc]
-      (if (break? zloc)
-        ;; break space
-        (if (zl/zlinebreak? zloc)
-          (z/right zloc)
-          (-> zloc
-              (zip/replace (n/newlines 1))
-              (zip/right)
-              (eat-whitespace)))
-        ;; inline space
-        (-> zloc
-            (zip/replace (whitespace 1))
-            (zip/right)
-            (eat-whitespace))))))
-
 
 (defn line-break-vars
   "Transform this form by applying line-breaks to var definition forms."
   [form]
   (-> form
-      (break-whitespace
+      (edit/break-whitespace
         var/pre-name-space?
         (constantly false))
-      (break-whitespace
+      (edit/break-whitespace
         var/around-doc-space?
         (constantly true))
-      (break-whitespace
+      (edit/break-whitespace
         var/pre-body-space?
         (comp zl/multiline? z/up))))
 
@@ -138,19 +44,19 @@
   "Transform this form by applying line-breaks to function definition forms."
   [form]
   (-> form
-      (break-whitespace
+      (edit/break-whitespace
         fn/fn-to-name-or-args-space?
         (constantly false))
-      (break-whitespace
+      (edit/break-whitespace
         fn/post-name-space?
         fn/defn-or-multiline?)
-      (break-whitespace
+      (edit/break-whitespace
         fn/post-doc-space?
         (constantly true))
-      (break-whitespace
+      (edit/break-whitespace
         fn/post-args-space?
         fn/defn-or-multiline?)
-      (break-whitespace
+      (edit/break-whitespace
         fn/pre-body-space?
         fn/defn-or-multiline?)))
 
@@ -162,7 +68,7 @@
   "Count the number of consecutive blank lines at this location."
   [zloc]
   (loop [zloc zloc, newlines 0]
-    (if (zl/zlinebreak? zloc)
+    (if (z/linebreak? zloc)
       (recur (-> zloc zip/right zl/skip-whitespace)
              (-> zloc z/string count (+ newlines)))
       newlines)))
@@ -177,7 +83,7 @@
 (defn- remove-whitespace-and-newlines
   "Edit the node at this location to remove any following whitespace."
   [zloc]
-  (if (zl/zwhitespace? zloc)
+  (if (z/whitespace? zloc)
     (recur (zip/remove zloc))
     zloc))
 
@@ -195,9 +101,10 @@
 (defn remove-consecutive-blank-lines
   "Edit the form to replace consecutive blank lines with a single line."
   [form max-consecutive]
-  (transform form edit-all
-             #(consecutive-blank-line? % max-consecutive)
-             #(replace-consecutive-blank-lines % max-consecutive)))
+  (edit/transform
+    form
+    #(consecutive-blank-line? % max-consecutive)
+    #(replace-consecutive-blank-lines % max-consecutive)))
 
 
 
@@ -207,10 +114,10 @@
   "True if the node at this location is whitespace between two top-level
   forms, at least one of which is multi-line."
   [zloc]
-  (and (zl/zwhitespace? zloc)
+  (and (z/whitespace? zloc)
        (zl/root? (z/up zloc))
-       (let [prev-zloc (skip zip/left zl/zwhitespace? zloc)
-             next-zloc (skip zip/right zl/zwhitespace? zloc)]
+       (let [prev-zloc (skip zip/left z/whitespace? zloc)
+             next-zloc (skip zip/right z/whitespace? zloc)]
          (and prev-zloc
               next-zloc
               (not (zl/comment? prev-zloc))
@@ -222,9 +129,10 @@
 (defn insert-padding-lines
   "Edit the form to replace consecutive blank lines with a single line."
   [form padding-lines]
-  (transform form edit-all
-             padding-line-break?
-             #(replace-consecutive-blank-lines % padding-lines)))
+  (edit/transform
+    form
+    padding-line-break?
+    #(replace-consecutive-blank-lines % padding-lines)))
 
 
 
@@ -244,7 +152,7 @@
   [zloc]
   (letfn [(blank?
             [zloc]
-            (and (zl/zwhitespace? zloc)
+            (and (z/whitespace? zloc)
                  (not= :comma (n/tag (z/node zloc)))))]
     (and (zl/top? (z/up zloc))
          (surrounding? zloc blank?))))
@@ -253,7 +161,7 @@
 (defn remove-surrounding-whitespace
   "Transform this form by removing any surrounding whitespace nodes."
   [form]
-  (transform form edit-all surrounding-whitespace? zip/remove))
+  (edit/transform form surrounding-whitespace? zip/remove))
 
 
 
@@ -274,7 +182,7 @@
 (defn insert-missing-whitespace
   "Insert a space between abutting elements in the form."
   [form]
-  (transform form edit-all missing-whitespace? append-space))
+  (edit/transform form missing-whitespace? append-space))
 
 
 
@@ -283,7 +191,7 @@
 (defn- unindent
   "Remove indentation whitespace from the form in preparation for reformatting."
   [form]
-  (transform form edit-all indent/should-unindent? zip/remove))
+  (edit/transform form indent/should-unindent? zip/remove))
 
 
 (defn- indent-line
@@ -291,14 +199,16 @@
   [zloc list-indent-size indents]
   (let [width (indent/indent-amount zloc list-indent-size indents)]
     (if (pos? width)
-      (zip/insert-right zloc (whitespace width))
+      (zip/insert-right
+        zloc
+        (n/whitespace-node (apply str (repeat width " "))))
       zloc)))
 
 
 (defn indent
   "Transform this form by indenting all lines their proper amounts."
   [form list-indent-size indents]
-  (transform form edit-all indent/should-indent? #(indent-line % list-indent-size indents)))
+  (edit/transform form indent/should-indent? #(indent-line % list-indent-size indents)))
 
 
 (defn reindent
@@ -321,13 +231,14 @@
   line or the final top-level node."
   [zloc]
   (and (zl/whitespace? zloc)
-       (or (zl/zlinebreak? (zip/right zloc)) (final? zloc))))
+       (or (z/linebreak? (zip/right zloc))
+           (final? zloc))))
 
 
 (defn remove-trailing-whitespace
   "Transform this form by removing all trailing whitespace."
   [form]
-  (transform form edit-all trailing-whitespace? zip/remove))
+  (edit/transform form trailing-whitespace? zip/remove))
 
 
 
@@ -336,7 +247,7 @@
 (defn rewrite-namespaces
   "Transform this form by rewriting any namespace forms."
   [form opts]
-  (transform form edit-all ns/ns-node? #(ns/rewrite-ns-form % opts)))
+  (edit/transform form ns/ns-node? #(ns/rewrite-ns-form % opts)))
 
 
 

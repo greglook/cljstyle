@@ -77,7 +77,7 @@
   "True if the node at this location is whitespace between a function's header
   and the name or argument vector."
   [zloc]
-  (and (zl/zwhitespace? zloc)
+  (and (z/whitespace? zloc)
        (fn-form? (z/up zloc))
        (no-prev? zloc (some-fn fn-name? arg-vector?))))
 
@@ -85,7 +85,7 @@
 (defn pre-body-space?
   "True if this location is whitespace before a function arity body."
   [zloc]
-  (and (zl/zwhitespace? zloc)
+  (and (z/whitespace? zloc)
        (fn-form? (z/up zloc))
        (= :list (some-> zloc z/right z/tag))))
 
@@ -94,7 +94,7 @@
   "True if the node at this location is whitespace immediately following a
   function name."
   [zloc]
-  (and (zl/zwhitespace? zloc)
+  (and (z/whitespace? zloc)
        (fn-name? (z/left zloc))))
 
 
@@ -102,7 +102,7 @@
   "True if the node at this location is whitespace immediately following a
   function docstring."
   [zloc]
-  (and (zl/zwhitespace? zloc)
+  (and (z/whitespace? zloc)
        (fn-name? (z/left (z/left zloc)))
        (string? (z/sexpr (z/left zloc)))))
 
@@ -111,7 +111,7 @@
   "True if the node at this location is whitespace immediately following a
   function argument vector."
   [zloc]
-  (and (zl/zwhitespace? zloc)
+  (and (z/whitespace? zloc)
        (arg-vector? (z/left zloc))))
 
 

@@ -50,7 +50,7 @@
   "True if the node at this location is whitespace surrounding a var docstring."
   [zloc]
   (and (or (zl/whitespace? zloc)
-           (zl/zlinebreak? zloc))
+           (z/linebreak? zloc))
        (or (docstring? (z/right zloc))
            (docstring? (z/left zloc)))))
 
@@ -60,7 +60,7 @@
   body."
   [zloc]
   (and (z/right zloc)
-       (or (zl/zlinebreak? zloc)
+       (or (z/linebreak? zloc)
            (zl/whitespace? zloc))
        (or (name? (z/left zloc))
            (docstring? (z/left zloc)))))
