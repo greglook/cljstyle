@@ -22,7 +22,10 @@
     (is (= "(def foo\n  \"docs go here\"\n  123)"
            (reformat-string "(def foo \"docs go here\"\n123)")))
     (is (= "(def foo\n  \"docs go here\"\n  123)"
-           (reformat-string "(def foo \"docs go here\"\n123)"))))
+           (reformat-string "(def foo \"docs go here\"\n123)")))
+    (is (= "(def frobble\n  \"this is a doc\"\n  :xyz)"
+           (reformat-string "(def frobble\n  \"this is a doc\"\n  :xyz)"))
+        "correct docstring should be preserved"))
   (testing "metadata"
     (is (= "(def ^:private foo 123)"
            (reformat-string "(def ^:private foo 123)")))

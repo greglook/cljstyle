@@ -49,7 +49,8 @@
 (defn around-doc-space?
   "True if the node at this location is whitespace surrounding a var docstring."
   [zloc]
-  (and (zl/whitespace? zloc)
+  (and (or (zl/whitespace? zloc)
+           (zl/zlinebreak? zloc))
        (or (docstring? (z/right zloc))
            (docstring? (z/left zloc)))))
 
