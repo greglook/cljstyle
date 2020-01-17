@@ -28,19 +28,6 @@
   (nil? (zip/up zloc)))
 
 
-(defn top?
-  "True if the node at this location has a parent node."
-  [zloc]
-  (and zloc (not= (z/node zloc) (z/root zloc))))
-
-
-(defn element?
-  "True if the node at this location represents a syntactically important
-  token."
-  [zloc]
-  (and zloc (not (z/whitespace-or-comment? zloc))))
-
-
 (defn token?
   "True if the node at this location is a token."
   [zloc]

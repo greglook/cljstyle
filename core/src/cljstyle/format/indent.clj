@@ -1,5 +1,6 @@
 (ns cljstyle.format.indent
   (:require
+    [cljstyle.format.edit :as edit]
     [cljstyle.format.zloc :as zl]
     [clojure.string :as str]
     [clojure.zip :as zip]
@@ -7,10 +8,11 @@
     [rewrite-clj.zip :as z]))
 
 
-(def indent-size 2)
+(def ^:private indent-size 2)
 
 
 (def ^:private start-element
+  "Special symbols which precede certain types of elements."
   {:meta "^", :meta* "#^", :vector "[",       :map "{"
    :list "(", :eval "#=",  :uneval "#_",      :fn "#("
    :set "#{", :deref "@",  :reader-macro "#", :unquote "~"
@@ -47,13 +49,13 @@
   (-> zloc zip/next zl/skip-whitespace line-break?))
 
 
-(defn should-indent?
+(defn- should-indent?
   "True if indentation should exist after the current location."
   [zloc]
   (and (line-break? zloc) (not (line-break-next? zloc))))
 
 
-(defn should-unindent?
+(defn- should-unindent?
   "True if the current location is indentation whitespace that should be
   reformatted."
   [zloc]
@@ -214,7 +216,7 @@
 
 
 
-;; ## Inner Style Rule
+;; ### Inner Style Rule
 
 (defn- indent-width
   "Determine how many characters the form at the location should be indented
@@ -250,7 +252,7 @@
 
 
 
-;; ## Block Style Rule
+;; ### Block Style Rule
 
 (defn- nth-form
   "Return the location of the n-th node from the left in this level."
@@ -288,7 +290,7 @@
 
 
 
-;; ## Stair Style Rule
+;; ### Stair Style Rule
 
 (defn- stair-indent
   "Calculate how many spaces the node at this location should be indented as a
@@ -308,3 +310,37 @@
 (defmethod indenter-fn :stair
   [rule-key _ [_ idx]]
   (fn [zloc] (stair-indent zloc rule-key idx)))
+
+
+
+;; ## Editing Functions
+
+(defn- unindent
+  "Remove indentation whitespace from the form in preparation for reformatting."
+  [form]
+  (edit/transform form should-unindent? zip/remove))
+
+
+(defn- indent-line
+  "Apply indentation to the line beginning at this location."
+  [zloc list-indent-size indents]
+  (let [width (indent-amount zloc list-indent-size indents)]
+    (if (pos? width)
+      (zip/insert-right
+        zloc
+        (n/whitespace-node (apply str (repeat width " "))))
+      zloc)))
+
+
+(defn- indent
+  "Transform this form by indenting all lines their proper amounts."
+  [form list-indent-size indents]
+  (edit/transform form should-indent? #(indent-line % list-indent-size indents)))
+
+
+(defn reindent
+  "Transform this form by rewriting all line indentation."
+  [form opts]
+  (indent (unindent form)
+          (:list-indent-size opts 2)
+          (:indents opts)))

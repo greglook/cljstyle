@@ -1,6 +1,7 @@
 (ns cljstyle.format.ns-test
   (:require
-    [cljstyle.format.core :as fmt]
+    [cljstyle.config :as config]
+    [cljstyle.format.core :refer [reformat-string]]
     [clojure.test :refer [deftest testing is]]))
 
 
@@ -8,10 +9,9 @@
   ([ns-string]
    (reformat-ns ns-string nil))
   ([ns-string config]
-   (fmt/reformat-string ns-string (merge {:rewrite-namespaces? true
-                                          :single-import-break-width 20
-                                          :list-indent-size 2}
-                                         config))))
+   (reformat-string
+     ns-string
+     (merge config/default-config config))))
 
 
 (deftest general-forms

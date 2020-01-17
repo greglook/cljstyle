@@ -1,7 +1,7 @@
 (ns cljstyle.format.fn
   (:require
+    [cljstyle.format.edit :as edit]
     [cljstyle.format.zloc :as zl]
-    [clojure.zip :as zip]
     [rewrite-clj.zip :as z]))
 
 
@@ -14,7 +14,7 @@
 (defn- no-prev?
   "True if no prior location in this form matches the predicate."
   [zloc p?]
-  (nil? (z/find-next zloc zip/left p?)))
+  (nil? (z/find-next zloc z/left p?)))
 
 
 (defn- fn-sym?
@@ -73,7 +73,7 @@
                     (fn-sym? (first preceeding))))))))
 
 
-(defn fn-to-name-or-args-space?
+(defn- fn-to-name-or-args-space?
   "True if the node at this location is whitespace between a function's header
   and the name or argument vector."
   [zloc]
@@ -82,7 +82,7 @@
        (no-prev? zloc (some-fn fn-name? arg-vector?))))
 
 
-(defn pre-body-space?
+(defn- pre-body-space?
   "True if this location is whitespace before a function arity body."
   [zloc]
   (and (z/whitespace? zloc)
@@ -90,7 +90,7 @@
        (= :list (some-> zloc z/right z/tag))))
 
 
-(defn post-name-space?
+(defn- post-name-space?
   "True if the node at this location is whitespace immediately following a
   function name."
   [zloc]
@@ -98,7 +98,7 @@
        (fn-name? (z/left zloc))))
 
 
-(defn post-doc-space?
+(defn- post-doc-space?
   "True if the node at this location is whitespace immediately following a
   function docstring."
   [zloc]
@@ -107,7 +107,7 @@
        (string? (z/sexpr (z/left zloc)))))
 
 
-(defn post-args-space?
+(defn- post-args-space?
   "True if the node at this location is whitespace immediately following a
   function argument vector."
   [zloc]
@@ -115,7 +115,7 @@
        (arg-vector? (z/left zloc))))
 
 
-(defn defn-or-multiline?
+(defn- defn-or-multiline?
   "True if this location is inside a `defn` or a multi-line form."
   [zloc]
   (or (when-let [fsym (zl/form-symbol zloc)]
@@ -123,3 +123,27 @@
              (fn-sym? fsym)
              (not= "fn" (name fsym))))
       (zl/multiline? (z/up zloc))))
+
+
+
+;; ## Editing Functions
+
+(defn line-break-functions
+  "Transform this form by applying line-breaks to function definition forms."
+  [form]
+  (-> form
+      (edit/break-whitespace
+        fn-to-name-or-args-space?
+        (constantly false))
+      (edit/break-whitespace
+        post-name-space?
+        defn-or-multiline?)
+      (edit/break-whitespace
+        post-doc-space?
+        (constantly true))
+      (edit/break-whitespace
+        post-args-space?
+        defn-or-multiline?)
+      (edit/break-whitespace
+        pre-body-space?
+        defn-or-multiline?)))

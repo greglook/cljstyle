@@ -1,5 +1,6 @@
 (ns cljstyle.format.ns
   (:require
+    [cljstyle.format.edit :as edit]
     [cljstyle.format.zloc :as zl]
     [clojure.string :as str]
     [clojure.zip :as zip]
@@ -465,7 +466,7 @@
 
 ;; ## Namespace Nodes
 
-(defn ns-node?
+(defn- ns-node?
   "True if the node at this location is a namespace declaration."
   [zloc]
   (and (z/list? zloc)
@@ -496,10 +497,19 @@
          (render-reader-conditionals opts (:reader-conditionals ns-data))]))))
 
 
-(defn rewrite-ns-form
+(defn- rewrite-ns-form
   "Insert appropriate line breaks and indentation before each ns child form."
   [zloc opts]
   (let [ns-data (-> (parse-ns-node zloc)
                     (replace-loads)
                     (replace-uses))]
     (zip/replace zloc (render-ns-form ns-data opts))))
+
+
+
+;; ## Editing Functions
+
+(defn rewrite-namespaces
+  "Transform this form by rewriting any namespace forms."
+  [form opts]
+  (edit/transform form ns-node? #(rewrite-ns-form % opts)))

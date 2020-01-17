@@ -1,5 +1,6 @@
 (ns cljstyle.format.var
   (:require
+    [cljstyle.format.edit :as edit]
     [cljstyle.format.zloc :as zl]
     [clojure.zip :as zip]
     [rewrite-clj.zip :as z]))
@@ -30,7 +31,7 @@
               (simple-symbol? (z/sexpr unwrapped))))))
 
 
-(defn pre-name-space?
+(defn- pre-name-space?
   "True if the node at this location is whitespace preceding a var name."
   [zloc]
   (and (z/whitespace? zloc)
@@ -46,7 +47,7 @@
        (z/right zloc)))
 
 
-(defn around-doc-space?
+(defn- around-doc-space?
   "True if the node at this location is whitespace surrounding a var docstring."
   [zloc]
   (and (z/whitespace? zloc)
@@ -54,7 +55,7 @@
            (docstring? (z/left zloc)))))
 
 
-(defn pre-body-space?
+(defn- pre-body-space?
   "True if the node at this location is whitespace preceding a var definition
   body."
   [zloc]
@@ -62,3 +63,21 @@
        (z/whitespace? zloc)
        (or (name? (z/left zloc))
            (docstring? (z/left zloc)))))
+
+
+
+;; ## Editing Functions
+
+(defn line-break-vars
+  "Transform this form by applying line-breaks to var definition forms."
+  [form]
+  (-> form
+      (edit/break-whitespace
+        pre-name-space?
+        (constantly false))
+      (edit/break-whitespace
+        around-doc-space?
+        (constantly true))
+      (edit/break-whitespace
+        pre-body-space?
+        (comp zl/multiline? z/up))))
