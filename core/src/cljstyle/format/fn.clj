@@ -18,10 +18,11 @@
 
 
 (defn- fn-sym?
-  "True if the symbol is a function"
+  "True if the symbol is a function declaration."
   [sym]
   (and (symbol? sym)
-       (contains? #{"fn" "defn" "defn-"} (name sym))))
+       (contains? #{"fn" "defn" "defn-" "defmacro"}
+                  (name sym))))
 
 
 (defn- fn-form?

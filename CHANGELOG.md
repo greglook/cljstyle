@@ -8,7 +8,9 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
-...
+### Fixed
+- Fixed some cases where newlines would not be collapsed by line-break rules.
+- `defmacro` is now subject to function line-breaking rules.
 
 
 ## [0.10.1] - 2020-01-04
