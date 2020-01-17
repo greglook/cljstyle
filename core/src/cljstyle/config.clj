@@ -23,6 +23,7 @@
 ;; Formatting Rules
 (s/def ::indentation? boolean?)
 (s/def ::list-indent-size nat-int?)
+(s/def ::line-break-vars? boolean?)
 (s/def ::line-break-functions? boolean?)
 (s/def ::remove-surrounding-whitespace? boolean?)
 (s/def ::remove-trailing-whitespace? boolean?)
@@ -67,6 +68,7 @@
   (s/keys :opt-un [::indentation?
                    ::list-indent-size
                    ::indents
+                   ::line-break-vars?
                    ::line-break-functions?
                    ::remove-surrounding-whitespace?
                    ::remove-trailing-whitespace?
@@ -94,6 +96,7 @@
   {:indentation? true
    :list-indent-size 2
    :indents default-indents
+   :line-break-vars? true
    :line-break-functions? true
    :remove-surrounding-whitespace? true
    :remove-trailing-whitespace? true
