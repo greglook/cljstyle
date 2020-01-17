@@ -64,6 +64,15 @@
   (and (token? zloc) (z/sexpr zloc)))
 
 
+(defn unwrap-meta
+  "If this location is a metadata node, recursively unwrap it and return the
+  location of the nested value form. Otherwise returns the location unchanged."
+  [zloc]
+  (if (= :meta (z/tag zloc))
+    (recur (z/right (z/down zloc)))
+    zloc))
+
+
 (defn reader-macro?
   "True if the node at this location is a reader macro expression."
   [zloc]

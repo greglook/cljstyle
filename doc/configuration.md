@@ -84,6 +84,10 @@ disabled:
   A map of indentation patterns to vectors of rules to apply to the matching
   forms. See the [indentation doc](indentation.md) for details.
 
+* `:line-break-vars?`
+
+  Whether cljstyle should enforce line breaks in var definitions.
+
 * `:line-break-functions?`
 
   Whether cljstyle should enforce line breaks in function definitions.

@@ -4,6 +4,7 @@
     [cljstyle.format.fn :as fn]
     [cljstyle.format.indent :as indent]
     [cljstyle.format.ns :as ns]
+    [cljstyle.format.var :as var]
     [cljstyle.format.zloc :as zl]
     [clojure.java.io :as io]
     [clojure.string :as str]
@@ -79,14 +80,15 @@
 
 
 
-;; ## Rule: Function Line Breaks
+;; ## Rule: Line Breaks
 
 (defn- eat-whitespace
   "Eat whitespace characters, leaving the zipper located at the next
   non-whitespace node."
   [zloc]
   (loop [zloc zloc]
-    (if (zl/zwhitespace? zloc)
+    (if (or (zl/zlinebreak? zloc)
+            (zl/zwhitespace? zloc))
       (recur (zip/next (zip/remove zloc)))
       zloc)))
 
@@ -115,6 +117,21 @@
             (zip/replace (whitespace 1))
             (zip/right)
             (eat-whitespace))))))
+
+
+(defn line-break-vars
+  "Transform this form by applying line-breaks to var definition forms."
+  [form]
+  (-> form
+      (break-whitespace
+        var/pre-name-space?
+        (constantly false))
+      (break-whitespace
+        var/around-doc-space?
+        (constantly true))
+      (break-whitespace
+        var/pre-body-space?
+        (comp zl/multiline? z/up))))
 
 
 (defn line-break-functions
@@ -334,6 +351,9 @@
 
     (:insert-missing-whitespace? config true)
     (insert-missing-whitespace)
+
+    (:line-break-vars? config true)
+    (line-break-vars)
 
     (:line-break-functions? config true)
     (line-break-functions)
