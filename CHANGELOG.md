@@ -9,6 +9,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 
 ### Fixed
+- `:list-indent-size` now applies to `ns` forms as well.
+  [#25](https://github.com/greglook/cljstyle/pull/25)
 - `defmacro` is now subject to function line-breaking rules.
 - Fixed some cases where newlines would not be collapsed by line-break rules.
 
