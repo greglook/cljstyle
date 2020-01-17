@@ -75,6 +75,15 @@
            (reformat-string "(defn- ^:deprecated foo \"Deprecated method.\"\n[x]\n123)")))))
 
 
+(deftest macro-forms
+  (is (= "(defmacro foo\n  [x y z]\n  `(doto (bar ~x) (.baz ~y ~z)))"
+         (reformat-string
+           "(defmacro foo\n     [x y z]  \n  `(doto (bar ~x) (.baz ~y ~z)))")))
+  (is (= "(defmacro defthing\n  \"A macro for defining things.\n  Try it out!\"\n  [sym]\n  `(def ~sym\n     true))"
+         (reformat-string
+           "(defmacro defthing \"A macro for defining things.\n  Try it out!\" [sym]\n  `(def ~sym\n     true))"))))
+
+
 (deftest quoted-forms
   (is (= "(let [x 123
       y 456]

@@ -61,7 +61,8 @@
 (defn token-value
   "Return the s-expression form of the token at this location."
   [zloc]
-  (and (token? zloc) (z/sexpr zloc)))
+  (when (token? zloc)
+    (z/sexpr zloc)))
 
 
 (defn unwrap-meta
