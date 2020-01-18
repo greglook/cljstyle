@@ -15,7 +15,10 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - Fixed some cases where newlines would not be collapsed by line-break rules.
 
 ### Added
-- Var declarations have line-break rules and associated configuration.
+- Var definitions (using `def`) have line-break rules, constrolled by
+  `:line-break-vars?`.
+- Type definition forms `deftype`, `defrecord`, `defprotocol`, `reify`, and
+  `proxy` have formatting rules, controlled by `:reformat-types?`.
 
 
 ## [0.10.1] - 2020-01-04
