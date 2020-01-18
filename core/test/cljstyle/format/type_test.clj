@@ -103,11 +103,12 @@
          (reformat-string "(defrecord Baz [x y]\n :load-ns true Object (toString [_] \"Baz\"))"))))
 
 
-(deftest proxy-forms
-  ,,,)
-
-
 (deftest reify-forms
-  (is (= "(reify Closeable\n  (close [_]\n    (prn :closed)))"
+  (is (= "(reify Closeable\n\n  (close\n    [_]\n    (prn :closed)))"
          (reformat-string "(reify Closeable\n(close [_]\n(prn :closed)))")))
+  (is (= "(reify Key\n\n  (getKey [this] key-data)\n\n  Object\n\n  (toString\n    [this]\n    \"key\"))"
+         (reformat-string "(reify Key\n(getKey [this] key-data)\n    Object\n(toString [this] \n\"key\"))"))))
+
+
+(deftest proxy-forms
   ,,,)

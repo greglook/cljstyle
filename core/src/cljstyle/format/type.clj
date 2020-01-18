@@ -216,32 +216,67 @@
 
 ;; ## Reify Rules
 
-#_
-(reify Foo
-
-  (bar [this] 123)
-
-  (baz
-    [this x y]
-    {:foo 123
-     :bar true})
-
-  Object
-
-  (toString
-    [this]
-    "foo"))
+(defn- reify?
+  "True if the node at this location is a `reify` symbol."
+  [zloc]
+  (= 'reify (zl/form-symbol zloc)))
 
 
-;; - at least one blank line preceding protocol symbols
-;; - at least one blank line before each method
-;; - methods should be indented like functions
+(defn- reify-form?
+  "True if the node at this location is a reified definition form."
+  [zloc]
+  (and (= :list (z/tag zloc))
+       (reify? (z/down zloc))))
+
+
+(defn- reify-name?
+  "True if the node at this location is a reified symbol name."
+  [zloc]
+  (and (reify-form? (z/up zloc))
+       (z/leftmost? (z/left zloc))
+       (reify? (z/left zloc))))
+
+
+(defn- reify-iface?
+  "True if the node at this location is a reify interface symbol."
+  [zloc]
+  (and (reify-form? (z/up zloc))
+       (not (reify-name? zloc))
+       (zl/token? zloc)
+       (symbol? (z/sexpr (zl/unwrap-meta zloc)))))
+
+
+(defn- reify-method?
+  "True if the node at this location is a reified method form."
+  [zloc]
+  (and (reify-form? (z/up zloc))
+       (z/list? zloc)))
+
+
+(defn- reify-method-args?
+  "True if the node at this location is a type method argument vector."
+  [zloc]
+  (and (reify-method? (z/up zloc))
+       (z/leftmost? (z/left zloc))
+       (z/vector? zloc)))
+
 
 (defn- reformat-reify
   "Reformat any `reify` forms so they adhere to the style rules."
   [form]
   (-> form
-      ,,,))
+      ;; One blank line preceding interface symbols.
+      (edit/transform
+        (partial whitespace-before? reify-iface?)
+        (partial blank-lines 2))
+      ;; One blank line preceding each method.
+      (edit/transform
+        (partial whitespace-before? reify-method?)
+        (partial blank-lines 2))
+      ;; Line-break around method arguments unless they are one-liners.
+      (edit/break-whitespace
+        (partial whitespace-around? reify-method-args?)
+        (comp zl/multiline? z/up))))
 
 
 ;; ## Proxy Rules
