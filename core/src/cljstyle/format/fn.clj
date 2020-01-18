@@ -104,7 +104,7 @@
   [zloc]
   (and (z/whitespace? zloc)
        (fn-name? (z/left (z/left zloc)))
-       (string? (z/sexpr (z/left zloc)))))
+       (zl/string? (z/left zloc))))
 
 
 (defn- post-args-space?

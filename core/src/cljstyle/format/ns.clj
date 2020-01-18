@@ -92,7 +92,7 @@
          zloc (-> zloc zip/down z/right z/right)]
     (if zloc
       (cond
-        (string? (z/sexpr zloc))
+        (zl/string? zloc)
         (recur (assoc ns-data :doc (z/node zloc))
                (z/right zloc))
 
