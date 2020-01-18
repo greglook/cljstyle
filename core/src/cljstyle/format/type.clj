@@ -281,14 +281,49 @@
 
 ;; ## Proxy Rules
 
-#_
-(proxy [Clazz IFace1 IFace2] [arg1 arg2]
+(defn- proxy?
+  "True if the node at this location is a `proxy` symbol."
+  [zloc]
+  (= 'proxy (zl/form-symbol zloc)))
 
-  (method1 [x y] 123)
 
-  (method2
-    ([x]
-     true)))
+(defn- proxy-form?
+  "True if the node at this location is a proxy definition form."
+  [zloc]
+  (and (= :list (z/tag zloc))
+       (proxy? (z/down zloc))))
+
+
+(defn- proxy-types?
+  "True if the node at this location is a vector of proxied type and interface
+  symbols."
+  [zloc]
+  (and (proxy-form? (z/up zloc))
+       (z/leftmost? (z/left zloc))
+       (proxy? (z/left zloc))
+       (z/vector? zloc)))
+
+
+(defn- proxy-super-args?
+  "True if the node at this location is a vector of superclass arguments."
+  [zloc]
+  (and (proxy-types? (z/left zloc))
+       (z/vector? zloc)))
+
+
+(defn- proxy-method?
+  "True if the node at this location is a proxy method form."
+  [zloc]
+  (and (proxy-form? (z/up zloc))
+       (z/list? zloc)))
+
+
+(defn- proxy-method-args?
+  "True if the node at this location is a proxy method argument vector."
+  [zloc]
+  (and (proxy-method? (z/up zloc))
+       (z/leftmost? (z/left zloc))
+       (z/vector? zloc)))
 
 
 (defn- reformat-proxy
@@ -296,13 +331,22 @@
   [form]
   (-> form
       ;; Class and interfaces vector should be on the same line as proxy.
-      ,,,
-      ;; Superclass args can be on same line or new line.
-      ,,,
+      (edit/break-whitespace
+        (partial whitespace-before? proxy-types?)
+        (constantly false))
+      ;; Superclass args should be on same line if oneline.
+      (edit/break-whitespace
+        (partial whitespace-before? proxy-super-args?)
+        #(or (zl/multiline? (z/left %))
+             (zl/multiline? (z/right %))))
       ;; Methods should be preceded by blank lines.
-      ,,,
-      ;; Methods should be formatted like function bodies
-      ,,,))
+      (edit/transform
+        (partial whitespace-before? proxy-method?)
+        (partial blank-lines 2))
+      ;; Line-break around method arguments unless they are one-liners.
+      (edit/break-whitespace
+        (partial whitespace-around? proxy-method-args?)
+        (comp zl/multiline? z/up))))
 
 
 
