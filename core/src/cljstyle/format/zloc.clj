@@ -7,7 +7,8 @@
     [rewrite-clj.node :as n]
     [rewrite-clj.zip :as z])
   (:import
-    rewrite_clj.node.string.StringNode))
+    (rewrite_clj.node.string
+      StringNode)))
 
 
 (defn zprn

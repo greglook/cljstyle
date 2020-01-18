@@ -70,6 +70,7 @@
                   (let [result (assoc data :file file :path path)]
                     (send results report-result! result)))]
     (proxy [RecursiveAction] []
+
       (compute
         []
         (p/with-options options
