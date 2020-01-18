@@ -1,6 +1,5 @@
 (ns cljstyle.format.indent
   (:require
-    [cljstyle.format.edit :as edit]
     [cljstyle.format.zloc :as zl]
     [clojure.string :as str]
     [clojure.zip :as zip]
@@ -318,7 +317,7 @@
 (defn- unindent
   "Remove indentation whitespace from the form in preparation for reformatting."
   [form]
-  (edit/transform form should-unindent? zip/remove))
+  (zl/transform form should-unindent? zip/remove))
 
 
 (defn- indent-line
@@ -333,7 +332,7 @@
 (defn- indent
   "Transform this form by indenting all lines their proper amounts."
   [form list-indent-size indents]
-  (edit/transform form should-indent? #(indent-line % list-indent-size indents)))
+  (zl/transform form should-indent? #(indent-line % list-indent-size indents)))
 
 
 (defn reindent

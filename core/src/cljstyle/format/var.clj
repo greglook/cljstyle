@@ -1,6 +1,5 @@
 (ns cljstyle.format.var
   (:require
-    [cljstyle.format.edit :as edit]
     [cljstyle.format.zloc :as zl]
     [rewrite-clj.zip :as z]))
 
@@ -71,13 +70,13 @@
   "Transform this form by applying line-breaks to var definition forms."
   [form]
   (-> form
-      (edit/break-whitespace
+      (zl/break-whitespace
         pre-name-space?
         (constantly false))
-      (edit/break-whitespace
+      (zl/break-whitespace
         around-doc-space?
         (constantly true))
-      (edit/break-whitespace
+      (zl/break-whitespace
         pre-body-space?
         (comp zl/multiline? z/up)
         true)))

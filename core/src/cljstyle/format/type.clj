@@ -2,7 +2,6 @@
   "Formatting rules for type-related expressions like `defprotocol`, `deftype`,
   `defrecord`, `reify`, and `proxy`."
   (:require
-    [cljstyle.format.edit :as edit]
     [cljstyle.format.zloc :as zl]
     [rewrite-clj.node :as n]
     [rewrite-clj.zip :as z]))
@@ -36,7 +35,7 @@
   "Replace all whitespace at the location with `n` blank lines."
   [n zloc]
   (z/insert-left
-    (edit/eat-whitespace zloc)
+    (zl/eat-whitespace zloc)
     (n/newlines n)))
 
 
@@ -108,21 +107,21 @@
   [form]
   (-> form
       ;; Protocol-level docstring must be on a new line.
-      (edit/break-whitespace
+      (zl/break-whitespace
         protocol-name-to-doc-space?
         (constantly true))
       ;; One blank line preceding each method.
-      (edit/transform
+      (zl/transform
         (partial whitespace-before? protocol-method?)
         (partial blank-lines 2))
       ;; If method is multiline or multiple arities, each arg vector must be on
       ;; a new line.
-      (edit/break-whitespace
+      (zl/break-whitespace
         (partial whitespace-before? protocol-method-args?)
         #(or (zl/multiline? (z/up %))
              (z/right (z/right %))))
       ;; Method docstrings must be on new lines.
-      (edit/break-whitespace
+      (zl/break-whitespace
         (partial whitespace-before? protocol-method-doc?)
         (constantly true))))
 
@@ -195,19 +194,19 @@
   [form]
   (-> form
       ;; Field vectors must be on a new line.
-      (edit/break-whitespace
+      (zl/break-whitespace
         (partial whitespace-before? type-fields?)
         (constantly true))
       ;; One or two blank lines preceding protocol symbols.
-      (edit/transform
+      (zl/transform
         (partial whitespace-before? type-iface?)
         #(blank-lines (if (type-fields? (z/left %)) 2 3) %))
       ;; One blank line preceding each method.
-      (edit/transform
+      (zl/transform
         (partial whitespace-before? type-method?)
         (partial blank-lines 2))
       ;; Line-break around method arguments unless they are one-liners.
-      (edit/break-whitespace
+      (zl/break-whitespace
         (partial whitespace-around? type-method-args?)
         (comp zl/multiline? z/up))))
 
@@ -265,15 +264,15 @@
   [form]
   (-> form
       ;; One blank line preceding interface symbols.
-      (edit/transform
+      (zl/transform
         (partial whitespace-before? reify-iface?)
         #(blank-lines (if (reify-name? (z/left %)) 2 3) %))
       ;; One blank line preceding each method.
-      (edit/transform
+      (zl/transform
         (partial whitespace-before? reify-method?)
         (partial blank-lines 2))
       ;; Line-break around method arguments unless they are one-liners.
-      (edit/break-whitespace
+      (zl/break-whitespace
         (partial whitespace-around? reify-method-args?)
         (comp zl/multiline? z/up))))
 
@@ -330,20 +329,20 @@
   [form]
   (-> form
       ;; Class and interfaces vector should be on the same line as proxy.
-      (edit/break-whitespace
+      (zl/break-whitespace
         (partial whitespace-before? proxy-types?)
         (constantly false))
       ;; Superclass args should be on same line if oneline.
-      (edit/break-whitespace
+      (zl/break-whitespace
         (partial whitespace-before? proxy-super-args?)
         #(or (zl/multiline? (z/left %))
              (zl/multiline? (z/right %))))
       ;; Methods should be preceded by blank lines.
-      (edit/transform
+      (zl/transform
         (partial whitespace-before? proxy-method?)
         (partial blank-lines 2))
       ;; Line-break around method arguments unless they are one-liners.
-      (edit/break-whitespace
+      (zl/break-whitespace
         (partial whitespace-around? proxy-method-args?)
         (comp zl/multiline? z/up))))
 

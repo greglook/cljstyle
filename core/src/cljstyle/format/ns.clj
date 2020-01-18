@@ -1,6 +1,5 @@
 (ns cljstyle.format.ns
   (:require
-    [cljstyle.format.edit :as edit]
     [cljstyle.format.zloc :as zl]
     [clojure.string :as str]
     [clojure.zip :as zip]
@@ -516,4 +515,4 @@
 (defn rewrite-namespaces
   "Transform this form by rewriting any namespace forms."
   [form opts]
-  (edit/transform form ns-node? #(rewrite-ns-form % opts)))
+  (zl/transform form ns-node? #(rewrite-ns-form % opts)))

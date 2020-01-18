@@ -1,6 +1,5 @@
 (ns cljstyle.format.fn
   (:require
-    [cljstyle.format.edit :as edit]
     [cljstyle.format.zloc :as zl]
     [rewrite-clj.zip :as z]))
 
@@ -133,22 +132,22 @@
   [form]
   (-> form
       ;; Function name or args should be adjacent to definition.
-      (edit/break-whitespace
+      (zl/break-whitespace
         fn-to-name-or-args-space?
         (constantly false))
       ;; If the function is a defn or multline, break after the name.
-      (edit/break-whitespace
+      (zl/break-whitespace
         post-name-space?
         defn-or-multiline?)
       ;; Always line-break after the docstring.
-      (edit/break-whitespace
+      (zl/break-whitespace
         post-doc-space?
         (constantly true))
       ;; Line-break after the arguments unless this is a one-liner.
-      (edit/break-whitespace
+      (zl/break-whitespace
         post-args-space?
         defn-or-multiline?)
       ;; Line-break before the body unless this is a one-liner.
-      (edit/break-whitespace
+      (zl/break-whitespace
         pre-body-space?
         defn-or-multiline?)))

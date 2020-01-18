@@ -1,7 +1,6 @@
 (ns cljstyle.format.whitespace
   "Whitespace and blank-line formatting rules."
   (:require
-    [cljstyle.format.edit :as edit]
     [cljstyle.format.zloc :as zl]
     [clojure.zip :as zip]
     [rewrite-clj.node :as n]
@@ -34,13 +33,13 @@
   (-> zloc
       (zip/replace (n/newlines (inc n)))
       (zip/next)
-      (edit/eat-whitespace)))
+      (zl/eat-whitespace)))
 
 
 (defn remove-consecutive-blank-lines
   "Edit the form to replace consecutive blank lines with a single line."
   [form max-consecutive]
-  (edit/transform
+  (zl/transform
     form
     #(consecutive-blank-line? % max-consecutive)
     #(replace-with-blank-lines % max-consecutive)))
@@ -68,7 +67,7 @@
 (defn insert-padding-lines
   "Edit the form to replace consecutive blank lines with a single line."
   [form padding-lines]
-  (edit/transform
+  (zl/transform
     form
     padding-line-break?
     #(replace-with-blank-lines % padding-lines)))
@@ -101,7 +100,7 @@
 (defn remove-surrounding-whitespace
   "Transform this form by removing any surrounding whitespace nodes."
   [form]
-  (edit/transform form surrounding-whitespace? zip/remove))
+  (zl/transform form surrounding-whitespace? zip/remove))
 
 
 
@@ -129,7 +128,7 @@
 (defn insert-missing-whitespace
   "Insert a space between abutting elements in the form."
   [form]
-  (edit/transform form missing-whitespace? z/append-space))
+  (zl/transform form missing-whitespace? z/append-space))
 
 
 
@@ -153,4 +152,4 @@
 (defn remove-trailing-whitespace
   "Transform this form by removing all trailing whitespace."
   [form]
-  (edit/transform form trailing-whitespace? zip/remove))
+  (zl/transform form trailing-whitespace? zip/remove))
