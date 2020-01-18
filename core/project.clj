@@ -21,5 +21,6 @@
   :profiles
   {:repl
    {:source-paths ["dev"]
+    :repl-options {:init-ns cljstyle.repl}
     :dependencies
     [[org.clojure/tools.namespace "0.3.1"]]}})

@@ -1,4 +1,4 @@
-(ns user
+(ns cljstyle.repl
   (:require
     [cljstyle.config :as config]
     [cljstyle.format.core :as cljstyle]
