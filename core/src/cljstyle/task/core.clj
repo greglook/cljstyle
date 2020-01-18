@@ -15,6 +15,20 @@
 
 ;; ## Utilities
 
+(def ^:dynamic *suppress-exit*
+  "Bind this to prevent tasks from exiting the system process."
+  false)
+
+
+(defn- exit!
+  "Exit a task with a status code."
+  [code]
+  (if *suppress-exit*
+    (throw (ex-info (str "Task exited with code " code)
+                    {:code code}))
+    (System/exit code)))
+
+
 (defn- search-roots
   "Convert the list of paths into a collection of search roots. If the path
   list is empty, uses the local directory as a single root."
@@ -111,7 +125,7 @@
     (binding [*out* *err*]
       (println "cljstyle version command takes no arguments")
       (flush)
-      (System/exit 1)))
+      (exit! 1)))
   (println version)
   (flush))
 
@@ -135,7 +149,7 @@
     (binding [*out* *err*]
       (println "cljstyle config command takes at most one argument")
       (flush)
-      (System/exit 1)))
+      (exit! 1)))
   (let [^File file (first (search-roots paths))
         config (load-configs (.getPath file) file)]
     (pprint config)))
@@ -209,10 +223,10 @@
     (report-stats results)
     (when-not (empty? (:errors results))
       (p/printerrf "Failed to process %d files" (count (:errors results)))
-      (System/exit 3))
+      (exit! 3))
     (when-not (zero? (:incorrect counts 0))
       (p/printerrf "%d files formatted incorrectly" (:incorrect counts))
-      (System/exit 2))
+      (exit! 2))
     (p/logf "All %d files formatted correctly" (:correct counts))))
 
 
@@ -249,7 +263,7 @@
     (report-stats results)
     (when-not (empty? (:errors results))
       (p/printerrf "Failed to process %d files" (count (:errors results)))
-      (System/exit 3))
+      (exit! 3))
     (if (zero? (:fixed counts 0))
       (p/logf "All %d files formatted correctly" (:correct counts))
       (p/printerrf "Corrected formatting of %d files" (:fixed counts)))))
