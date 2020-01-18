@@ -1,7 +1,20 @@
 (ns cljstyle.format.core-test
   (:require
     [cljstyle.format.core :refer [reformat-string reformat-file]]
-    [clojure.test :refer [deftest testing is]]))
+    [cljstyle.format.zloc :as zl]
+    [clojure.string :as str]
+    [clojure.test :refer [deftest testing is]]
+    [rewrite-clj.parser :as parser]
+    [rewrite-clj.zip :as z]))
+
+
+(deftest zprn-debugging
+  (let [form (parser/parse-string "(do (prn 123) true)")
+        zloc (z/edn form)]
+    (is (str/starts-with?
+          (with-out-str
+            (is (identical? zloc (zl/zprn zloc :label))))
+          ":label "))))
 
 
 (deftest form-parsing

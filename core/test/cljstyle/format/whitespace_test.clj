@@ -44,6 +44,21 @@
            (reformat-string "#?@(:cljs[foo bar] :clj[baz quux])")))))
 
 
+(deftest padding-lines
+  (is (= "(foo 1 2 3)\n(bar :a :b)"
+         (reformat-string "(foo 1 2 3)\n(bar :a :b)"))
+      "consecutive one-liners are allowed")
+  (is (= "(foo\n  1 2 3)\n\n\n(bar :a :b)"
+         (reformat-string "(foo\n  1 2 3)\n(bar :a :b)"))
+      "multiline forms are padded")
+  (is (= "(foo 1 2 3)\n\n\n(bar\n  :a\n  :b)"
+         (reformat-string "(foo 1 2 3)\n(bar\n  :a\n  :b)"))
+      "multiline forms are padded")
+  (is (= "(foo 1 2 3)\n\n;; a comment\n(bar\n  :a\n  :b)"
+         (reformat-string "(foo 1 2 3)\n\n;; a comment\n(bar\n  :a\n  :b)"))
+      "comments intercede"))
+
+
 (deftest consecutive-blank-lines
   (is (= "(foo)\n\n(bar)"
          (reformat-string "(foo)\n\n(bar)")))

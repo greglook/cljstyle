@@ -3,7 +3,6 @@
   `defrecord`, `reify`, and `proxy`."
   (:require
     [cljstyle.format.edit :as edit]
-    [cljstyle.format.whitespace :as ws]
     [cljstyle.format.zloc :as zl]
     [rewrite-clj.node :as n]
     [rewrite-clj.zip :as z]))
