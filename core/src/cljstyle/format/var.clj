@@ -2,7 +2,6 @@
   (:require
     [cljstyle.format.edit :as edit]
     [cljstyle.format.zloc :as zl]
-    [clojure.zip :as zip]
     [rewrite-clj.zip :as z]))
 
 

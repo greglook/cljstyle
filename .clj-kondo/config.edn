@@ -6,6 +6,12 @@
 
            :consistent-alias
            {:level :warning
-            :aliases {clojure.java.io io
+            :aliases {cljstyle.format.zloc zl
+                      clojure.java.io io
                       clojure.spec.alpha s
-                      clojure.string str}}}}
+                      clojure.set set
+                      clojure.string str
+                      clojure.zip zip
+                      rewrite-clj.node n
+                      rewrite-clj.parser parser
+                      rewrite-clj.zip z}}}}

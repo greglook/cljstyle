@@ -10,7 +10,7 @@
     [cljstyle.format.whitespace :as ws]
     [clojure.string :as str]
     [rewrite-clj.node :as n]
-    [rewrite-clj.parser :as p]))
+    [rewrite-clj.parser :as parser]))
 
 
 (defn reformat-form
@@ -54,7 +54,7 @@
   ([form-string]
    (reformat-string form-string config/default-config))
   ([form-string config]
-   (-> (p/parse-string-all form-string)
+   (-> (parser/parse-string-all form-string)
        (reformat-form config)
        (n/string))))
 

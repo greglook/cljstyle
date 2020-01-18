@@ -13,10 +13,14 @@
 (defn- chomp-comment
   "Chomp any ending newlines off the comment node."
   [node]
-  (-> node n/string (subs 1) (str/replace #"\n+$" "") n/comment-node))
+  (-> (n/string node)
+      (subs 1)
+      (str/replace #"\n+$" "")
+      (n/comment-node)))
 
 
 (defn- strip-whitespace
+  "Remove any whitespace and newline nodes from the element sequence."
   [elements]
   (remove (comp #{:whitespace :newline} n/tag) elements))
 

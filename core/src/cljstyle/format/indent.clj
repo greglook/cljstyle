@@ -80,11 +80,11 @@
       (if-let [p (zip/up zloc)]
         ;; if a namespaced map's body is on a newline, don't add the
         ;; start-element to the list of indentation
-        (if (and (= :namespaced-map (n/tag (z/node p)))
+        (if (and (= :namespaced-map (z/tag p))
                  (line-break-next? (z/next p)))
           (recur p worklist)
           ;; newline cannot be introduced by start-element
-          (recur p (cons (start-element (n/tag (z/node p))) worklist)))
+          (recur p (cons (start-element (z/tag p)) worklist)))
         (apply str worklist)))))
 
 
