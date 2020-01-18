@@ -326,9 +326,7 @@
   [zloc list-indent-size indents]
   (let [width (indent-amount zloc list-indent-size indents)]
     (if (pos? width)
-      (zip/insert-right
-        zloc
-        (n/whitespace-node (apply str (repeat width " "))))
+      (zip/insert-right zloc (n/spaces width))
       zloc)))
 
 

@@ -42,7 +42,7 @@
                           1)))
   (is (= "(do (foo)\n    (bar))"
          (reindent-string "(do (foo)\n(bar))")))
-  (is (= "(deftype Foo\n  [x]\n  Bar)"
+  (is (= "(deftype Foo\n  [x]\n\n  Bar)"
          (reindent-string "(deftype Foo\n[x]\nBar)"))))
 
 
@@ -95,11 +95,7 @@
   (is (= "(letfn [(foo\n          [x]\n          (* x x))]\n  (foo 5))"
          (reindent-string "(letfn [(foo [x]\n(* x x))]\n(foo 5))"
                           config/default-indents
-                          1)))
-  (is (= "(reify Closeable\n  (close [_]\n    (prn :closed)))"
-         (reindent-string "(reify Closeable\n(close [_]\n(prn :closed)))")))
-  (is (= "(defrecord Foo\n  [x]\n  Closeable\n  (close [_]\n    (prn x)))"
-         (reindent-string "(defrecord Foo\n[x]\nCloseable\n(close [_]\n(prn x)))"))))
+                          1))))
 
 
 (deftest data-structure-indentation

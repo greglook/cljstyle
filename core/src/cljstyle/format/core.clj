@@ -5,6 +5,7 @@
     [cljstyle.format.fn :as fn]
     [cljstyle.format.indent :as indent]
     [cljstyle.format.ns :as ns]
+    [cljstyle.format.type :as type]
     [cljstyle.format.var :as var]
     [cljstyle.format.whitespace :as ws]
     [clojure.string :as str]
@@ -28,7 +29,8 @@
     (:line-break-functions? config true)
     (fn/line-break-functions)
 
-    ;; TODO: line-break-types
+    (:reformat-types? config true)
+    (type/reformat)
 
     (:remove-consecutive-blank-lines? config true)
     (ws/remove-consecutive-blank-lines (:max-consecutive-blank-lines config 2))

@@ -8,7 +8,7 @@
 (defn- vector-node?
   "True if the node at this location is a vector node."
   [zloc]
-  (= :vector (z/tag (zl/unwrap-meta zloc))))
+  (z/vector? (zl/unwrap-meta zloc)))
 
 
 (defn- no-prev?
@@ -104,7 +104,7 @@
   [zloc]
   (and (z/whitespace? zloc)
        (fn-name? (z/left (z/left zloc)))
-       (string? (z/sexpr (z/left zloc)))))
+       (zl/string? (z/left zloc))))
 
 
 (defn- post-args-space?
@@ -132,18 +132,23 @@
   "Transform this form by applying line-breaks to function definition forms."
   [form]
   (-> form
+      ;; Function name or args should be adjacent to definition.
       (edit/break-whitespace
         fn-to-name-or-args-space?
         (constantly false))
+      ;; If the function is a defn or multline, break after the name.
       (edit/break-whitespace
         post-name-space?
         defn-or-multiline?)
+      ;; Always line-break after the docstring.
       (edit/break-whitespace
         post-doc-space?
         (constantly true))
+      ;; Line-break after the arguments unless this is a one-liner.
       (edit/break-whitespace
         post-args-space?
         defn-or-multiline?)
+      ;; Line-break before the body unless this is a one-liner.
       (edit/break-whitespace
         pre-body-space?
         defn-or-multiline?)))

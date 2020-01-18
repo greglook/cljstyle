@@ -6,7 +6,7 @@
 
 (deftest var-defs
   (testing "undocumented"
-    (is (= "(def foo 123)" (reformat-string "(def foo 123)"))
+    (is (= "(def foo     123)" (reformat-string "(def foo     123)"))
         "inline defs are preserved")
     (is (= "(def foo\n  123)" (reformat-string "(def foo\n  123)"))
         "correct multiline defs are preserved")

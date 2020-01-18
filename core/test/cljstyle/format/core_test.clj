@@ -16,13 +16,6 @@
   (is (= "#?(:clj foo :cljs bar)" (reformat-string "#?(:clj foo :cljs bar)"))))
 
 
-(deftest namespaced-symbols
-  (is (= "(t/defn foo\n  [x]\n  (+ x 1))"
-         (reformat-string "(t/defn foo [x]\n(+ x 1))")))
-  (is (= "(t/defrecord Foo\n  [x]\n  Closeable\n  (close [_]\n    (prn x)))"
-         (reformat-string "(t/defrecord Foo\n [x]\nCloseable\n(close [_]\n(prn x)))"))))
-
-
 (deftest namespaced-maps
   (is (= "#:a{:one 1\n    :two 2}"
          (reformat-string "#:a{:one 1\n    :two 2}")))
