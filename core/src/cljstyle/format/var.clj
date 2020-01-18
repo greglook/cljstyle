@@ -80,4 +80,5 @@
         (constantly true))
       (edit/break-whitespace
         pre-body-space?
-        (comp zl/multiline? z/up))))
+        (comp zl/multiline? z/up)
+        true)))
