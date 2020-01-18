@@ -199,10 +199,10 @@
       (edit/break-whitespace
         (partial whitespace-before? type-fields?)
         (constantly true))
-      ;; One blank line preceding protocol symbols.
+      ;; One or two blank lines preceding protocol symbols.
       (edit/transform
         (partial whitespace-before? type-iface?)
-        (partial blank-lines 2))
+        #(blank-lines (if (type-fields? (z/left %)) 2 3) %))
       ;; One blank line preceding each method.
       (edit/transform
         (partial whitespace-before? type-method?)
@@ -268,7 +268,7 @@
       ;; One blank line preceding interface symbols.
       (edit/transform
         (partial whitespace-before? reify-iface?)
-        (partial blank-lines 2))
+        #(blank-lines (if (reify-name? (z/left %)) 2 3) %))
       ;; One blank line preceding each method.
       (edit/transform
         (partial whitespace-before? reify-method?)

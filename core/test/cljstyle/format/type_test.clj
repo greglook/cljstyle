@@ -99,14 +99,14 @@
 [this c] (- c y))   )")))
   (is (= "(t/defrecord Foo\n  [x]\n\n  Closeable\n\n  (close\n    [_]\n    (prn x)))"
          (reformat-string "(t/defrecord Foo\n [x]\nCloseable\n(close [_]\n(prn x)))")))
-  (is (= "(defrecord Baz\n  [x y]\n  :load-ns true\n\n  Object\n\n  (toString [_] \"Baz\"))"
+  (is (= "(defrecord Baz\n  [x y]\n  :load-ns true\n\n\n  Object\n\n  (toString [_] \"Baz\"))"
          (reformat-string "(defrecord Baz [x y]\n :load-ns true Object (toString [_] \"Baz\"))"))))
 
 
 (deftest reify-forms
   (is (= "(reify Closeable\n\n  (close\n    [_]\n    (prn :closed)))"
          (reformat-string "(reify Closeable\n(close [_]\n(prn :closed)))")))
-  (is (= "(reify Key\n\n  (getKey [this] key-data)\n\n  Object\n\n  (toString\n    [this]\n    \"key\"))"
+  (is (= "(reify Key\n\n  (getKey [this] key-data)\n\n\n  Object\n\n  (toString\n    [this]\n    \"key\"))"
          (reformat-string "(reify Key\n(getKey [this] key-data)\n    Object\n(toString [this] \n\"key\"))"))))
 
 
