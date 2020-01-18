@@ -80,7 +80,8 @@
        (zl/string? zloc)))
 
 
-(defn- reformat-defprotocols
+(defn- reformat-protocols
+  "Reformat any `defprotocol` forms so they adhere to the style rules."
   [form]
   (-> form
       ;; Protocol-level docstring must be on a new line.
@@ -127,11 +128,20 @@
     [x y z]
     ,,,))
 
-;; - field vector must be on a new line
-;; - at least one blank line preceding options
-;; - at least one blank line preceding protocol symbols
-;; - at least one blank line preceding each method
-;; - methods should be indented like functions
+
+(defn- reformat-types
+  "Reformat any `defrecord` and `deftype` forms so they adhere to the style
+  rules."
+  [form]
+  (-> form
+      ;; Field vectors must be on a new line.
+      ,,,
+      ;; One blank line preceding protocol symbols.
+      ,,,
+      ;; One blank line preceding each method.
+      ,,,
+      ;; Methods should be indented like functions.
+      ,,,))
 
 
 
@@ -158,6 +168,11 @@
 ;; - at least one blank line before each method
 ;; - methods should be indented like functions
 
+(defn- reformat-reify
+  "Reformat any `reify` forms so they adhere to the style rules."
+  [form]
+  (-> form
+      ,,,))
 
 
 ;; ## Proxy Rules
@@ -171,11 +186,19 @@
     ([x]
      true)))
 
-;; - class and interfaces vector should be on the same line as proxy
-;; - superclass args can be on same line or new line
-;; - if on new line, should be aligned with class/iface vector?
-;; - methods should be preceded by blank lines
-;; - methods should be formatted like function bodies
+
+(defn- reformat-proxy
+  "Reformat any `proxy` forms so they adhere to the style rules."
+  [form]
+  (-> form
+      ;; Class and interfaces vector should be on the same line as proxy.
+      ,,,
+      ;; Superclass args can be on same line or new line.
+      ,,,
+      ;; Methods should be preceded by blank lines.
+      ,,,
+      ;; Methods should be formatted like function bodies
+      ,,,))
 
 
 
@@ -185,5 +208,7 @@
   "Transform this form by applying formatting rules to type definition forms."
   [form]
   (-> form
-      (reformat-defprotocols)
-      ,,,))
+      (reformat-protocols)
+      (reformat-types)
+      (reformat-reify)
+      (reformat-proxy)))
