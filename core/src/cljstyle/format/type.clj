@@ -11,10 +11,34 @@
 
 (defn- whitespace-before?
   "True if the location is a whitespace node preceding a location matching
-  `next?`."
-  [next? zloc]
+  `match?`."
+  [match? zloc]
   (and (z/whitespace? zloc)
-       (next? (z/right zloc))))
+       (match? (z/right zloc))))
+
+
+(defn- whitespace-after?
+  "True if the location is a whitespace node following a location matching
+  `match?`."
+  [match? zloc]
+  (and (z/whitespace? zloc)
+       (match? (z/left zloc))))
+
+
+(defn- whitespace-around?
+  "True if the location is a whitespace node surrounding a location matching
+  `match?`."
+  [match? zloc]
+  (or (whitespace-before? match? zloc)
+      (whitespace-after? match? zloc)))
+
+
+(defn- blank-lines
+  "Replace all whitespace at the location with `n` blank lines."
+  [n zloc]
+  (z/insert-left
+    (edit/eat-whitespace zloc)
+    (n/newlines n)))
 
 
 
@@ -91,9 +115,7 @@
       ;; One blank line preceding each method.
       (edit/transform
         (partial whitespace-before? protocol-method?)
-        #(z/insert-left
-           (edit/eat-whitespace %)
-           (n/newlines 2)))
+        (partial blank-lines 2))
       ;; If method is multiline or multiple arities, each arg vector must be on
       ;; a new line.
       (edit/break-whitespace
@@ -109,24 +131,63 @@
 
 ;; ## Type Definition Rules
 
-#_
-(deftype Bar
-  [x y z]
+(defn- deftypish?
+  "True if the node at this location is a symbol that defines a type."
+  [zloc]
+  (contains? #{'deftype 'defrecord 'deftype+ 'defrecord+}
+             (zl/form-symbol zloc)))
 
-  :option1 true
-  :option2 123
 
-  Foo
+(defn- type-form?
+  "True if the node at this location is a type definition form."
+  [zloc]
+  (and (= :list (z/tag zloc))
+       (deftypish? (z/down zloc))))
 
-  (method1 [] 123)
 
-  (method2
-    [x y]
-    ,,,)
+(defn- type-name?
+  "True if the node at this location is a type name."
+  [zloc]
+  (and (type-form? (z/up zloc))
+       (z/leftmost? (z/left zloc))
+       (deftypish? (z/left zloc))))
 
-  (method2
-    [x y z]
-    ,,,))
+
+(defn- type-fields?
+  "True if the node at this location is a type field vector."
+  [zloc]
+  (and (type-name? (z/left zloc))
+       (z/vector? zloc)))
+
+
+(defn- type-iface?
+  "True if the node at this location is a type interface symbol."
+  [zloc]
+  (and (type-form? (z/up zloc))
+       (not (type-name? zloc))
+       (zl/token? zloc)
+       (symbol? (z/sexpr (zl/unwrap-meta zloc)))))
+
+
+(defn- type-method?
+  "True if the node at this location is a type method implementation."
+  [zloc]
+  (and (type-form? (z/up zloc))
+       (z/list? zloc)))
+
+
+(defn- type-method-name?
+  "True if the node at this location is a type method name."
+  [zloc]
+  (and (type-method? (z/up zloc))
+       (z/leftmost? zloc)))
+
+
+(defn- type-method-args?
+  "True if the node at this location is a type method argument vector."
+  [zloc]
+  (and (type-method-name? (z/left zloc))
+       (z/vector? zloc)))
 
 
 (defn- reformat-types
@@ -135,13 +196,21 @@
   [form]
   (-> form
       ;; Field vectors must be on a new line.
-      ,,,
+      (edit/break-whitespace
+        (partial whitespace-before? type-fields?)
+        (constantly true))
       ;; One blank line preceding protocol symbols.
-      ,,,
+      (edit/transform
+        (partial whitespace-before? type-iface?)
+        (partial blank-lines 2))
       ;; One blank line preceding each method.
-      ,,,
-      ;; Methods should be indented like functions.
-      ,,,))
+      (edit/transform
+        (partial whitespace-before? type-method?)
+        (partial blank-lines 2))
+      ;; Line-break around method arguments unless they are one-liners.
+      (edit/break-whitespace
+        (partial whitespace-around? type-method-args?)
+        (comp zl/multiline? z/up))))
 
 
 

@@ -67,11 +67,40 @@
 
 
 (deftest type-definitions
-  ,,,)
+  (is (= "(deftype Thing
+  [])"
+         (reformat-string "(deftype Thing [])")))
+  (is (= "(defrecord Thing
+  [field-one
+   field-two
+   another-field])"
+         (reformat-string "(defrecord Thing [field-one
+    field-two
+  another-field])")))
+  (is (= "(defrecord Foo\n  [x]\n\n  Closeable\n\n  (close\n    [_]\n    (prn x)))"
+         (reformat-string "(defrecord Foo\n[x]\nCloseable\n(close [_]\n(prn x)))")))
+  (is (= "(deftype Thing
+  [x y z]
 
+  IFoo
 
-(deftest record-definitions
-  ,,,)
+  (oneline [this] :thing)
+
+  (foo
+    [this a b]
+    (* (+ a x) z))
+
+  (bar
+    [this c]
+    (- c y)))"
+         (reformat-string "(deftype Thing [x y z]
+      IFoo (oneline [this] :thing) (foo [this a b]
+        (* (+ a x) z)) (bar
+[this c] (- c y))   )")))
+  (is (= "(t/defrecord Foo\n  [x]\n\n  Closeable\n\n  (close\n    [_]\n    (prn x)))"
+         (reformat-string "(t/defrecord Foo\n [x]\nCloseable\n(close [_]\n(prn x)))")))
+  (is (= "(defrecord Baz\n  [x y]\n  :load-ns true\n\n  Object\n\n  (toString [_] \"Baz\"))"
+         (reformat-string "(defrecord Baz [x y]\n :load-ns true Object (toString [_] \"Baz\"))"))))
 
 
 (deftest proxy-forms
@@ -79,4 +108,6 @@
 
 
 (deftest reify-forms
+  (is (= "(reify Closeable\n  (close [_]\n    (prn :closed)))"
+         (reformat-string "(reify Closeable\n(close [_]\n(prn :closed)))")))
   ,,,)

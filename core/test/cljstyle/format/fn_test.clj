@@ -72,7 +72,10 @@
     (is (= "(defn- foo\n  ([x]\n   (foo)\n   (bar)))"
            (reformat-string "(defn- foo\n([x]\n(foo)\n(bar)))")))
     (is (= "(defn- ^:deprecated foo\n  \"Deprecated method.\"\n  [x]\n  123)"
-           (reformat-string "(defn- ^:deprecated foo \"Deprecated method.\"\n[x]\n123)")))))
+           (reformat-string "(defn- ^:deprecated foo \"Deprecated method.\"\n[x]\n123)"))))
+  (testing "namespaced defn"
+    (is (= "(t/defn foo\n  [x]\n  (+ x 1))"
+           (reformat-string "(t/defn foo [x]\n(+ x 1))")))))
 
 
 (deftest macro-forms
