@@ -15,6 +15,7 @@
   location unchanged."
   [zloc tag]
   (prn tag (:l (second zloc)) (first zloc) (:r (second zloc)))
+  (flush)
   zloc)
 
 

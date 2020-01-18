@@ -8,7 +8,7 @@
 (defn- vector-node?
   "True if the node at this location is a vector node."
   [zloc]
-  (= :vector (z/tag (zl/unwrap-meta zloc))))
+  (z/vector? (zl/unwrap-meta zloc)))
 
 
 (defn- no-prev?

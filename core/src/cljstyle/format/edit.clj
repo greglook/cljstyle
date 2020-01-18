@@ -55,13 +55,13 @@
 
 
 (defn transform
-  "Transform this form by parsing it as an EDN syntax tree and applying `zf` to
-  it."
+  "Transform this form by parsing it as an EDN syntax tree and applying `edit`
+  successively to each location in the zipper which `match?` returns true for."
   [form match? edit]
   (z/root (edit-all (z/edn form) match? edit)))
 
 
-(defn- eat-whitespace
+(defn eat-whitespace
   "Eat whitespace characters, leaving the zipper located at the next
   non-whitespace node."
   [zloc]

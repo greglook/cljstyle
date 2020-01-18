@@ -27,22 +27,14 @@
   (< (inc max-consecutive) (count-newlines zloc)))
 
 
-(defn- remove-whitespace-and-newlines
-  "Edit the node at this location to remove any following whitespace."
-  [zloc]
-  (if (z/whitespace? zloc)
-    (recur (zip/remove zloc))
-    zloc))
-
-
-(defn- replace-consecutive-blank-lines
+(defn replace-with-blank-lines
   "Replace the node at this location with `n` blank lines and remove any
   following whitespace and linebreaks."
   [zloc n]
   (-> zloc
       (zip/replace (n/newlines (inc n)))
       (zip/next)
-      (remove-whitespace-and-newlines)))
+      (edit/eat-whitespace)))
 
 
 (defn remove-consecutive-blank-lines
@@ -51,7 +43,7 @@
   (edit/transform
     form
     #(consecutive-blank-line? % max-consecutive)
-    #(replace-consecutive-blank-lines % max-consecutive)))
+    #(replace-with-blank-lines % max-consecutive)))
 
 
 
@@ -79,7 +71,7 @@
   (edit/transform
     form
     padding-line-break?
-    #(replace-consecutive-blank-lines % padding-lines)))
+    #(replace-with-blank-lines % padding-lines)))
 
 
 
