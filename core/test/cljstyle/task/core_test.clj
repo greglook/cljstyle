@@ -10,72 +10,90 @@
 (use-fixtures :once #(binding [task/*suppress-exit* true] (%)))
 
 
+(defmacro ^:private capture-io
+  "Evaluate `expr` with the stdout and stderr streams bound to string writers,
+  then evaluate `body` with those symbols bound to the resulting strings."
+  [expr & body]
+  `(let [out# (java.io.StringWriter.)
+         err# (java.io.StringWriter.)]
+     (binding [*out* out#
+               *err* err#]
+       ~expr)
+     (let [~'stdout (str out#)
+           ~'stderr (str err#)]
+       ~@body)))
+
+
 (deftest version-command
   (is (string? task/version))
   (testing "bad args"
-    (is (thrown-with-data? {:code 1}
-          (with-out-str
-            (binding [*err* *out*]
-              (task/print-version ["arg1"]))))))
+    (capture-io
+      (is (thrown-with-data? {:code 1}
+            (task/print-version ["arg1"])))
+      (is (str/blank? stdout))
+      (is (= "cljstyle version command takes no arguments\n" stderr))))
   (testing "output"
-    (is (= (str task/version "\n")
-           (with-out-str
-             (task/print-version []))))))
+    (capture-io
+      (is (nil? (task/print-version [])))
+      (is (= (str task/version "\n") stdout))
+      (is (str/blank? stderr)))))
 
 
 (deftest config-command
   (testing "help"
-    (is (str/starts-with?
-          (with-out-str
-            (task/print-config-usage))
-          "Usage: cljstyle [options] config ")))
+    (capture-io
+      (is (nil? (task/print-config-usage)))
+      (is (str/starts-with? stdout "Usage: cljstyle [options] config "))
+      (is (str/blank? stderr))))
   (testing "bad args"
-    (is (thrown-with-data? {:code 1}
-          (with-out-str
-            (binding [*err* *out*]
-              (task/show-config ["path1" "arg2"]))))))
+    (capture-io
+      (is (thrown-with-data? {:code 1}
+            (task/show-config ["path1" "arg2"])))
+      (is (str/blank? stdout))
+      (is (= "cljstyle config command takes at most one argument\n" stderr))))
   (testing "output"
-    (let [config-str (with-out-str
-                       (task/show-config []))]
-      (is (str/starts-with? config-str "{:"))
-      (is (str/ends-with? config-str "}\n")))))
+    (capture-io
+      (is (map? (task/show-config [])))
+      (is (str/starts-with? stdout "{:"))
+      (is (str/ends-with? stdout "}\n"))
+      (is (str/blank? stderr)))))
 
 
 (deftest find-command
   (testing "help"
-    (is (str/starts-with?
-          (with-out-str
-            (task/print-find-usage))
-          "Usage: cljstyle [options] find ")))
+    (capture-io
+      (is (nil? (task/print-find-usage)))
+      (is (str/starts-with? stdout "Usage: cljstyle [options] find "))
+      (is (str/blank? stderr))))
   (testing "output"
     ,,,))
 
 
 (deftest check-command
   (testing "help"
-    (is (str/starts-with?
-          (with-out-str
-            (task/print-check-usage))
-          "Usage: cljstyle [options] check ")))
+    (capture-io
+      (is (nil? (task/print-check-usage)))
+      (is (str/starts-with? stdout "Usage: cljstyle [options] check "))
+      (is (str/blank? stderr))))
   (testing "output"
     ,,,))
 
 
 (deftest fix-command
   (testing "help"
-    (is (str/starts-with?
-          (with-out-str
-            (task/print-fix-usage))
-          "Usage: cljstyle [options] fix ")))
+    (capture-io
+      (is (nil? (task/print-fix-usage)))
+      (is (str/starts-with? stdout "Usage: cljstyle [options] fix "))
+      (is (str/blank? stderr))))
   (testing "output"
     ,,,))
 
 
 (deftest pipe-command
   (testing "help"
-    (is (str/starts-with?
-          (with-out-str
-            (task/print-pipe-usage))
-          "Usage: cljstyle [options] pipe")))
+    (capture-io
+      (is (nil? (task/print-pipe-usage)))
+      (is (str/starts-with? stdout "Usage: cljstyle [options] pipe"))
+      (is (str/blank? stderr))))
   (testing "output"
     ,,,))

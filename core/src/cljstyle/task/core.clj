@@ -152,7 +152,8 @@
       (exit! 1)))
   (let [^File file (first (search-roots paths))
         config (load-configs (.getPath file) file)]
-    (pprint config)))
+    (pprint config)
+    config))
 
 
 
@@ -183,7 +184,8 @@
     (p/logf "Searched %d files in %.2f ms"
             total
             (:elapsed results -1.0))
-    (p/log (pr-str counts))))
+    (p/log (pr-str counts))
+    results))
 
 
 
@@ -227,7 +229,8 @@
     (when-not (zero? (:incorrect counts 0))
       (p/printerrf "%d files formatted incorrectly" (:incorrect counts))
       (exit! 2))
-    (p/logf "All %d files formatted correctly" (:correct counts))))
+    (p/logf "All %d files formatted correctly" (:correct counts))
+    results))
 
 
 
@@ -266,7 +269,8 @@
       (exit! 3))
     (if (zero? (:fixed counts 0))
       (p/logf "All %d files formatted correctly" (:correct counts))
-      (p/printerrf "Corrected formatting of %d files" (:fixed counts)))))
+      (p/printerrf "Corrected formatting of %d files" (:fixed counts)))
+    results))
 
 
 
