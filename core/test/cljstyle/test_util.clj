@@ -72,7 +72,7 @@
   "Execute `body` after creating files with the given paths and contents. Each
   file is bound to the provided symbol, and all files are deleted before
   returning."
-  [[root-sym root-path & files :as bindings] & body]
+  [[root-sym root-path & files] & body]
   {:pre [(seq files) (even? (count files))]}
   (let [file-entries (partition 2 files)
         write-sym (gensym "write")]
@@ -97,3 +97,17 @@
            ~@(map (fn [[file-sym _]]
                     `(.delete ~file-sym))
                   file-entries))))))
+
+
+(defmacro capture-io
+  "Evaluate `expr` with the stdout and stderr streams bound to string writers,
+  then evaluate `body` with those symbols bound to the resulting strings."
+  [expr & body]
+  `(let [out# (java.io.StringWriter.)
+         err# (java.io.StringWriter.)]
+     (binding [*out* out#
+               *err* err#]
+       ~expr)
+     (let [~'stdout (str out#)
+           ~'stderr (str err#)]
+       ~@body)))

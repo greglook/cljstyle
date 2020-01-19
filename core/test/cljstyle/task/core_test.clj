@@ -2,27 +2,13 @@
   (:require
     [cljstyle.task.core :as task]
     [cljstyle.task.print :as p]
-    [cljstyle.test-util :refer [with-files]]
+    [cljstyle.test-util :refer [with-files capture-io]]
     [clojure.java.io :as io]
     [clojure.string :as str]
     [clojure.test :refer [use-fixtures deftest testing is]]))
 
 
 (use-fixtures :once #(binding [task/*suppress-exit* true] (%)))
-
-
-(defmacro ^:private capture-io
-  "Evaluate `expr` with the stdout and stderr streams bound to string writers,
-  then evaluate `body` with those symbols bound to the resulting strings."
-  [expr & body]
-  `(let [out# (java.io.StringWriter.)
-         err# (java.io.StringWriter.)]
-     (binding [*out* out#
-               *err* err#]
-       ~expr)
-     (let [~'stdout (str out#)
-           ~'stderr (str err#)]
-       ~@body)))
 
 
 (deftest version-command
@@ -68,9 +54,9 @@
       (is (str/blank? stderr))))
   (testing "task execution"
     (with-files [test-dir "target/test-config/find"
-                 a-config ["a/.cljstyle" (prn-str {:padding-lines 8})]
-                 foo-clj ["a/b/foo.clj" "; foo"]
-                 bar-clj ["a/x/bar.clj" "; bar"]]
+                 _a-config ["a/.cljstyle" (prn-str {:padding-lines 8})]
+                 _foo-clj ["a/b/foo.clj" "; foo"]
+                 _bar-clj ["a/x/bar.clj" "; bar"]]
       (capture-io
         (is (= {:unrelated 1, :found 2}
                (:counts (task/find-sources [(.getPath test-dir)]))))
@@ -91,7 +77,7 @@
     (with-files [test-dir "target/test-config/check"
                  a-config ["a/.cljstyle" (prn-str {:rewrite-namespaces? true})]
                  foo-clj ["a/b/foo.clj" ";; foo\n"]
-                 bar-clj ["a/x/bar.clj" "(ns a.x.bar\n  (:require\n    [clojure.string :as str]))\n"]]
+                 _bar-clj ["a/x/bar.clj" "(ns a.x.bar\n  (:require\n    [clojure.string :as str]))\n"]]
       (testing "when correct"
         (capture-io
           (is (map? (task/check-sources [(str test-dir)])))
@@ -153,9 +139,9 @@
       (is (str/blank? stderr))))
   (testing "task execution"
     (with-files [test-dir "target/test-config/fix"
-                 a-config ["a/.cljstyle" (prn-str {:rewrite-namespaces? true})]
+                 _a-config ["a/.cljstyle" (prn-str {:rewrite-namespaces? true})]
                  foo-clj ["a/b/foo.clj" "(def abc \"doc string\" 123)"]
-                 bar-clj ["a/x/bar.clj" "(ns a.x.bar\n  (:require\n    [clojure.string :as str]))\n"]]
+                 _bar-clj ["a/x/bar.clj" "(ns a.x.bar\n  (:require\n    [clojure.string :as str]))\n"]]
       (testing "fixed files"
         (capture-io
           (is (map? (task/fix-sources [(str test-dir)])))

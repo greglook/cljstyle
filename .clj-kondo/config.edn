@@ -1,8 +1,6 @@
 {:linters {:unresolved-symbol
-           {:exclude [(clojure.test/is [thrown-with-data? valid? invalid?])]}
-
-           ;:unused-binding
-           ;{:exclude-destructured-keys-in-fn-args true}
+           {:exclude [(cljstyle.test-util/capture-io [stdout stderr])
+                      (clojure.test/is [thrown-with-data? valid? invalid?])]}
 
            :consistent-alias
            {:level :warning
@@ -14,4 +12,6 @@
                       clojure.zip zip
                       rewrite-clj.node n
                       rewrite-clj.parser parser
-                      rewrite-clj.zip z}}}}
+                      rewrite-clj.zip z}}}
+
+ :lint-as {cljstyle.test-util/with-files clojure.core/let}}

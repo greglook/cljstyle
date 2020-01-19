@@ -196,7 +196,7 @@
 (deftest config-hierarchy
   (with-files [test-dir "target/test-config/hierarchy"
                a-config ["a/.cljstyle" (prn-str {:padding-lines 8})]
-               abc-config ["a/b/c/.cljstyle" (prn-str {:padding-lines 4})]
+               _abc-config ["a/b/c/.cljstyle" (prn-str {:padding-lines 4})]
                abd-config ["a/b/d/.cljstyle" (prn-str {:file-ignore #{"f"}})]
                foo-clj ["a/b/c/foo.clj" "; foo"]
                bar-clj ["a/b/d/e/bar.clj" "; bar"]]

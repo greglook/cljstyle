@@ -72,8 +72,7 @@
             (send results report-result! result)))
 
         compute!
-        (bound-fn compute!
-          []
+        (bound-fn []
           (cond
             (config/ignored? config file)
             (report!
