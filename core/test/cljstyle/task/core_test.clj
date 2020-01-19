@@ -33,7 +33,7 @@
             (task/print-version ["arg1"])))
       (is (str/blank? stdout))
       (is (= "cljstyle version command takes no arguments\n" stderr))))
-  (testing "output"
+  (testing "task execution"
     (capture-io
       (is (nil? (task/print-version [])))
       (is (= (str task/version "\n") stdout))
@@ -52,7 +52,7 @@
             (task/show-config ["path1" "arg2"])))
       (is (str/blank? stdout))
       (is (= "cljstyle config command takes at most one argument\n" stderr))))
-  (testing "output"
+  (testing "task execution"
     (capture-io
       (is (map? (task/show-config [])))
       (is (str/starts-with? stdout "{:"))
@@ -66,7 +66,7 @@
       (is (nil? (task/print-find-usage)))
       (is (str/starts-with? stdout "Usage: cljstyle [options] find "))
       (is (str/blank? stderr))))
-  (testing "output"
+  (testing "task execution"
     (with-files [test-dir "target/test-config/find"
                  a-config ["a/.cljstyle" (prn-str {:padding-lines 8})]
                  foo-clj ["a/b/foo.clj" "; foo"]
@@ -87,7 +87,7 @@
       (is (nil? (task/print-check-usage)))
       (is (str/starts-with? stdout "Usage: cljstyle [options] check "))
       (is (str/blank? stderr))))
-  (testing "output"
+  (testing "task execution"
     (with-files [test-dir "target/test-config/check"
                  a-config ["a/.cljstyle" (prn-str {:rewrite-namespaces? true})]
                  foo-clj ["a/b/foo.clj" ";; foo\n"]
@@ -151,8 +151,29 @@
       (is (nil? (task/print-fix-usage)))
       (is (str/starts-with? stdout "Usage: cljstyle [options] fix "))
       (is (str/blank? stderr))))
-  (testing "output"
-    ,,,))
+  (testing "task execution"
+    (with-files [test-dir "target/test-config/fix"
+                 a-config ["a/.cljstyle" (prn-str {:rewrite-namespaces? true})]
+                 foo-clj ["a/b/foo.clj" "(def abc \"doc string\" 123)"]
+                 bar-clj ["a/x/bar.clj" "(ns a.x.bar\n  (:require\n    [clojure.string :as str]))\n"]]
+      (testing "fixed files"
+        (capture-io
+          (is (map? (task/fix-sources [(str test-dir)])))
+          (is (= "Reformatting source file target/test-config/fix/a/b/foo.clj\n" stdout))
+          (is (= "Corrected formatting of 1 files\n" stderr))
+          (is (= "(def abc\n  \"doc string\"\n  123)\n" (slurp foo-clj)))))
+      (testing "correct files"
+        (capture-io
+          (is (map? (task/fix-sources [(str test-dir)])))
+          (is (str/blank? stdout))
+          (is (str/blank? stderr))))
+      (testing "file errors"
+        (spit foo-clj "(def abc ...")
+        (capture-io
+          (is (thrown-with-data? {:code 3}
+                (task/fix-sources [(str test-dir)])))
+          (is (str/blank? stdout))
+          (is (str/starts-with? stderr "Error while processing file target/test-config/fix/a/b/foo.clj")))))))
 
 
 (deftest pipe-command
@@ -161,5 +182,10 @@
       (is (nil? (task/print-pipe-usage)))
       (is (str/starts-with? stdout "Usage: cljstyle [options] pipe"))
       (is (str/blank? stderr))))
-  (testing "output"
-    ,,,))
+  (testing "task execution"
+    (let [stdin (java.io.StringReader. "(if (= :foo x) \n     123  \n456   )")]
+      (binding [*in* stdin]
+        (capture-io
+          (is (nil? (task/pipe)))
+          (is (= "(if (= :foo x)\n  123\n  456)\n" stdout))
+          (is (str/blank? stderr)))))))
