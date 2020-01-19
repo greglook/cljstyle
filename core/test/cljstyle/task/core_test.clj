@@ -1,7 +1,7 @@
 (ns cljstyle.task.core-test
   (:require
     [cljstyle.task.core :as task]
-    [cljstyle.test-util]
+    [cljstyle.test-util :refer [with-files]]
     [clojure.java.io :as io]
     [clojure.string :as str]
     [clojure.test :refer [use-fixtures deftest testing is]]))
@@ -43,27 +43,39 @@
 
 (deftest find-command
   (testing "help"
-    ,,,)
+    (is (str/starts-with?
+          (with-out-str
+            (task/print-find-usage))
+          "Usage: cljstyle [options] find ")))
   (testing "output"
     ,,,))
 
 
 (deftest check-command
   (testing "help"
-    ,,,)
+    (is (str/starts-with?
+          (with-out-str
+            (task/print-check-usage))
+          "Usage: cljstyle [options] check ")))
   (testing "output"
     ,,,))
 
 
 (deftest fix-command
   (testing "help"
-    ,,,)
+    (is (str/starts-with?
+          (with-out-str
+            (task/print-fix-usage))
+          "Usage: cljstyle [options] fix ")))
   (testing "output"
     ,,,))
 
 
 (deftest pipe-command
   (testing "help"
-    ,,,)
+    (is (str/starts-with?
+          (with-out-str
+            (task/print-pipe-usage))
+          "Usage: cljstyle [options] pipe")))
   (testing "output"
     ,,,))
