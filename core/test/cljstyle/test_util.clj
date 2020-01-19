@@ -1,6 +1,7 @@
 (ns cljstyle.test-util
   "Unit testing utilities."
   (:require
+    [clojure.java.io :as io]
     [clojure.spec.alpha :as s]
     [clojure.test :as test]))
 
@@ -65,3 +66,34 @@
           :message msg#
           :expected spec-form#
           :actual conformed#}))))
+
+
+(defmacro with-files
+  "Execute `body` after creating files with the given paths and contents. Each
+  file is bound to the provided symbol, and all files are deleted before
+  returning."
+  [[root-sym root-path & files :as bindings] & body]
+  {:pre [(seq files) (even? (count files))]}
+  (let [file-entries (partition 2 files)
+        write-sym (gensym "write")]
+    `(let [~root-sym (io/file ~root-path)
+           ~write-sym (fn [file# content#]
+                        (io/make-parents file#)
+                        (spit file# content#)
+                        (.deleteOnExit file#))
+           ~@(mapcat
+               (fn [[file-sym [path _]]]
+                 [file-sym `(io/file ~root-sym ~path)])
+               file-entries)]
+       (try
+         ;; Write files.
+         ~@(map (fn [[file-sym [_ content]]]
+                  (list write-sym file-sym content))
+                file-entries)
+         ;; Eval body.
+         ~@body
+         (finally
+           ;; Delete files.
+           ~@(map (fn [[file-sym _]]
+                    `(.delete ~file-sym))
+                  file-entries))))))

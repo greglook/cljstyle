@@ -1,7 +1,7 @@
 (ns cljstyle.config-test
   (:require
     [cljstyle.config :as config]
-    [cljstyle.test-util]
+    [cljstyle.test-util :refer [with-files]]
     [clojure.java.io :as io]
     [clojure.test :refer [deftest testing is]]))
 
@@ -194,48 +194,31 @@
 ;;         └── e
 ;;             └── bar.clj
 (deftest config-hierarchy
-  (let [test-dir (io/file "target/test-config/hierarchy")
-        a-config (io/file test-dir "a" ".cljstyle")
-        abd-dir (io/file test-dir "a" "b" "d")
-        abc-config (io/file test-dir "a" "b" "c" ".cljstyle")
-        abd-config (io/file test-dir "a" "b" "d" ".cljstyle")
-        foo-clj (io/file test-dir "a" "b" "c" "foo.clj")
-        bar-clj (io/file test-dir "a" "b" "d" "e" "bar.clj")
-        write! (fn write!
-                 [file content]
-                 (io/make-parents file)
-                 (spit file content)
-                 (.deleteOnExit file))]
-    (try
-      (write! a-config (prn-str {:padding-lines 8}))
-      (write! abc-config (prn-str {:padding-lines 4}))
-      (write! abd-config (prn-str {:file-ignore #{"f"}}))
-      (write! foo-clj "; foo")
-      (write! bar-clj "; bar")
-      (testing "read-config"
-        (is (= {:padding-lines 8} (config/read-config a-config)))
-        (is (= [(.getAbsolutePath a-config)]
-               (config/source-paths (config/read-config a-config)))))
-      (testing "dir-config"
-        (is (nil? (config/dir-config (io/file test-dir "x"))))
-        (is (= {:padding-lines 8} (config/dir-config (io/file test-dir "a")))))
-      (testing "find-up"
-        (is (= [{:padding-lines 8}
-                {:padding-lines 4}]
-               (config/find-up foo-clj 3)))
-        (is (= [[(.getAbsolutePath a-config)]
-                [(.getAbsolutePath abd-config)]]
-               (map config/source-paths (config/find-up bar-clj 4))))
-        (is (< 2 (count (config/find-up foo-clj 100))))
+  (with-files [test-dir "target/test-config/hierarchy"
+               a-config ["a/.cljstyle" (prn-str {:padding-lines 8})]
+               abc-config ["a/b/c/.cljstyle" (prn-str {:padding-lines 4})]
+               abd-config ["a/b/d/.cljstyle" (prn-str {:file-ignore #{"f"}})]
+               foo-clj ["a/b/c/foo.clj" "; foo"]
+               bar-clj ["a/b/d/e/bar.clj" "; bar"]]
+    (testing "read-config"
+      (is (= {:padding-lines 8} (config/read-config a-config)))
+      (is (= [(.getAbsolutePath a-config)]
+             (config/source-paths (config/read-config a-config)))))
+    (testing "dir-config"
+      (is (nil? (config/dir-config (io/file test-dir "x"))))
+      (is (= {:padding-lines 8} (config/dir-config (io/file test-dir "a")))))
+    (testing "find-up"
+      (is (= [{:padding-lines 8}
+              {:padding-lines 4}]
+             (config/find-up foo-clj 3)))
+      (is (= [[(.getAbsolutePath a-config)]
+              [(.getAbsolutePath abd-config)]]
+             (map config/source-paths (config/find-up bar-clj 4))))
+      (is (< 2 (count (config/find-up foo-clj 100))))
+      (let [abd-dir (io/file test-dir "a" "b" "d")]
         (is (= [{:padding-lines 8}
                 {:file-ignore #{"f"}}]
                (config/find-up abd-dir 3)))
         (is (= [[(.getAbsolutePath a-config)]
                 [(.getAbsolutePath abd-config)]]
-               (map config/source-paths (config/find-up abd-dir 4)))))
-      (finally
-        (.delete a-config)
-        (.delete abc-config)
-        (.delete abd-config)
-        (.delete foo-clj)
-        (.delete bar-clj)))))
+               (map config/source-paths (config/find-up abd-dir 4))))))))
