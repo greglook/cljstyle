@@ -66,7 +66,16 @@
       (is (str/starts-with? stdout "Usage: cljstyle [options] find "))
       (is (str/blank? stderr))))
   (testing "output"
-    ,,,))
+    (with-files [test-dir "target/test-config/find"
+                 a-config ["a/.cljstyle" (prn-str {:padding-lines 8})]
+                 foo-clj ["a/b/foo.clj" "; foo"]
+                 bar-clj ["a/x/bar.clj" "; bar"]]
+      (capture-io
+        (is (= {:unrelated 1, :found 2}
+               (:counts (task/find-sources [(.getPath test-dir)]))))
+        (is (= "target/test-config/find/a/x/bar.clj\ntarget/test-config/find/a/b/foo.clj\n"
+               stdout))
+        (is (str/blank? stderr))))))
 
 
 (deftest check-command

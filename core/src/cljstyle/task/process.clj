@@ -64,16 +64,16 @@
   source file `file`."
   [process! results config ^File root ^File file]
   (let [path (relativize-path root file)
-        options p/*options*
-        report! (fn report!
-                  [data]
-                  (let [result (assoc data :file file :path path)]
-                    (send results report-result! result)))]
-    (proxy [RecursiveAction] []
 
-      (compute
-        []
-        (p/with-options options
+        report!
+        (fn report!
+          [data]
+          (let [result (assoc data :file file :path path)]
+            (send results report-result! result)))
+
+        compute!
+        (bound-fn compute!
+          []
           (cond
             (config/ignored? config file)
             (report!
@@ -103,7 +103,12 @@
                    :error ex})))
 
             :else
-            (report! {:type :unrelated})))))))
+            (report! {:type :unrelated})))]
+    (proxy [RecursiveAction] []
+
+      (compute
+        []
+        (compute!)))))
 
 
 (defn walk-files!
