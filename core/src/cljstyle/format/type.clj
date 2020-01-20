@@ -74,8 +74,8 @@
   "True if the node at this location is a space between a protocol name and
   docstring."
   [zloc]
-  (and (protocol-form? (z/up zloc))
-       (z/whitespace? zloc)
+  (and (z/whitespace? zloc)
+       (protocol-form? (z/up zloc))
        (protocol-name? (z/left zloc))
        (protocol-docstring? (z/right zloc))))
 
@@ -83,8 +83,9 @@
 (defn- protocol-method?
   "True if the node at this location is a protocol method form."
   [zloc]
-  (and (protocol-form? (z/up zloc))
-       (z/list? zloc)))
+  (and (z/list? zloc)
+       (protocol-form? (z/up zloc))
+       (not (zl/keyword? (z/left zloc)))))
 
 
 (defn- protocol-method-args?

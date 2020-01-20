@@ -63,7 +63,17 @@
 
   (qrs [foo]))"
            (reformat-string "(defprotocol Foo
-          :extend-via-metadata true (qrs [foo]))")))))
+          :extend-via-metadata true (qrs [foo]))")))
+    (is (= "(defprotocol Foo
+  ::methods (map f ms)
+
+  (bar
+    [foo x]
+    \"doc\"))"
+           (reformat-string "(defprotocol Foo
+  ::methods (map f ms)
+          (bar [foo x] \"doc\"))"))
+        "option value lists should not be treated like methods")))
 
 
 (deftest type-definitions

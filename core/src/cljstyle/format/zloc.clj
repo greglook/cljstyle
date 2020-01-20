@@ -1,12 +1,14 @@
 (ns cljstyle.format.zloc
   "Common utility functions for using rewrite-clj zippers and editing forms."
-  (:refer-clojure :exclude [string? reader-conditional?])
+  (:refer-clojure :exclude [keyword? string? reader-conditional?])
   (:require
     [clojure.string :as str]
     [clojure.zip :as zip]
     [rewrite-clj.node :as n]
     [rewrite-clj.zip :as z])
   (:import
+    (rewrite_clj.node.keyword
+      KeywordNode)
     (rewrite_clj.node.string
       StringNode)))
 
@@ -27,6 +29,12 @@
   "True if the node at this location is a string."
   [zloc]
   (instance? StringNode (z/node zloc)))
+
+
+(defn keyword?
+  "True if the node at this location is a keyword."
+  [zloc]
+  (instance? KeywordNode (z/node zloc)))
 
 
 (defn token?
