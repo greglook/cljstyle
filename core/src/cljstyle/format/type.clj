@@ -303,13 +303,6 @@
        (z/vector? zloc)))
 
 
-(defn- proxy-super-args?
-  "True if the node at this location is a vector of superclass arguments."
-  [zloc]
-  (and (proxy-types? (z/left zloc))
-       (z/vector? zloc)))
-
-
 (defn- proxy-method?
   "True if the node at this location is a proxy method form."
   [zloc]
@@ -333,11 +326,6 @@
       (zl/break-whitespace
         (partial whitespace-before? proxy-types?)
         (constantly false))
-      ;; Superclass args should be on same line if oneline.
-      (zl/break-whitespace
-        (partial whitespace-before? proxy-super-args?)
-        #(or (zl/multiline? (z/left %))
-             (zl/multiline? (z/right %))))
       ;; Methods should be preceded by blank lines.
       (zl/transform
         (partial whitespace-before? proxy-method?)

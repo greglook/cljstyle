@@ -129,6 +129,16 @@
 
   (method [x y] (+ x y)))"
          (reformat-string "(proxy [Clazz IFaceA IFaceB] [arg1 arg2] (method [x y] (+ x y)))")))
+  (is (= "(proxy [Clazz IFaceA IFaceB]
+       [arg1 arg2]
+
+  (method
+    [x y]
+    (+ x y)))"
+         (reformat-string "(proxy [Clazz IFaceA IFaceB]
+    [arg1 arg2]
+                          (method [x y]
+                          (+ x y)))")))
   (is (= "(proxy [Clazz] [string]
 
   (add
