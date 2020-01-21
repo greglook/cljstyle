@@ -32,4 +32,11 @@
     (is (= "(def ^:private foo\n  \"docs go here\"\n  123)"
            (reformat-string "(def ^:private foo \"docs go here\"\n123)")))
     (is (= "(def ^{:private true\n       :other 123}\n  abc\n  \"docs why\"\n  123)"
-           (reformat-string "(def ^{:private true\n :other 123}\n abc \"docs why\"\n123)")))))
+           (reformat-string "(def ^{:private true\n :other 123}\n abc \"docs why\"\n123)"))))
+  (testing "specs"
+    (is (= "(s/def ::foo string?)"
+           (reformat-string "(s/def ::foo string?)")))
+    (is (= "(s/def ::foo\n  string?)"
+           (reformat-string "(s/def ::foo\nstring?)")))
+    (is (= "(s/def ::foo\n  (s/and string?\n         (complement str/blank?)))"
+           (reformat-string "(s/def ::foo (s/and string?\n(complement str/blank?)) )")))))

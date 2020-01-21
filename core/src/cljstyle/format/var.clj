@@ -8,6 +8,7 @@
   "True if the node at this location is a `def` symbol."
   [zloc]
   (and (zl/token? zloc)
+       (z/leftmost? zloc)
        (= 'def (zl/form-symbol zloc))))
 
 
@@ -19,14 +20,11 @@
 
 
 (defn- name?
-  "True if the node at this location is the symbol naming a var, or a metadata
-  form wrapping such a symbol."
+  "True if the node at this location is the form representing the name of the
+  defined value."
   [zloc]
   (and (var-form? (z/up zloc))
-       (def? (z/left zloc))
-       (let [unwrapped (zl/unwrap-meta zloc)]
-         (and (zl/token? unwrapped)
-              (simple-symbol? (z/sexpr unwrapped))))))
+       (def? (z/left zloc))))
 
 
 (defn- pre-name-space?
