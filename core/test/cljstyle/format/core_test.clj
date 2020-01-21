@@ -99,20 +99,6 @@
          (reformat-string "(defelem foo [x]\n[:foo x])"))))
 
 
-(deftest misc-indentation
-  (testing "multiline right hand side forms"
-    (is (= "(list foo :bar (fn a\n                 ([] nil)\n                 ([b] b)))"
-           (reformat-string "(list foo :bar (fn a\n([] nil)\n([b] b)))"))))
-  (testing "reader conditionals"
-    (is (= "#?(:clj foo\n   :cljs bar)"
-           (reformat-string "#?(:clj foo\n:cljs bar)")))
-    (is (= "#?@(:clj foo\n    :cljs bar)"
-           (reformat-string "#?@(:clj foo\n:cljs bar)"))))
-  (testing "reader macros"
-    (is (= "#inst\n\"2018-01-01T00:00:00.000-00:00\""
-           (reformat-string "#inst\n\"2018-01-01T00:00:00.000-00:00\"")))))
-
-
 (deftest eof-newlines
   (is (= ":x" (reformat-file ":x" {:require-eof-newline? false})))
   (is (= ":x\n" (reformat-file ":x" {:require-eof-newline? true})))

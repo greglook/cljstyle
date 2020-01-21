@@ -2,7 +2,7 @@
   (:require
     [cljstyle.config :as config]
     [cljstyle.format.core :refer [reformat-string]]
-    [clojure.test :refer [deftest is]]))
+    [clojure.test :refer [deftest testing is]]))
 
 
 (defn reindent-string
@@ -99,14 +99,28 @@
 
 
 (deftest data-structure-indentation
-  (is (= "[:foo\n :bar\n :baz]"
-         (reindent-string "[:foo\n:bar\n:baz]")))
-  (is (= "{:foo 1\n :bar 2}"
-         (reindent-string "{:foo 1\n:bar 2}")))
-  (is (= "#{:foo\n  :bar\n  :baz}"
-         (reindent-string "#{:foo\n:bar\n:baz}")))
-  (is (= "{:foo [:bar\n       :baz]}"
-         (reindent-string "{:foo [:bar\n:baz]}"))))
+  (testing "vectors"
+    (is (= "[:foo\n :bar\n :baz]"
+           (reindent-string "[:foo\n:bar\n:baz]"))))
+  (testing "maps"
+    (is (= "{:foo 1\n :bar 2}"
+           (reindent-string "{:foo 1\n:bar 2}"))))
+  (testing "sets"
+    (is (= "#{:foo\n  :bar\n  :baz}"
+           (reindent-string "#{:foo\n:bar\n:baz}"))))
+  (testing "complex"
+    (is (= "{:foo [:bar\n       :baz]}"
+           (reindent-string "{:foo [:bar\n:baz]}"))))
+  (testing "record literals"
+    (is (= "#foo.bar.Baz{:a 123, :x true}"
+           (reindent-string "#foo.bar.Baz{:a 123, :x true}")))
+    (is (= "#foo.bar.Baz {:a 123, :x true}"
+           (reindent-string "#foo.bar.Baz {:a 123, :x true}")))
+    (is (= "#foo.bar.Baz\n{:a 123, :x true}"
+           (reindent-string "#foo.bar.Baz\n   {:a 123, :x true}")))
+    #_ ;; FIXME
+    (is (= "(let [foo #foo.bar.Baz\n          {:a 123, :x true}]\n  foo)"
+           (reindent-string "(let [foo #foo.bar.Baz\n {:a 123, :x true}] \nfoo)")))))
 
 
 (deftest embedded-structures
@@ -120,3 +134,17 @@
          (reindent-string "(if foo\n(do bar\nbaz)\n(quz  \n  foo\nbar))"
                           config/default-indents
                           1))))
+
+
+(deftest misc-indentation
+  (testing "multiline right hand side forms"
+    (is (= "(list foo :bar (fn a\n                 ([] nil)\n                 ([b] b)))"
+           (reindent-string "(list foo :bar (fn a\n([] nil)\n([b] b)))"))))
+  (testing "reader conditionals"
+    (is (= "#?(:clj foo\n   :cljs bar)"
+           (reindent-string "#?(:clj foo\n:cljs bar)")))
+    (is (= "#?@(:clj foo\n    :cljs bar)"
+           (reindent-string "#?@(:clj foo\n:cljs bar)"))))
+  (testing "reader macros"
+    (is (= "#inst\n\"2018-01-01T00:00:00.000-00:00\""
+           (reindent-string "#inst\n\"2018-01-01T00:00:00.000-00:00\"")))))
