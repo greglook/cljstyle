@@ -31,6 +31,24 @@
       (whitespace-after? match? zloc)))
 
 
+(defn- preceded-by-comment?
+  "True if the location is preceded by a comment and some amount of whitespace
+  or newlines."
+  [zloc]
+  (zl/comment? (z/skip z/left* z/whitespace? (z/left* zloc))))
+
+
+(defn- type-break-before
+  "Construct a predicate function which returns true for locations which are
+  whitespace preceding the match location but not preceded by a comment."
+  [match?]
+  (fn pred?
+    [zloc]
+    (whitespace-before?
+      #(and (match? %) (not (preceded-by-comment? %)))
+      zloc)))
+
+
 (defn- blank-lines
   "Replace all whitespace at the location with `n` blank lines."
   [n zloc]
@@ -113,7 +131,7 @@
         (constantly true))
       ;; One blank line preceding each method.
       (zl/transform
-        (partial whitespace-before? protocol-method?)
+        (type-break-before protocol-method?)
         (partial blank-lines 2))
       ;; If method is multiline or multiple arities, each arg vector must be on
       ;; a new line.
@@ -200,11 +218,11 @@
         (constantly true))
       ;; One or two blank lines preceding protocol symbols.
       (zl/transform
-        (partial whitespace-before? type-iface?)
+        (type-break-before type-iface?)
         #(blank-lines (if (type-fields? (z/left %)) 2 3) %))
       ;; One blank line preceding each method.
       (zl/transform
-        (partial whitespace-before? type-method?)
+        (type-break-before type-method?)
         (partial blank-lines 2))
       ;; Line-break around method arguments unless they are one-liners.
       (zl/break-whitespace
@@ -266,11 +284,11 @@
   (-> form
       ;; One blank line preceding interface symbols.
       (zl/transform
-        (partial whitespace-before? reify-iface?)
+        (type-break-before reify-iface?)
         #(blank-lines (if (reify-name? (z/left %)) 2 3) %))
       ;; One blank line preceding each method.
       (zl/transform
-        (partial whitespace-before? reify-method?)
+        (type-break-before reify-method?)
         (partial blank-lines 2))
       ;; Line-break around method arguments unless they are one-liners.
       (zl/break-whitespace
@@ -328,7 +346,7 @@
         (constantly false))
       ;; Methods should be preceded by blank lines.
       (zl/transform
-        (partial whitespace-before? proxy-method?)
+        (type-break-before proxy-method?)
         (partial blank-lines 2))
       ;; Line-break around method arguments unless they are one-liners.
       (zl/break-whitespace
