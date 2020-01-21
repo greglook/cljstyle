@@ -32,7 +32,7 @@
          (and (symbol? form-sym)
               (or (fn-sym? form-sym)
                   (and (vector-node? (z/up zloc))
-                       (no-prev? zloc vector-node?)
+                       (no-prev? (z/up zloc) vector-node?)
                        (= 'letfn (zl/form-symbol (z/up zloc)))))))))
 
 

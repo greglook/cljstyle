@@ -13,6 +13,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
   [#25](https://github.com/greglook/cljstyle/pull/25)
 - `defmacro` is now subject to function line-breaking rules.
 - Fixed some cases where newlines would not be collapsed by line-break rules.
+- A bug previously caused any list in a vector in a `letfn` form to be treated
+  like a function definition.
 
 ### Added
 - Var definitions (using `def`) have line-break rules, constrolled by
