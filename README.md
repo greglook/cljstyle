@@ -151,3 +151,9 @@ By default, cljstyle will ignore forms which are wrapped in a `(comment ...)` fo
 or preceeded by the discard macro `#_`. You can also optionally disable
 formatting rules from matching a form by tagging it with `^:cljstyle/ignore`
 metadata - this is often useful for macros.
+
+
+## License
+
+Distributed under the Eclipse Public License either version 1.0 or (at your
+option) any later version.
