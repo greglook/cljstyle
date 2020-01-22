@@ -117,9 +117,11 @@
 
   (oneline [this] :thing)
 
+
   (foo
     [this a b]
     (* (+ a x) z))
+
 
   (bar
     [this c]
@@ -130,7 +132,7 @@
 [this c] (- c y))   )")))
     (is (= "(t/defrecord Foo\n  [x]\n\n  Closeable\n\n  (close\n    [_]\n    (prn x)))"
            (reformat-string "(t/defrecord Foo\n [x]\nCloseable\n(close [_]\n(prn x)))")))
-    (is (= "(defrecord Baz\n  [x y]\n  :load-ns true\n\n\n  Object\n\n  (toString [_] \"Baz\"))"
+    (is (= "(defrecord Baz\n  [x y]\n  :load-ns true\n\n  Object\n\n  (toString [_] \"Baz\"))"
            (reformat-string "(defrecord Baz [x y]\n :load-ns true Object (toString [_] \"Baz\"))"))))
   (testing "comments"
     (is (= "(defrecord Apple
@@ -160,21 +162,49 @@
 
 
 (deftest reify-forms
-  (is (= "(reify Closeable\n\n  (close\n    [_]\n    (prn :closed)))"
-         (reformat-string "(reify Closeable\n(close [_]\n(prn :closed)))")))
-  (is (= "(reify Key\n\n  (getKey [this] key-data)\n\n\n  Object\n\n  (toString\n    [this]\n    \"key\"))"
-         (reformat-string "(reify Key\n(getKey [this] key-data)\n    Object\n(toString [this] \n\"key\"))"))))
+  (is (= "(reify Closeable
+  (close
+    [_]
+    (prn :closed)))"
+         (reformat-string "(reify Closeable (close [_]\n(prn :closed)))")))
+  (is (= "(reify Closeable
+
+  (close
+    [_]
+    (prn :closed)))"
+         (reformat-string "(reify Closeable\n\n(close [_]\n(prn :closed)))")))
+  (is (= "(reify Key
+
+  (getKey [this] key-data)
+
+
+  Object
+
+  (toString
+    [this]
+    \"key\"))"
+         (reformat-string "(reify Key\n\n(getKey [this] key-data)\n    Object\n(toString [this] \n\"key\"))"))))
 
 
 (deftest proxy-forms
   (is (= "(proxy [Clazz] []
-
   (method [x y] (+ x y)))"
          (reformat-string "(proxy [Clazz] [] (method [x y] (+ x y)))")))
-  (is (= "(proxy [Clazz IFaceA IFaceB] [arg1 arg2]
+  (is (= "(proxy [Clazz] []
 
   (method [x y] (+ x y)))"
-         (reformat-string "(proxy [Clazz IFaceA IFaceB] [arg1 arg2] (method [x y] (+ x y)))")))
+         (reformat-string "(proxy [Clazz] []\n\n(method [x y] (+ x y)))")))
+  (is (= "(proxy [Clazz IFaceA IFaceB]
+       [arg1 arg2]
+  (method
+    [x y]
+    (+ x y)))"
+         (reformat-string "(proxy [Clazz IFaceA IFaceB]\n[arg1 arg2]\n(method [x y]\n    (+ x y)))")))
+  (is (= "(proxy [Clazz IFaceA IFaceB]
+       [arg1 arg2]
+
+  (method [x y] (+ x y)))"
+         (reformat-string "(proxy [Clazz IFaceA IFaceB]\n[arg1 arg2]\n\n(method [x y] (+ x y)))")))
   (is (= "(proxy [Clazz IFaceA IFaceB]
        [arg1 arg2]
 
@@ -183,10 +213,10 @@
     (+ x y)))"
          (reformat-string "(proxy [Clazz IFaceA IFaceB]
     [arg1 arg2]
+
                           (method [x y]
                           (+ x y)))")))
   (is (= "(proxy [Clazz] [string]
-
   (add
     [x y]
     (+ x y))
