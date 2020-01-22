@@ -117,7 +117,7 @@
   (and (= :list (z/tag zloc))
        (let [start (z/leftmost (z/down zloc))]
          (and (= :token (z/tag start))
-              (= "comment" (name (z/sexpr start)))))))
+              (= "comment" (z/string start))))))
 
 
 (defn- ignored?

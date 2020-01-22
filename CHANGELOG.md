@@ -8,6 +8,12 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- Var definitions (using `def`) have line-break rules, constrolled by
+  `:line-break-vars?`.
+- Type definition forms `deftype`, `defrecord`, `defprotocol`, `reify`, and
+  `proxy` have formatting rules, controlled by `:reformat-types?`.
+
 ### Fixed
 - `:list-indent-size` now applies to `ns` forms as well.
   [#25](https://github.com/greglook/cljstyle/pull/25)
@@ -15,12 +21,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - Fixed some cases where newlines would not be collapsed by line-break rules.
 - A bug previously caused any list in a vector in a `letfn` form to be treated
   like a function definition.
-
-### Added
-- Var definitions (using `def`) have line-break rules, constrolled by
-  `:line-break-vars?`.
-- Type definition forms `deftype`, `defrecord`, `defprotocol`, `reify`, and
-  `proxy` have formatting rules, controlled by `:reformat-types?`.
+- A bug caused `case` group lists beginning with a numeric value to throw an
+  error when formatting the file.
 
 
 ## [0.10.1] - 2020-01-04
