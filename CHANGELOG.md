@@ -8,6 +8,11 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+...
+
+
+## [0.11.0] - 2020-01-21
+
 ### Added
 - Var definitions (using `def`) have line-break rules, constrolled by
   `:line-break-vars?`.
@@ -162,7 +167,8 @@ functionality.
 Legacy project release.
 
 
-[Unreleased]: https://github.com/greglook/cljstyle/compare/0.10.1...HEAD
+[Unreleased]: https://github.com/greglook/cljstyle/compare/0.11.0...HEAD
+[0.11.0]: https://github.com/greglook/cljstyle/compare/0.10.1...0.11.0
 [0.10.1]: https://github.com/greglook/cljstyle/compare/0.10.0...0.10.1
 [0.10.0]: https://github.com/greglook/cljstyle/compare/0.9.0...0.10.0
 [0.9.0]: https://github.com/greglook/cljstyle/compare/0.8.3...0.9.0
