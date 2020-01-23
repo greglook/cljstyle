@@ -11,6 +11,17 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ...
 
 
+## [0.11.1] - 2020-01-22
+
+### Added
+- Added EPL file to repo to clarify licensing.
+
+### Changed
+- Modified the type formatting rules after feedback from users. This relaxes
+  the `reify` rules slightly and uses two-blank-lines between inline method
+  definitions.
+
+
 ## [0.11.0] - 2020-01-21
 
 ### Added
@@ -167,7 +178,8 @@ functionality.
 Legacy project release.
 
 
-[Unreleased]: https://github.com/greglook/cljstyle/compare/0.11.0...HEAD
+[Unreleased]: https://github.com/greglook/cljstyle/compare/0.11.1...HEAD
+[0.11.1]: https://github.com/greglook/cljstyle/compare/0.11.0...0.11.1
 [0.11.0]: https://github.com/greglook/cljstyle/compare/0.10.1...0.11.0
 [0.10.1]: https://github.com/greglook/cljstyle/compare/0.10.0...0.10.1
 [0.10.0]: https://github.com/greglook/cljstyle/compare/0.9.0...0.10.0
