@@ -1,5 +1,6 @@
 {:linters {:unresolved-symbol
            {:exclude [(cljstyle.test-util/capture-io [stdout stderr])
+                      (clojure.core/bound-fn [compute!])
                       (clojure.test/is [thrown-with-data? valid? invalid?])]}
 
            :consistent-alias
