@@ -72,7 +72,8 @@
             (send results report-result! result)))
 
         compute!
-        (bound-fn []
+        (bound-fn compute!
+          []
           (cond
             (config/ignored? config file)
             (report!
@@ -92,8 +93,10 @@
             (config/directory? file)
             (try
               (let [config' (config/merge-settings config (config/dir-config file))
-                    file->task #(processing-action process! results config' root %)
-                    subtasks (mapv file->task (.listFiles file))]
+                    subtasks (mapv (fn file-task
+                                     [child]
+                                     (processing-action process! results config' root child))
+                                   (.listFiles file))]
                 (ForkJoinTask/invokeAll ^java.util.Collection subtasks))
               (catch Exception ex
                 (report!

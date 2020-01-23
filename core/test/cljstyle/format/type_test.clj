@@ -91,8 +91,15 @@
 
   ;; a method comment
   (frobble
-    [bar x y]))")))
-    ,,,))
+    [bar x y]))"))))
+  (testing "nesting"
+    (is (= "(do
+  (defprotocol Foo
+    \"doc string goes here\"
+
+    (abc [foo])))"
+           (reformat-string "(do\n(defprotocol Foo \"doc string goes here\"
+  (abc [foo])))")))))
 
 
 (deftest type-definitions

@@ -22,5 +22,7 @@
   {:repl
    {:source-paths ["dev"]
     :repl-options {:init-ns cljstyle.repl}
+    :jvm-opts ["-XX:+UnlockDiagnosticVMOptions" "-XX:+DebugNonSafepoints"]
     :dependencies
-    [[org.clojure/tools.namespace "0.3.1"]]}})
+    [[com.clojure-goes-fast/clj-async-profiler "0.4.0"]
+     [org.clojure/tools.namespace "0.3.1"]]}})

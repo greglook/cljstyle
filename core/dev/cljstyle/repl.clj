@@ -1,5 +1,6 @@
 (ns cljstyle.repl
   (:require
+    [clj-async-profiler.core :as prof]
     [cljstyle.config :as config]
     [cljstyle.format.core :as fmt]
     [cljstyle.format.zloc :as zl]
@@ -37,3 +38,29 @@
       (as-> x (apply edit-fn x args))
       (node/string)
       (println)))
+
+
+
+;; ## Flame Graphs
+
+(defn massage-stack
+  "Collapse a stack frame in a profiling run."
+  [stack]
+  (-> stack
+      (str/replace #"cljstyle\.task\.process/processing-action/compute-BANG---\d+;(.*;cljstyle\.task\.process/processing-action/compute-BANG---\d+;)?"
+                   "cljstyle.task.process/processing-action/compute! ...;")
+      ,,,))
+
+
+(comment
+  ;; For example:
+  (prof/profile
+    {:event :cpu
+     :transform massage-stack}
+    (try
+      (task/check-sources  ["../.."])
+      (catch Exception _
+        nil)))
+
+  ;; - Should also support `:alloc` profiling
+  ,,,)
