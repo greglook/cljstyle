@@ -2,7 +2,6 @@
   (:require
     [cljstyle.format.zloc :as zl]
     [clojure.string :as str]
-    [clojure.zip :as zip]
     [rewrite-clj.node :as n]
     [rewrite-clj.zip :as z]))
 
@@ -87,12 +86,12 @@
   "Parse the ns form at this location, returning a map of the components of the
   namespace definition."
   [zloc]
-  (loop [ns-data (let [ns-sym (-> zloc zip/down z/right z/sexpr)
+  (loop [ns-data (let [ns-sym (-> zloc z/down z/right z/sexpr)
                        ns-meta (meta ns-sym)]
                    (cond-> {:ns ns-sym}
                      (seq ns-meta)
                      (assoc :meta ns-meta)))
-         zloc (-> zloc zip/down z/right z/right)]
+         zloc (-> zloc z/down z/right z/right)]
     (if zloc
       (cond
         (zl/string? zloc)
@@ -473,7 +472,7 @@
   "True if the node at this location is a namespace declaration."
   [zloc]
   (and (z/list? zloc)
-       (let [zl (zip/down zloc)]
+       (let [zl (z/down zloc)]
          (and (= :token (z/tag zl))
               (= 'ns (z/sexpr zl))))))
 
@@ -506,7 +505,7 @@
   (let [ns-data (-> (parse-ns-node zloc)
                     (replace-loads)
                     (replace-uses))]
-    (zip/replace zloc (render-ns-form ns-data opts))))
+    (z/replace zloc (render-ns-form ns-data opts))))
 
 
 

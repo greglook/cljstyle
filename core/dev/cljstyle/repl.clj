@@ -9,7 +9,6 @@
     [clojure.repl :refer :all]
     [clojure.string :as str]
     [clojure.tools.namespace.repl :refer [refresh]]
-    [clojure.zip :as zip]
     [rewrite-clj.node :as node]
     [rewrite-clj.parser :as parser]
     [rewrite-clj.zip :as z]))
@@ -23,7 +22,7 @@
   [form-string p?]
   (->> (parser/parse-string-all form-string)
        (z/edn)
-       (iterate #(z/find-next % zip/next p?))
+       (iterate #(z/find-next % z/next* p?))
        ;(iterate #(z/find-next-depth-first % p?))
        (next)
        (take-while some?)

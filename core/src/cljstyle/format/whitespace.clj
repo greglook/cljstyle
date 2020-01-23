@@ -2,7 +2,6 @@
   "Whitespace and blank-line formatting rules."
   (:require
     [cljstyle.format.zloc :as zl]
-    [clojure.zip :as zip]
     [rewrite-clj.node :as n]
     [rewrite-clj.zip :as z]))
 
@@ -15,7 +14,7 @@
   (loop [zloc zloc
          newlines 0]
     (if (z/linebreak? zloc)
-      (recur (-> zloc zip/right zl/skip-whitespace)
+      (recur (-> zloc z/right* zl/skip-whitespace)
              (-> zloc z/string count (+ newlines)))
       newlines)))
 
@@ -31,8 +30,8 @@
   following whitespace and linebreaks."
   [zloc n]
   (-> zloc
-      (zip/replace (n/newlines (inc n)))
-      (zip/next)
+      (z/replace (n/newlines (inc n)))
+      (z/next*)
       (zl/eat-whitespace)))
 
 
@@ -54,8 +53,8 @@
   [zloc]
   (and (z/whitespace? zloc)
        (zl/root? (z/up zloc))
-       (let [prev-zloc (z/skip zip/left z/whitespace? zloc)
-             next-zloc (z/skip zip/right z/whitespace? zloc)]
+       (let [prev-zloc (z/skip z/left* z/whitespace? zloc)
+             next-zloc (z/skip z/right* z/whitespace? zloc)]
          (and prev-zloc
               next-zloc
               (not (zl/comment? prev-zloc))
@@ -80,8 +79,9 @@
   "True if the predicate applies to `zloc` and it is either the left-most node
   or all nodes to the right also match the predicate."
   [zloc p?]
-  (and (p? zloc) (or (nil? (zip/left zloc))
-                     (nil? (z/skip zip/right p? zloc)))))
+  (and (p? zloc)
+       (or (nil? (z/left* zloc))
+           (nil? (z/skip z/right* p? zloc)))))
 
 
 (defn- surrounding-whitespace?
@@ -100,7 +100,7 @@
 (defn remove-surrounding-whitespace
   "Transform this form by removing any surrounding whitespace nodes."
   [form]
-  (zl/transform form surrounding-whitespace? zip/remove))
+  (zl/transform form surrounding-whitespace? z/remove*))
 
 
 
@@ -118,11 +118,11 @@
   following location is a different element."
   [zloc]
   (and (element? zloc)
-       (not (zl/reader-macro? (zip/up zloc)))
-       (element? (zip/right zloc))
+       (not (zl/reader-macro? (z/up* zloc)))
+       (element? (z/right* zloc))
        ;; allow abutting namespaced maps
        (not= :namespaced-map
-             (-> zloc zip/up z/node n/tag))))
+             (-> zloc z/up z/node n/tag))))
 
 
 (defn insert-missing-whitespace
@@ -137,7 +137,7 @@
 (defn- final?
   "True if this location is the last top-level node."
   [zloc]
-  (and (nil? (zip/right zloc)) (zl/root? (zip/up zloc))))
+  (and (nil? (z/right zloc)) (zl/root? (z/up zloc))))
 
 
 (defn- trailing-whitespace?
@@ -145,11 +145,11 @@
   line or the final top-level node."
   [zloc]
   (and (zl/space? zloc)
-       (or (z/linebreak? (zip/right zloc))
+       (or (z/linebreak? (z/right* zloc))
            (final? zloc))))
 
 
 (defn remove-trailing-whitespace
   "Transform this form by removing all trailing whitespace."
   [form]
-  (zl/transform form trailing-whitespace? zip/remove))
+  (zl/transform form trailing-whitespace? z/remove*))

@@ -3,14 +3,11 @@
   (:refer-clojure :exclude [keyword? string? reader-conditional?])
   (:require
     [clojure.string :as str]
-    [clojure.zip :as zip]
     [rewrite-clj.node :as n]
     [rewrite-clj.zip :as z])
   (:import
-    (rewrite_clj.node.keyword
-      KeywordNode)
-    (rewrite_clj.node.string
-      StringNode)))
+    rewrite_clj.node.keyword.KeywordNode
+    rewrite_clj.node.string.StringNode))
 
 
 (defn zprn
@@ -80,7 +77,7 @@
 (defn root?
   "True if this location is the root node."
   [zloc]
-  (nil? (zip/up zloc)))
+  (nil? (z/up zloc)))
 
 
 (defn multiline?
@@ -96,7 +93,7 @@
     (if zloc
       (if (= :syntax-quote (n/tag (z/node zloc)))
         true
-        (recur (zip/up zloc)))
+        (recur (z/up zloc)))
       false)))
 
 
@@ -172,7 +169,7 @@
 (defn skip-whitespace
   "Skip to the location of the next non-whitespace node."
   [zloc]
-  (z/skip zip/next space? zloc))
+  (z/skip z/next* space? zloc))
 
 
 
@@ -186,7 +183,7 @@
             [zl]
             (and (match? zl) (not (ignored? zl))))]
     (loop [zloc (if (edit? zloc) (f zloc) zloc)]
-      (if-let [zloc (z/find-next zloc zip/next edit?)]
+      (if-let [zloc (z/find-next zloc z/next* edit?)]
         (recur (f zloc))
         zloc))))
 
@@ -205,7 +202,7 @@
   (loop [zloc zloc]
     (if (or (z/linebreak? zloc)
             (z/whitespace? zloc))
-      (recur (zip/next (zip/remove zloc)))
+      (recur (z/next* (z/remove* zloc)))
       zloc)))
 
 
@@ -228,8 +225,8 @@
          (if (z/linebreak? zloc)
            (z/right zloc)
            (-> zloc
-               (zip/replace (n/newlines 1))
-               (zip/right)
+               (z/replace (n/newlines 1))
+               (z/right*)
                (eat-whitespace)))
          ;; preserve spacing
          preserve?
@@ -237,6 +234,6 @@
          ;; inline space
          :else
          (-> zloc
-             (zip/replace (n/whitespace-node " "))
-             (zip/right)
+             (z/replace (n/whitespace-node " "))
+             (z/right*)
              (eat-whitespace)))))))

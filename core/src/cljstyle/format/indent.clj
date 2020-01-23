@@ -2,7 +2,6 @@
   (:require
     [cljstyle.format.zloc :as zl]
     [clojure.string :as str]
-    [clojure.zip :as zip]
     [rewrite-clj.node :as n]
     [rewrite-clj.zip :as z]))
 
@@ -32,20 +31,20 @@
   "True if the node at this location consists of whitespace and is the first
   node on a line."
   [zloc]
-  (and (line-break? (zip/prev zloc))
+  (and (line-break? (z/prev* zloc))
        (zl/space? zloc)))
 
 
 (defn- comment-next?
   "True if the next non-whitespace node after this location is a comment."
   [zloc]
-  (-> zloc zip/next zl/skip-whitespace zl/comment?))
+  (-> zloc z/next* zl/skip-whitespace zl/comment?))
 
 
 (defn- line-break-next?
   "True if the next non-whitespace node after this location is a linebreak."
   [zloc]
-  (-> zloc zip/next zl/skip-whitespace line-break?))
+  (-> zloc z/next* zl/skip-whitespace line-break?))
 
 
 (defn- should-indent?
@@ -70,13 +69,13 @@
   [zloc]
   (loop [zloc     zloc
          worklist '()]
-    (if-let [p (zip/left zloc)]
-      (let [s            (str (n/string (z/node p)))
+    (if-let [p (z/left* zloc)]
+      (let [s (str (n/string (z/node p)))
             new-worklist (cons s worklist)]
         (if-not (str/includes? s "\n")
           (recur p new-worklist)
           (apply str new-worklist)))
-      (if-let [p (zip/up zloc)]
+      (if-let [p (z/up zloc)]
         ;; if a namespaced map's body is on a newline, don't add the
         ;; start-element to the list of indentation
         (if (and (= :namespaced-map (z/tag p))
@@ -117,21 +116,21 @@
 (defn- coll-indent
   "Determine how indented a new collection element should be."
   [zloc]
-  (-> zloc zip/leftmost margin))
+  (-> zloc z/leftmost* margin))
 
 
 (defn- list-indent
   "Determine how indented a list at the current location should be."
   [zloc list-indent-size]
-  (if (and (some-> zloc zip/leftmost zip/right zl/skip-whitespace z/linebreak?)
+  (if (and (some-> zloc z/leftmost* z/right* zl/skip-whitespace z/linebreak?)
            (-> zloc z/leftmost z/tag (= :token)))
-    (+ (-> zloc zip/up margin)
+    (+ (-> zloc z/up margin)
        list-indent-size
        (if (= :fn (-> zloc z/up z/tag))
          1
          0))
     (if (> (index-of zloc) 1)
-      (-> zloc zip/leftmost z/right margin)
+      (-> zloc z/leftmost* z/right margin)
       (coll-indent zloc))))
 
 
@@ -265,7 +264,7 @@
   "True if the node at this location is the first non-whitespace node on the
   line."
   [zloc]
-  (if-let [zloc (zip/left zloc)]
+  (if-let [zloc (z/left* zloc)]
     (if (zl/space? zloc)
       (recur zloc)
       (or (z/linebreak? zloc) (zl/comment? zloc)))
@@ -317,7 +316,7 @@
 (defn- unindent
   "Remove indentation whitespace from the form in preparation for reformatting."
   [form]
-  (zl/transform form should-unindent? zip/remove))
+  (zl/transform form should-unindent? z/remove*))
 
 
 (defn- indent-line
@@ -325,7 +324,7 @@
   [zloc list-indent-size indents]
   (let [width (indent-amount zloc list-indent-size indents)]
     (if (pos? width)
-      (zip/insert-right zloc (n/spaces width))
+      (z/insert-right* zloc (n/spaces width))
       zloc)))
 
 
