@@ -39,7 +39,7 @@
   [zloc]
   (and (zl/token? zloc)
        (name? (z/left zloc))
-       (string? (zl/token-value zloc))
+       (zl/string? zloc)
        (z/right zloc)))
 
 

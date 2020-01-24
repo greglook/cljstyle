@@ -26,11 +26,11 @@
 (defn- reader-branches
   "Return a sorted map from reader branch keys to branch forms."
   [zloc]
-  (let [spliced? (= "?@" (-> zloc z/down zl/token-value str))]
+  (let [spliced? (= "?@" (z/string (z/down zloc)))]
     (loop [branches (sorted-map)
            zloc (-> zloc z/down z/right z/down)]
       (if zloc
-        (let [branch (zl/token-value zloc)
+        (let [branch (z/sexpr zloc)
               clause (z/right zloc)]
           (recur (assoc branches branch (z/node clause))
                  (-> zloc z/right z/right)))

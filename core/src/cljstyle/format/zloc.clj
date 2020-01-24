@@ -71,7 +71,7 @@
   (and (reader-macro? zloc)
        (let [prefix (z/down zloc)]
          (when (token? prefix)
-           (contains? #{"?" "?@"} (str (z/sexpr prefix)))))))
+           (contains? #{"?" "?@"} (z/string prefix))))))
 
 
 (defn root?
