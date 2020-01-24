@@ -97,11 +97,12 @@
       false)))
 
 
-(defn- ignored-meta?
+(defn- ignore-meta?
   "True if the node at this location represents metadata tagging a form to be
   ignored by cljstyle."
   [zloc]
   (and (= :meta (z/tag zloc))
+       ;; FIXME: this will blow up for metadata with namespace-aliased keys
        (when-let [m (z/sexpr (z/next zloc))]
          (or (= :cljstyle/ignore m)
              (:cljstyle/ignore m)))))
@@ -117,12 +118,18 @@
               (= "comment" (z/string start))))))
 
 
+(defn- ignored-form?
+  "True if the node at this location is an ignored form."
+  [zloc]
+  (or (ignore-meta? zloc)
+      (comment-form? zloc)
+      (discard-macro? zloc)))
+
+
 (defn- ignored?
   "True if the node at this location is inside an ignored form."
   [zloc]
-  (some? (z/find zloc z/up (some-fn ignored-meta?
-                                    comment-form?
-                                    discard-macro?))))
+  (some? (z/find zloc z/up ignored-form?)))
 
 
 
@@ -179,13 +186,21 @@
   "Edit all nodes in `zloc` matching the predicate by applying `f` to them.
   Returns the final zipper location."
   [zloc match? f]
-  (letfn [(edit?
-            [zl]
-            (and (match? zl) (not (ignored? zl))))]
-    (loop [zloc (if (edit? zloc) (f zloc) zloc)]
-      (if-let [zloc (z/find-next zloc z/next* edit?)]
-        (recur (f zloc))
-        zloc))))
+  (loop [zloc zloc]
+    (cond
+      (z/end? zloc)
+      zloc
+
+      (ignored-form? zloc)
+      (if-let [right (z/right* zloc)]
+        (recur right)
+        zloc)
+
+      (match? zloc)
+      (recur (z/next* (f zloc)))
+
+      :else
+      (recur (z/next* zloc)))))
 
 
 (defn transform
