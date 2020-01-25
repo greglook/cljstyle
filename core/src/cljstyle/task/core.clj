@@ -97,7 +97,9 @@
     (p/logf "Checked %d files in %.2f ms"
             total-files
             (:elapsed results -1.0))
-    (p/log (pr-str stats))
+    (if (p/option :report)
+      (pr stats)
+      (p/log (pr-str stats)))
     (when-let [stats-file (p/option :stats)]
       (write-stats! stats-file stats))))
 

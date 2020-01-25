@@ -12,6 +12,7 @@
   "Command-line tool options."
   [[nil  "--stats FILE" "Write formatting stats to the named file. The extension controls the format and may be either 'edn' or 'tsv'."]
    [nil  "--no-color" "Don't output ANSI color codes."]
+   [nil  "--report" "Print stats report at the end of a run."]
    ["-v" "--verbose" "Print detailed debugging output."]
    ["-h" "--help" "Show help and usage information."]])
 

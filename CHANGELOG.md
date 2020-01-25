@@ -8,7 +8,12 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
-...
+### Added
+- The tool accepts a `--report` option which will cause the execution stats to
+  be printed at the end of a run.
+
+### Fixed
+- Many performance optimizations to type reformatting rules.
 
 
 ## [0.11.1] - 2020-01-22
