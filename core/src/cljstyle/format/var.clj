@@ -67,7 +67,8 @@
 (defn line-break-vars
   "Transform this form by applying line-breaks to var definition forms."
   [form]
-  (-> form
+  ;; TODO: optimize this
+  (-> (z/edn form {:track-position? true})
       (zl/break-whitespace
         pre-name-space?
         (constantly false))
@@ -77,4 +78,5 @@
       (zl/break-whitespace
         pre-body-space?
         (comp zl/multiline? z/up)
-        true)))
+        true)
+      (z/root)))

@@ -15,22 +15,6 @@
        (match? (z/right zloc))))
 
 
-(defn- whitespace-after?
-  "True if the location is a whitespace node following a location matching
-  `match?`."
-  [match? zloc]
-  (and (z/whitespace? zloc)
-       (match? (z/left zloc))))
-
-
-(defn- whitespace-around?
-  "True if the location is a whitespace node surrounding a location matching
-  `match?`."
-  [match? zloc]
-  (or (whitespace-before? match? zloc)
-      (whitespace-after? match? zloc)))
-
-
 (defn- whitespace-between?
   "True if the location is whitespace between locations matching `pre?` and
   `post?`, with nothing but whitespace between."
@@ -40,12 +24,24 @@
        (post? (z/skip z/right* z/whitespace? zloc))))
 
 
+(defn- line-break
+  "Ensure the node at this location breaks onto a new line. Returns the zipper
+  at the location following the whitespace."
+  [zloc]
+  (if (z/linebreak? zloc)
+    (z/right zloc)
+    (-> zloc
+        (z/replace (n/newlines 1))
+        (z/right*)
+        (zl/eat-whitespace))))
+
+
 (defn- blank-lines
   "Replace all whitespace at the location with `n` blank lines."
-  [n zloc]
+  [zloc n]
   (z/insert-left
     (zl/eat-whitespace zloc)
-    (n/newlines n)))
+    (n/newlines (inc n))))
 
 
 
@@ -65,77 +61,88 @@
 
 
 (defn- protocol-name?
-  "True if the node at this location is a protocol name."
+  "True if the node at this location inside a protocol form is a protocol
+  name."
   [zloc]
-  (and (protocol-form? (z/up zloc))
-       (defprotocol? (z/left zloc))))
+  (defprotocol? (z/left zloc)))
 
 
 (defn- protocol-docstring?
-  "True if the node at this location is a protocol-level docstring."
-  [zloc]
-  (and (protocol-form? (z/up zloc))
-       (protocol-name? (z/left zloc))
-       (zl/string? zloc)))
-
-
-(defn- protocol-name-to-doc-space?
-  "True if the node at this location is a space between a protocol name and
+  "True if the node at this location inside a protocol form is a protocol-level
   docstring."
   [zloc]
-  (and (z/whitespace? zloc)
-       (protocol-form? (z/up zloc))
-       (protocol-name? (z/left zloc))
-       (protocol-docstring? (z/right zloc))))
+  (and (zl/string? zloc)
+       (protocol-name? (z/left zloc))))
 
 
 (defn- protocol-method?
-  "True if the node at this location is a protocol method form."
+  "True if the node at this location inside a protocol form is a method form."
   [zloc]
   (and (z/list? zloc)
-       (protocol-form? (z/up zloc))
        (not (zl/keyword? (z/left zloc)))))
 
 
 (defn- protocol-method-args?
-  "True if the node at this location is a protocol method argument vector."
+  "True if the node at this location inside a protocol method is an argument
+  vector."
   [zloc]
-  (and (protocol-method? (z/up zloc))
-       (z/vector? zloc)))
+  (z/vector? zloc))
 
 
 (defn- protocol-method-doc?
-  "True if the node at this location is a protocol method docstring."
+  "True if the node at this location inside a protocol method is a docstring."
   [zloc]
-  (and (protocol-method? (z/up zloc))
-       (z/rightmost? zloc)
-       (zl/string? zloc)))
+  (and (zl/string? zloc)
+       (z/rightmost? zloc)))
 
 
-(defn- reformat-protocols
-  "Reformat any `defprotocol` forms so they adhere to the style rules."
-  [form]
-  (-> form
-      ;; Protocol-level docstring must be on a new line.
-      (zl/break-whitespace
-        protocol-name-to-doc-space?
-        (constantly true))
-      ;; One blank line preceding each method.
-      (zl/transform
-        #(and (z/whitespace? %)
-              (protocol-method? (z/skip z/right* z/whitespace? %))
-              (not (zl/comment? (z/skip z/left* z/whitespace? %))))
-        (partial blank-lines 2))
-      ;; If method is multiline or multiple arities, each arg vector must be on
-      ;; a new line.
-      (zl/break-whitespace
-        (partial whitespace-before? protocol-method-args?)
-        #(or (zl/multiline? (z/up %))
-             (z/right (z/right %))))
+(defn- edit-protocol-method
+  "Reformat a method within a `defprotocol` form. Returns a zipper located at
+  the root of the edited method form."
+  [zloc]
+  (loop [zloc (z/down zloc)]
+    (cond
+      ;; If method is multiline or multiple arities, each arg vector must be on a
+      ;; new line.
+      (and (z/whitespace? zloc)
+           (protocol-method-args? (z/right zloc))
+           (or (zl/multiline? (z/up zloc))
+               (z/right (z/right zloc))))
+      (recur (line-break zloc))
+
       ;; Method docstrings must be on new lines.
-      (zl/break-whitespace
-        (partial whitespace-before? protocol-method-doc?)
-        (constantly true))))
+      (and (z/whitespace? zloc)
+           (protocol-method-doc? (z/right zloc)))
+      (recur (line-break zloc))
+
+      :else
+      (if (z/rightmost? zloc)
+        (z/up zloc)
+        (recur (z/right* zloc))))))
+
+
+(defn- edit-protocol
+  "Reformat a `defprotocol` form. Returns a zipper located at the root of the
+  edited form."
+  [zloc]
+  (loop [zloc (z/down zloc)]
+    (cond
+      ;; Protocol-level docstring must be on a new line.
+      (whitespace-between? protocol-name? protocol-docstring? zloc)
+      (recur (line-break zloc))
+
+      ;; One blank line preceding each method.
+      (whitespace-between? (complement zl/comment?) protocol-method? zloc)
+      (recur (blank-lines zloc 1))
+
+      ;; Editing in place like methods, or skipping.
+      :else
+      (let [zloc' (if (protocol-method? zloc)
+                    (edit-protocol-method zloc)
+                    zloc)]
+        (if (z/rightmost? zloc')
+          (z/up zloc')
+          (recur (z/right* zloc')))))))
 
 
 
@@ -156,92 +163,122 @@
 
 
 (defn- type-name?
-  "True if the node at this location is a type name."
+  "True if the node at this location inside a type form is a type name."
   [zloc]
-  (and (type-form? (z/up zloc))
-       (z/leftmost? (z/left zloc))
-       (deftypish? (z/left zloc))))
+  (let [left (z/left zloc)]
+    (and (z/leftmost? left)
+         (deftypish? left))))
 
 
 (defn- type-fields?
-  "True if the node at this location is a type field vector."
+  "True if the node at this location inside a type form is a field vector."
   [zloc]
-  (and (type-name? (z/left zloc))
-       (z/vector? zloc)))
+  (and (z/vector? zloc)
+       (type-name? (z/left zloc))))
 
 
 (defn- type-option-key?
-  "True if the node at this location is an option keyword."
+  "True if the node at this location inside a type form is an option keyword."
   [zloc]
-  (and (type-form? (z/up zloc))
-       (zl/keyword? zloc)))
+  (and zloc (zl/keyword? zloc)))
 
 
 (defn- type-option-val?
-  "True if the node at this location is an option value."
+  "True if the node at this location inside a type form is an option value."
   [zloc]
   (type-option-key? (z/left zloc)))
 
 
 (defn- type-iface?
-  "True if the node at this location is a type interface symbol."
+  "True if the node at this location inside a type form is a type interface
+  symbol."
   [zloc]
-  (and (type-form? (z/up zloc))
+  (and (zl/token? zloc)
        (not (type-name? zloc))
-       (zl/token? zloc)
        (symbol? (z/sexpr (zl/unwrap-meta zloc)))))
 
 
 (defn- type-method?
-  "True if the node at this location is a type method implementation."
+  "True if the node at this location inside a type form is a method
+  implementation."
   [zloc]
-  (and (type-form? (z/up zloc))
-       (z/list? zloc)))
+  (and (z/list? zloc)
+       (not (type-option-val? zloc))))
 
 
 (defn- type-method-name?
-  "True if the node at this location is a type method name."
+  "True if the node at this location inside a type method form is a method
+  name."
   [zloc]
-  (and (type-method? (z/up zloc))
+  (and (zl/token? zloc)
        (z/leftmost? zloc)))
 
 
 (defn- type-method-args?
-  "True if the node at this location is a type method argument vector."
+  "True if the node at this location inside a type method form is an argument
+  vector."
   [zloc]
-  (and (type-method-name? (z/left zloc))
-       (z/vector? zloc)))
+  (and (z/vector? zloc)
+       (type-method-name? (z/left zloc))))
 
 
-(defn- reformat-types
-  "Reformat any `defrecord` and `deftype` forms so they adhere to the style
-  rules."
-  [form]
-  (-> form
+(defn- edit-type-method
+  "Reformat a method within a type form. Returns a zipper located at the root
+  of the edited method form."
+  [zloc]
+  ;; Line-break around method arguments unless they are one-liners.
+  (if (zl/multiline? zloc)
+    (loop [zloc (z/down zloc)]
+      (cond
+        (z/rightmost? zloc)
+        (z/up zloc)
+
+        (whitespace-before? type-method-args? zloc)
+        (-> zloc
+            (line-break)
+            (z/right*)
+            (line-break)
+            (z/up))
+
+        :else
+        (recur (z/right* zloc))))
+    zloc))
+
+
+(defn- edit-type
+  "Reformat a type definition form. Returns a zipper located at the root of the
+  edited form."
+  [zloc]
+  (loop [zloc (z/down zloc)]
+    (cond
       ;; Field vectors must be on a new line.
-      (zl/break-whitespace
-        (partial whitespace-before? type-fields?)
-        (constantly true))
+      (whitespace-between? any? type-fields? zloc)
+      (recur (line-break zloc))
+
       ;; One blank line between fields or options and interfaces.
-      (zl/transform
-        (partial whitespace-between? (some-fn type-fields? type-option-val?) type-iface?)
-        (partial blank-lines 2))
+      (whitespace-between? (some-fn type-fields? type-option-val?) type-iface? zloc)
+      (recur (blank-lines zloc 1))
+
       ;; One blank line between interfaces and methods.
-      (zl/transform
-        (partial whitespace-between? type-iface? type-method?)
-        (partial blank-lines 2))
+      (whitespace-between? type-iface? type-method? zloc)
+      (recur (blank-lines zloc 1))
+
       ;; Two blank lines between methods and interfaces.
-      (zl/transform
-        (partial whitespace-between? type-method? type-iface?)
-        (partial blank-lines 3))
+      (whitespace-between? type-method? type-iface? zloc)
+      (recur (blank-lines zloc 2))
+
       ;; Two blank lines between methods.
-      (zl/transform
-        (partial whitespace-between? type-method? type-method?)
-        (partial blank-lines 3))
-      ;; Line-break around method arguments unless they are one-liners.
-      (zl/break-whitespace
-        (partial whitespace-around? type-method-args?)
-        (comp zl/multiline? z/up))))
+      (whitespace-between? type-method? type-method? zloc)
+      (recur (blank-lines zloc 2))
+
+      ;; Editing in place like methods, or skipping.
+      :else
+      (let [zloc' (if (type-method? zloc)
+                    (edit-type-method zloc)
+                    zloc)]
+        (if (z/rightmost? zloc')
+          (z/up zloc')
+          (recur (z/right* zloc')))))))
 
 
 
@@ -256,67 +293,63 @@
 (defn- reify-form?
   "True if the node at this location is a reified definition form."
   [zloc]
-  (and (= :list (z/tag zloc))
+  (and (z/list? zloc)
        (reify? (z/down zloc))))
 
 
 (defn- reify-name?
   "True if the node at this location is a reified symbol name."
   [zloc]
-  (and (reify-form? (z/up zloc))
-       (z/leftmost? (z/left zloc))
-       (reify? (z/left zloc))))
+  (let [left (z/left zloc)]
+    (and (z/leftmost? left)
+         (reify? left))))
 
 
 (defn- reify-iface?
   "True if the node at this location is a reify interface symbol."
   [zloc]
-  (and (reify-form? (z/up zloc))
+  (and (zl/token? zloc)
        (not (reify-name? zloc))
-       (zl/token? zloc)
        (symbol? (z/sexpr (zl/unwrap-meta zloc)))))
 
 
 (defn- reify-method?
   "True if the node at this location is a reified method form."
   [zloc]
-  (and (reify-form? (z/up zloc))
-       (z/list? zloc)))
+  (z/list? zloc))
 
 
-(defn- reify-method-args?
-  "True if the node at this location is a type method argument vector."
+(defn- edit-reify
+  "Reformat a reify form. Returns a zipper located at the root of the edited
+  form."
   [zloc]
-  (and (reify-method? (z/up zloc))
-       (z/leftmost? (z/left zloc))
-       (z/vector? zloc)))
-
-
-(defn- reformat-reify
-  "Reformat any `reify` forms so they adhere to the style rules."
-  [form]
-  (-> form
+  (loop [zloc (z/down zloc)]
+    (cond
       ;; Two blank lines preceding interface symbols.
-      (zl/transform
-        (partial whitespace-between? reify-method? reify-iface?)
-        (partial blank-lines 3))
+      (whitespace-between? reify-method? reify-iface? zloc)
+      (recur (blank-lines zloc 2))
+
       ;; Ensure line-break before the first method.
-      (zl/break-whitespace
-        (partial whitespace-between? reify-name? reify-method?)
-        (constantly true)
-        true)
+      (whitespace-between? reify-name? reify-method? zloc)
+      (recur (line-break zloc))
+
       ;; One blank line between interfaces and methods.
-      (zl/transform
-        (partial whitespace-between? reify-iface? reify-method?)
-        (partial blank-lines 2))
+      (whitespace-between? reify-iface? reify-method? zloc)
+      (recur (blank-lines zloc 1))
+
       ;; One blank line between methods.
-      (zl/transform
-        (partial whitespace-between? reify-method? reify-method?)
-        (partial blank-lines 2))
-      ;; Line-break around method arguments unless they are one-liners.
-      (zl/break-whitespace
-        (partial whitespace-around? reify-method-args?)
-        (comp zl/multiline? z/up))))
+      (whitespace-between? reify-method? reify-method? zloc)
+      (recur (blank-lines zloc 1))
+
+      ;; Editing in place like methods, or skipping.
+      :else
+      (let [zloc' (if (type-method? zloc)
+                    (edit-type-method zloc)
+                    zloc)]
+        (if (z/rightmost? zloc')
+          (z/up zloc')
+          (recur (z/right* zloc')))))))
+
 
 
 ;; ## Proxy Rules
@@ -338,56 +371,54 @@
   "True if the node at this location is a vector of proxied type and interface
   symbols."
   [zloc]
-  (and (proxy-form? (z/up zloc))
-       (z/leftmost? (z/left zloc))
-       (proxy? (z/left zloc))
-       (z/vector? zloc)))
+  (and (z/vector? zloc)
+       (let [left (z/left zloc)]
+         (and (z/leftmost? left)
+              (proxy? left)))))
 
 
 (defn- proxy-super-args?
   "True if the node at this location is a vector of superclass arguments."
   [zloc]
-  (and (proxy-form? (z/up zloc))
-       (proxy-types? (z/left zloc))
-       (z/vector? zloc)))
+  (and (z/vector? zloc)
+       (proxy-types? (z/left zloc))))
 
 
 (defn- proxy-method?
   "True if the node at this location is a proxy method form."
   [zloc]
-  (and (proxy-form? (z/up zloc))
-       (z/list? zloc)))
+  (z/list? zloc))
 
 
-(defn- proxy-method-args?
-  "True if the node at this location is a proxy method argument vector."
+(defn- edit-proxy
+  "Reformat a proxy form. Returns a zipper located at the root of the edited
+  form."
   [zloc]
-  (and (proxy-method? (z/up zloc))
-       (z/leftmost? (z/left zloc))
-       (z/vector? zloc)))
-
-
-(defn- reformat-proxy
-  "Reformat any `proxy` forms so they adhere to the style rules."
-  [form]
-  (-> form
+  (loop [zloc (z/down zloc)]
+    (cond
       ;; Class and interfaces vector should be on the same line as proxy.
-      (zl/break-whitespace
-        (partial whitespace-before? proxy-types?)
-        (constantly false))
+      (whitespace-before? proxy-types? zloc)
+      (recur (-> zloc
+                 (z/replace (n/whitespace-node " "))
+                 (z/right*)
+                 (zl/eat-whitespace)))
+
       ;; Ensure line-break before the first method.
-      (zl/break-whitespace
-        (partial whitespace-between? proxy-super-args? proxy-method?)
-        (constantly true)
-        true)
+      (whitespace-between? proxy-super-args? proxy-method? zloc)
+      (recur (line-break zloc))
+
       ;; One blank line preceding each method beyond the first.
-      (zl/transform
-        (partial whitespace-between? proxy-method? proxy-method?)
-        (partial blank-lines 2))
-      ;; Line-break around method arguments unless they are one-liners.
-      (zl/break-whitespace
-        (partial whitespace-around? proxy-method-args?)
-        (comp zl/multiline? z/up))))
+      (whitespace-between? proxy-method? proxy-method? zloc)
+      (recur (blank-lines zloc 1))
+
+      ;; Editing in place like methods, or skipping.
+      :else
+      (let [zloc' (if (type-method? zloc)
+                    (edit-type-method zloc)
+                    zloc)]
+        (if (z/rightmost? zloc')
+          (z/up zloc')
+          (recur (z/right* zloc')))))))
 
 
 
@@ -396,8 +427,9 @@
 (defn reformat
   "Transform this form by applying formatting rules to type definition forms."
   [form]
-  (-> form
-      (reformat-protocols)
-      (reformat-types)
-      (reformat-reify)
-      (reformat-proxy)))
+  (-> (z/edn form {:track-position? true})
+      (z/prewalk protocol-form? edit-protocol)
+      (z/prewalk type-form? edit-type)
+      (z/prewalk reify-form? edit-reify)
+      (z/prewalk proxy-form? edit-proxy)
+      (z/root)))

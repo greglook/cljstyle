@@ -173,6 +173,14 @@
 
 ;; ## Movement
 
+(defn to-root
+  "Move the zipper to the root and return the zloc."
+  [zloc]
+  (if-let [parent (z/up zloc)]
+    (recur parent)
+    (dissoc zloc :end?)))
+
+
 (defn skip-whitespace
   "Skip to the location of the next non-whitespace node."
   [zloc]
@@ -182,7 +190,7 @@
 
 ;; ## Editing
 
-(defn- edit-all
+(defn edit-all
   "Edit all nodes in `zloc` matching the predicate by applying `f` to them.
   Returns the final zipper location."
   [zloc match? f]
@@ -203,13 +211,6 @@
       (recur (z/next* zloc)))))
 
 
-(defn transform
-  "Transform this form by parsing it as an EDN syntax tree and applying `edit`
-  successively to each location in the zipper which `match?` returns true for."
-  [form match? edit]
-  (z/root (edit-all (z/edn form) match? edit)))
-
-
 (defn eat-whitespace
   "Eat whitespace characters, leaving the zipper located at the next
   non-whitespace node."
@@ -224,31 +225,41 @@
 (defn break-whitespace
   "Edit the form to replace the whitespace to ensure it has a line-break if
   `break?` returns true on the location or a single space character if false."
-  ([form match? break?]
-   (break-whitespace form match? break? false))
-  ([form match? break? preserve?]
-   (transform
-     form
-     (fn edit?
-       [zloc]
-       (and (match? zloc) (not (syntax-quoted? zloc))))
-     (fn change
-       [zloc]
-       (cond
-         ;; break space
-         (break? zloc)
-         (if (z/linebreak? zloc)
-           (z/right zloc)
+  ([zloc match? break?]
+   (break-whitespace zloc match? break? false))
+  ([zloc match? break? preserve?]
+   (->
+     zloc
+     (edit-all
+       (fn edit?
+         [zloc]
+         ;; TODO: syntax-quoted should be moved to specific ns
+         (and (match? zloc) (not (syntax-quoted? zloc))))
+       (fn change
+         [zloc]
+         (cond
+           ;; break space
+           (break? zloc)
+           (if (z/linebreak? zloc)
+             (z/right zloc)
+             (-> zloc
+                 (z/replace (n/newlines 1))
+                 (z/right*)
+                 (eat-whitespace)))
+           ;; preserve spacing
+           preserve?
+           zloc
+           ;; inline space
+           :else
            (-> zloc
-               (z/replace (n/newlines 1))
+               (z/replace (n/whitespace-node " "))
                (z/right*)
-               (eat-whitespace)))
-         ;; preserve spacing
-         preserve?
-         zloc
-         ;; inline space
-         :else
-         (-> zloc
-             (z/replace (n/whitespace-node " "))
-             (z/right*)
-             (eat-whitespace)))))))
+               (eat-whitespace)))))
+     (to-root))))
+
+
+(defn transform
+  "Transform this form by parsing it as an EDN syntax tree and applying `edit`
+  successively to each location in the zipper which `match?` returns true for."
+  [form match? edit]
+  (z/root (edit-all (z/edn form {:track-position? true}) match? edit)))

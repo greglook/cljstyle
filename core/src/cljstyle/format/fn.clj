@@ -130,7 +130,8 @@
 (defn line-break-functions
   "Transform this form by applying line-breaks to function definition forms."
   [form]
-  (-> form
+  ;; TODO: optimize this by walking and finding functions
+  (-> (z/edn form {:track-position? true})
       ;; Function name or args should be adjacent to definition.
       (zl/break-whitespace
         fn-to-name-or-args-space?
@@ -150,4 +151,5 @@
       ;; Line-break before the body unless this is a one-liner.
       (zl/break-whitespace
         pre-body-space?
-        defn-or-multiline?)))
+        defn-or-multiline?)
+      (z/root)))
