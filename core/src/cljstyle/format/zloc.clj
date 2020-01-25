@@ -118,7 +118,7 @@
               (= "comment" (z/string start))))))
 
 
-(defn- ignored-form?
+(defn ignored-form?
   "True if the node at this location is an ignored form."
   [zloc]
   (or (ignore-meta? zloc)
@@ -126,7 +126,7 @@
       (discard-macro? zloc)))
 
 
-(defn- ignored?
+(defn ignored?
   "True if the node at this location is inside an ignored form."
   [zloc]
   (some? (z/find zloc z/up ignored-form?)))

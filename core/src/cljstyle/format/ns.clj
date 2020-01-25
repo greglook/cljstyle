@@ -514,4 +514,11 @@
 (defn rewrite-namespaces
   "Transform this form by rewriting any namespace forms."
   [form opts]
-  (zl/transform form ns-node? #(rewrite-ns-form % opts)))
+  (loop [zloc (z/edn form {:track-position? true})]
+    (let [zloc' (if (and (ns-node? zloc)
+                         (not (zl/ignored-form? zloc)))
+                  (z/subedit-node zloc #(rewrite-ns-form % opts))
+                  zloc)]
+      (if (z/rightmost? zloc')
+        (z/root zloc')
+        (recur (z/right zloc'))))))
