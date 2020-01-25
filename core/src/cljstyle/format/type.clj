@@ -7,43 +7,6 @@
     [rewrite-clj.zip :as z]))
 
 
-(defn- whitespace-before?
-  "True if the location is a whitespace node preceding a location matching
-  `match?`."
-  [match? zloc]
-  (and (z/whitespace? zloc)
-       (match? (z/right zloc))))
-
-
-(defn- whitespace-between?
-  "True if the location is whitespace between locations matching `pre?` and
-  `post?`, with nothing but whitespace between."
-  [pre? post? zloc]
-  (and (z/whitespace? zloc)
-       (pre? (z/skip z/left* z/whitespace? zloc))
-       (post? (z/skip z/right* z/whitespace? zloc))))
-
-
-(defn- line-break
-  "Ensure the node at this location breaks onto a new line. Returns the zipper
-  at the location following the whitespace."
-  [zloc]
-  (if (z/linebreak? zloc)
-    (z/right zloc)
-    (-> zloc
-        (z/replace (n/newlines 1))
-        (z/right*)
-        (zl/eat-whitespace))))
-
-
-(defn- blank-lines
-  "Replace all whitespace at the location with `n` blank lines."
-  [zloc n]
-  (z/insert-left
-    (zl/eat-whitespace zloc)
-    (n/newlines (inc n))))
-
-
 
 ;; ## Protocol Rules
 
@@ -108,12 +71,12 @@
            (protocol-method-args? (z/right zloc))
            (or (zl/multiline? (z/up zloc))
                (z/right (z/right zloc))))
-      (recur (line-break zloc))
+      (recur (zl/line-break zloc))
 
       ;; Method docstrings must be on new lines.
       (and (z/whitespace? zloc)
            (protocol-method-doc? (z/right zloc)))
-      (recur (line-break zloc))
+      (recur (zl/line-break zloc))
 
       :else
       (if (z/rightmost? zloc)
@@ -128,12 +91,12 @@
   (loop [zloc (z/down zloc)]
     (cond
       ;; Protocol-level docstring must be on a new line.
-      (whitespace-between? protocol-name? protocol-docstring? zloc)
-      (recur (line-break zloc))
+      (zl/whitespace-between? protocol-name? protocol-docstring? zloc)
+      (recur (zl/line-break zloc))
 
       ;; One blank line preceding each method.
-      (whitespace-between? (complement zl/comment?) protocol-method? zloc)
-      (recur (blank-lines zloc 1))
+      (zl/whitespace-between? (complement zl/comment?) protocol-method? zloc)
+      (recur (zl/replace-with-blank-lines zloc 1))
 
       ;; Editing in place like methods, or skipping.
       :else
@@ -233,11 +196,11 @@
         (z/rightmost? zloc)
         (z/up zloc)
 
-        (whitespace-before? type-method-args? zloc)
+        (zl/whitespace-before? type-method-args? zloc)
         (-> zloc
-            (line-break)
+            (zl/line-break)
             (z/right*)
-            (line-break)
+            (zl/line-break)
             (z/up))
 
         :else
@@ -252,24 +215,24 @@
   (loop [zloc (z/down zloc)]
     (cond
       ;; Field vectors must be on a new line.
-      (whitespace-between? any? type-fields? zloc)
-      (recur (line-break zloc))
+      (zl/whitespace-between? any? type-fields? zloc)
+      (recur (zl/line-break zloc))
 
       ;; One blank line between fields or options and interfaces.
-      (whitespace-between? (some-fn type-fields? type-option-val?) type-iface? zloc)
-      (recur (blank-lines zloc 1))
+      (zl/whitespace-between? (some-fn type-fields? type-option-val?) type-iface? zloc)
+      (recur (zl/replace-with-blank-lines zloc 1))
 
       ;; One blank line between interfaces and methods.
-      (whitespace-between? type-iface? type-method? zloc)
-      (recur (blank-lines zloc 1))
+      (zl/whitespace-between? type-iface? type-method? zloc)
+      (recur (zl/replace-with-blank-lines zloc 1))
 
       ;; Two blank lines between methods and interfaces.
-      (whitespace-between? type-method? type-iface? zloc)
-      (recur (blank-lines zloc 2))
+      (zl/whitespace-between? type-method? type-iface? zloc)
+      (recur (zl/replace-with-blank-lines zloc 2))
 
       ;; Two blank lines between methods.
-      (whitespace-between? type-method? type-method? zloc)
-      (recur (blank-lines zloc 2))
+      (zl/whitespace-between? type-method? type-method? zloc)
+      (recur (zl/replace-with-blank-lines zloc 2))
 
       ;; Editing in place like methods, or skipping.
       :else
@@ -326,20 +289,20 @@
   (loop [zloc (z/down zloc)]
     (cond
       ;; Two blank lines preceding interface symbols.
-      (whitespace-between? reify-method? reify-iface? zloc)
-      (recur (blank-lines zloc 2))
+      (zl/whitespace-between? reify-method? reify-iface? zloc)
+      (recur (zl/replace-with-blank-lines zloc 2))
 
       ;; Ensure line-break before the first method.
-      (whitespace-between? reify-name? reify-method? zloc)
-      (recur (line-break zloc))
+      (zl/whitespace-between? reify-name? reify-method? zloc)
+      (recur (zl/line-break zloc))
 
       ;; One blank line between interfaces and methods.
-      (whitespace-between? reify-iface? reify-method? zloc)
-      (recur (blank-lines zloc 1))
+      (zl/whitespace-between? reify-iface? reify-method? zloc)
+      (recur (zl/replace-with-blank-lines zloc 1))
 
       ;; One blank line between methods.
-      (whitespace-between? reify-method? reify-method? zloc)
-      (recur (blank-lines zloc 1))
+      (zl/whitespace-between? reify-method? reify-method? zloc)
+      (recur (zl/replace-with-blank-lines zloc 1))
 
       ;; Editing in place like methods, or skipping.
       :else
@@ -397,19 +360,16 @@
   (loop [zloc (z/down zloc)]
     (cond
       ;; Class and interfaces vector should be on the same line as proxy.
-      (whitespace-before? proxy-types? zloc)
-      (recur (-> zloc
-                 (z/replace (n/whitespace-node " "))
-                 (z/right*)
-                 (zl/eat-whitespace)))
+      (zl/whitespace-before? proxy-types? zloc)
+      (recur (zl/line-join zloc))
 
       ;; Ensure line-break before the first method.
-      (whitespace-between? proxy-super-args? proxy-method? zloc)
-      (recur (line-break zloc))
+      (zl/whitespace-between? proxy-super-args? proxy-method? zloc)
+      (recur (zl/line-break zloc))
 
       ;; One blank line preceding each method beyond the first.
-      (whitespace-between? proxy-method? proxy-method? zloc)
-      (recur (blank-lines zloc 1))
+      (zl/whitespace-between? proxy-method? proxy-method? zloc)
+      (recur (zl/replace-with-blank-lines zloc 1))
 
       ;; Editing in place like methods, or skipping.
       :else
@@ -428,8 +388,8 @@
   "Transform this form by applying formatting rules to type definition forms."
   [form]
   (-> (z/edn form {:track-position? true})
-      (z/prewalk protocol-form? edit-protocol)
-      (z/prewalk type-form? edit-type)
-      (z/prewalk reify-form? edit-reify)
-      (z/prewalk proxy-form? edit-proxy)
+      (zl/edit-walk protocol-form? edit-protocol)
+      (zl/edit-walk type-form? edit-type)
+      (zl/edit-walk reify-form? edit-reify)
+      (zl/edit-walk proxy-form? edit-proxy)
       (z/root)))

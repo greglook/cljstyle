@@ -132,6 +132,23 @@
   (some? (z/find zloc z/up ignored-form?)))
 
 
+(defn whitespace-before?
+  "True if the location is a whitespace node preceding a location matching
+  `match?`."
+  [match? zloc]
+  (and (z/whitespace? zloc)
+       (match? (z/right zloc))))
+
+
+(defn whitespace-between?
+  "True if the location is whitespace between locations matching `pre?` and
+  `post?`, with nothing but whitespace between."
+  [pre? post? zloc]
+  (and (z/whitespace? zloc)
+       (pre? (z/skip z/left* z/whitespace? zloc))
+       (post? (z/skip z/right* z/whitespace? zloc))))
+
+
 
 ;; ## Accessors
 
@@ -190,6 +207,75 @@
 
 ;; ## Editing
 
+(defn eat-whitespace
+  "Eat whitespace characters, leaving the zipper located at the next
+  non-whitespace node."
+  [zloc]
+  (loop [zloc zloc]
+    (if (or (z/linebreak? zloc)
+            (z/whitespace? zloc))
+      (recur (z/next* (z/remove* zloc)))
+      zloc)))
+
+
+(defn line-join
+  "Ensure the node at this location joins onto the same line. Returns the
+  zipper at the location following the whitespace."
+  [zloc]
+  (-> zloc
+      (z/replace (n/whitespace-node " "))
+      (z/right*)
+      (eat-whitespace)))
+
+
+(defn line-break
+  "Ensure the node at this location breaks onto a new line. Returns the zipper
+  at the location following the whitespace."
+  [zloc]
+  (if (z/linebreak? zloc)
+    (z/right zloc)
+    (-> zloc
+        (z/replace (n/newlines 1))
+        (z/right*)
+        (eat-whitespace))))
+
+
+(defn replace-with-blank-lines
+  "Replace all whitespace at the location with `n` blank lines."
+  [zloc n]
+  (z/insert-left
+    (eat-whitespace zloc)
+    (n/newlines (inc n))))
+
+
+(defn- edit-walk*
+  "Edit all nodes in `zloc` matching the predicate by applying `f` to them.
+  Returns the original zipper location. Does not check whitespace forms!"
+  [match? f zloc]
+  (loop [zloc zloc]
+    (cond
+      (z/end? zloc)
+      zloc
+
+      (ignored-form? zloc)
+      (if-let [right (z/right zloc)]
+        (recur right)
+        zloc)
+
+      (match? zloc)
+      (recur (z/next (f zloc)))
+
+      :else
+      (recur (z/next zloc)))))
+
+
+(defn edit-walk
+  "Walk the forms in a zipper, transforming any location matching `match?` with
+  `f`. Returns a zipper located at the original position, including the changes."
+  [zloc match? f]
+  (z/subedit-node zloc (partial edit-walk* match? f)))
+
+
 (defn edit-all
   "Edit all nodes in `zloc` matching the predicate by applying `f` to them.
   Returns the final zipper location."
@@ -211,17 +297,7 @@
       (recur (z/next* zloc)))))
 
 
-(defn eat-whitespace
-  "Eat whitespace characters, leaving the zipper located at the next
-  non-whitespace node."
-  [zloc]
-  (loop [zloc zloc]
-    (if (or (z/linebreak? zloc)
-            (z/whitespace? zloc))
-      (recur (z/next* (z/remove* zloc)))
-      zloc)))
-
-
+;; TODO: deprecate
 (defn break-whitespace
   "Edit the form to replace the whitespace to ensure it has a line-break if
   `break?` returns true on the location or a single space character if false."
@@ -240,12 +316,7 @@
          (cond
            ;; break space
            (break? zloc)
-           (if (z/linebreak? zloc)
-             (z/right zloc)
-             (-> zloc
-                 (z/replace (n/newlines 1))
-                 (z/right*)
-                 (eat-whitespace)))
+           (line-break zloc)
            ;; preserve spacing
            preserve?
            zloc
