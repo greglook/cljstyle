@@ -7,6 +7,7 @@
     [cljstyle.task.core :as task]
     [clojure.java.io :as io]
     [clojure.repl :refer :all]
+    [clojure.stacktrace :refer [print-cause-trace]]
     [clojure.string :as str]
     [clojure.tools.namespace.repl :refer [refresh]]
     [rewrite-clj.node :as node]
@@ -30,6 +31,8 @@
 
 
 (defn try-edit
+  "Try editing the form, either with the standard reformatting code or with a
+  specific function."
   [form-string edit-fn & args]
   (println "Initial:\n" form-string)
   (println "Formatted:")
@@ -46,20 +49,39 @@
   "Collapse a stack frame in a profiling run."
   [stack]
   (-> stack
-      (str/replace #"cljstyle\.task\.process/processing-action/compute-BANG---\d+;(.*;cljstyle\.task\.process/processing-action/compute-BANG---\d+;)?"
-                   "cljstyle.task.process/processing-action/compute! ...;")
-      ,,,))
+      (str/replace
+        #"cljstyle\.task\.process/processing-action/compute-BANG---\d+;(.*;cljstyle\.task\.process/processing-action/compute-BANG---\d+;)?"
+        "cljstyle.task.process/processing-action/compute! ...;")))
 
 
-(comment
-  ;; For example:
-  (prof/profile
-    {:event :cpu
-     :transform massage-stack}
-    (try
-      (task/check-sources  ["../.."])
-      (catch Exception _
-        nil)))
+(def null-writer
+  "A Java writer which discards all input."
+  (proxy [java.io.Writer] []
 
-  ;; - Should also support `:alloc` profiling
-  ,,,)
+    (write
+      [^chars cbuf off len]
+      nil)
+
+    (flush
+      []
+      nil)
+
+    (close
+      []
+      nil)))
+
+
+(defmacro profile-check
+  "Profile the `check-sources` code by running it `n` times on the files at the
+  given path. Suppresses stdout and stderr."
+  [n path]
+  `(prof/profile
+     {:event :cpu
+      :transform massage-stack}
+     (dotimes [_ ~n]
+       (try
+         (binding [*out* null-writer
+                   *err* null-writer]
+           (task/check-sources  [~path]))
+         (catch Exception _#
+           nil)))))
