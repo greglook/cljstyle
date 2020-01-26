@@ -186,19 +186,18 @@
   "Reformat a method within a type form. Returns a zipper located at the root
   of the edited method form."
   [zloc]
-  ;; Line-break around method arguments unless they are one-liners.
   (if (zl/multiline? zloc)
     (loop [zloc (z/down zloc)]
       (cond
+        ;; Line-break around method arguments unless they are one-liners.
+        (zl/whitespace-before? type-method-args? zloc)
+        (let [args-zloc (zl/line-break zloc)]
+          (if-let [post-space (z/right* args-zloc)]
+            (z/up (zl/line-break post-space))
+            (z/up args-zloc)))
+
         (z/rightmost? zloc)
         (z/up zloc)
-
-        (zl/whitespace-before? type-method-args? zloc)
-        (-> zloc
-            (zl/line-break)
-            (z/right*)
-            (zl/line-break)
-            (z/up))
 
         :else
         (recur (z/right* zloc))))

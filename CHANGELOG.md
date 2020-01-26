@@ -17,6 +17,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 - Many performance optimizations across the formatting rules.
+- Bug causing a `NullPointerException` when formatting type methods with empty
+  bodies.
 
 
 ## [0.11.1] - 2020-01-22
