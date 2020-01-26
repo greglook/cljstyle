@@ -15,7 +15,7 @@
 (defn- def-form?
   "True if the node at this location is a `def` form declaring a var."
   [zloc]
-  (and (= :list (z/tag zloc))
+  (and (z/list? zloc)
        (def? (z/down zloc))))
 
 
@@ -63,8 +63,7 @@
   (loop [zloc (z/down zloc)]
     (cond
       ;; Join def symbol and name.
-      (and (z/whitespace? zloc)
-           (def? (z/left zloc)))
+      (zl/whitespace-after? def? zloc)
       (recur (zl/line-join zloc))
 
       ;; Break around doc strings.

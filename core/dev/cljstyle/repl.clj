@@ -5,6 +5,7 @@
     [cljstyle.format.core :as fmt]
     [cljstyle.format.zloc :as zl]
     [cljstyle.task.core :as task]
+    [cljstyle.task.print :refer [with-options]]
     [clojure.java.io :as io]
     [clojure.repl :refer :all]
     [clojure.stacktrace :refer [print-cause-trace]]
@@ -51,7 +52,10 @@
   (-> stack
       (str/replace
         #"cljstyle\.task\.process/processing-action/compute-BANG---\d+;(.*;cljstyle\.task\.process/processing-action/compute-BANG---\d+;)?"
-        "cljstyle.task.process/processing-action/compute! ...;")))
+        "cljstyle.task.process/processing-action/compute! ...;")
+      (str/replace
+        #"rewrite-clj\.parser\.core/parse-next;(.*;rewrite-clj\.parser\.core/parse-next;)?"
+        "rewrite-clj.parser.core/parse-next ...;")))
 
 
 (def null-writer

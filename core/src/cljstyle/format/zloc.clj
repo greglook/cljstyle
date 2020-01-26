@@ -112,7 +112,7 @@
   "True if the node at this location is a comment form - that is, a list
   beginning with the `comment` symbol, as opposed to a literal text comment."
   [zloc]
-  (and (= :list (z/tag zloc))
+  (and (z/list? zloc)
        (let [start (z/leftmost (z/down zloc))]
          (and (= :token (z/tag start))
               (= "comment" (z/string start))))))
@@ -124,12 +124,6 @@
   (or (ignore-meta? zloc)
       (comment-form? zloc)
       (discard-macro? zloc)))
-
-
-(defn ignored?
-  "True if the node at this location is inside an ignored form."
-  [zloc]
-  (some? (z/find zloc z/up ignored-form?)))
 
 
 (defn whitespace-before?
@@ -197,14 +191,6 @@
 
 
 ;; ## Movement
-
-(defn to-root
-  "Move the zipper to the root and return the zloc."
-  [zloc]
-  (if-let [parent (z/up zloc)]
-    (recur parent)
-    (dissoc zloc :end?)))
-
 
 (defn skip-whitespace
   "Skip to the location of the next non-whitespace node."
@@ -303,35 +289,6 @@
 
       :else
       (recur (z/next* zloc)))))
-
-
-;; TODO: deprecate
-(defn break-whitespace
-  "Edit the form to replace the whitespace to ensure it has a line-break if
-  `break?` returns true on the location or a single space character if false."
-  ([zloc match? break?]
-   (break-whitespace zloc match? break? false))
-  ([zloc match? break? preserve?]
-   (->
-     zloc
-     (edit-all
-       (fn edit?
-         [zloc]
-         ;; TODO: syntax-quoted should be moved to specific ns
-         (and (match? zloc) (not (syntax-quoted? zloc))))
-       (fn change
-         [zloc]
-         (cond
-           ;; break space
-           (break? zloc)
-           (line-break zloc)
-           ;; preserve spacing
-           preserve?
-           zloc
-           ;; inline space
-           :else
-           (line-join zloc))))
-     (to-root))))
 
 
 (defn transform

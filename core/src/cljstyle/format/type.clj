@@ -3,7 +3,6 @@
   `defrecord`, `reify`, and `proxy`."
   (:require
     [cljstyle.format.zloc :as zl]
-    [rewrite-clj.node :as n]
     [rewrite-clj.zip :as z]))
 
 
@@ -19,7 +18,7 @@
 (defn- protocol-form?
   "True if the node at this location is a protocol definition form."
   [zloc]
-  (and (= :list (z/tag zloc))
+  (and (z/list? zloc)
        (defprotocol? (z/down zloc))))
 
 
@@ -67,15 +66,13 @@
     (cond
       ;; If method is multiline or multiple arities, each arg vector must be on a
       ;; new line.
-      (and (z/whitespace? zloc)
-           (protocol-method-args? (z/right zloc))
+      (and (zl/whitespace-before? protocol-method-args? zloc)
            (or (zl/multiline? (z/up zloc))
                (z/right (z/right zloc))))
       (recur (zl/line-break zloc))
 
       ;; Method docstrings must be on new lines.
-      (and (z/whitespace? zloc)
-           (protocol-method-doc? (z/right zloc)))
+      (zl/whitespace-before? protocol-method-doc? zloc)
       (recur (zl/line-break zloc))
 
       :else
@@ -121,7 +118,7 @@
 (defn- type-form?
   "True if the node at this location is a type definition form."
   [zloc]
-  (and (= :list (z/tag zloc))
+  (and (z/list? zloc)
        (deftypish? (z/down zloc))))
 
 
@@ -326,7 +323,7 @@
 (defn- proxy-form?
   "True if the node at this location is a proxy definition form."
   [zloc]
-  (and (= :list (z/tag zloc))
+  (and (z/list? zloc)
        (proxy? (z/down zloc))))
 
 

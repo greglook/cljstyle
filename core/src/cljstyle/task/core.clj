@@ -98,7 +98,7 @@
             total-files
             (:elapsed results -1.0))
     (if (p/option :report)
-      (pr stats)
+      (prn stats)
       (p/log (pr-str stats)))
     (when-let [stats-file (p/option :stats)]
       (write-stats! stats-file stats))))

@@ -80,7 +80,7 @@
 (defn- edit-fn-arity
   "Reformat a function arity body at this location. Returns a zipper located
   at the root of the arity body."
-  [zloc break?]
+  [zloc]
   ;; TODO: implement
   zloc)
 
@@ -106,9 +106,7 @@
         (recur :name zloc)
 
         ;; Break whitespace after name if defn or multiline.
-        (and (= :name section)
-             (z/whitespace? zloc)
-             (fn-name? (z/left zloc)))
+        (and (= :name section) (zl/whitespace-after? fn-name? zloc))
         (if break?
           (recur :name (zl/line-break zloc))
           (recur :name (zl/line-join zloc)))
@@ -135,7 +133,7 @@
         (= :arities section)
         (let [zloc' (cond
                       (fn-arity? zloc)
-                      (edit-fn-arity zloc break?)
+                      (edit-fn-arity zloc)
 
                       (and break? (z/whitespace? zloc))
                       (zl/line-break zloc)

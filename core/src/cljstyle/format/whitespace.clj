@@ -137,7 +137,7 @@
 (defn- final?
   "True if this location is the last top-level node."
   [zloc]
-  (and (nil? (z/right zloc)) (zl/root? (z/up zloc))))
+  (and (z/rightmost? zloc) (zl/root? (z/up zloc))))
 
 
 (defn- trailing-whitespace?
