@@ -518,7 +518,7 @@
   (loop [zloc (z/edn form {:track-position? true})]
     (let [zloc' (if (and (ns-node? zloc)
                          (not (zl/ignored-form? zloc)))
-                  (z/subedit-node zloc #(rewrite-ns-form % opts))
+                  (zl/subedit zloc #(rewrite-ns-form % opts))
                   zloc)]
       (if (z/rightmost? zloc')
         (z/root zloc')

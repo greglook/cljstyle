@@ -22,8 +22,8 @@
 
 (defn zfind
   [form-string p?]
-  (->> (parser/parse-string-all form-string)
-       (z/edn*)
+  (->> (z/edn* (parser/parse-string-all form-string)
+               {:track-position? true})
        (iterate #(z/find-next % z/next* p?))
        ;(iterate #(z/find-next-depth-first % p?))
        (next)

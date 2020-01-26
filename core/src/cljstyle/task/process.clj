@@ -26,6 +26,28 @@
             (.getPath (io/file root path)))))))
 
 
+(defn- print-error
+  "Print a processing error for human consumption."
+  [ex]
+  (cond
+    (= :cljstyle/format-error (:type (ex-data ex)))
+    (let [max-len 100]
+      (println (ex-message ex))
+      (when-let [form (and (p/option :verbose)
+                           (:form (ex-data ex)))]
+        (if (< max-len (count form))
+          (println (subs form 0 max-len) "...")
+          (println form)))
+      (when-let [cause (and (p/option :verbose) (ex-cause ex))]
+        (p/print-cause-trace cause)))
+
+    (p/option :verbose)
+    (p/print-cause-trace ex)
+
+    :else
+    (p/print-throwable ex)))
+
+
 (defn- report-result!
   "Report task results in a shared map and take any associated side-effects."
   [results result]
@@ -38,11 +60,9 @@
     (flush))
   (when-let [message (:warn result)]
     (p/printerr message))
-  (when-let [^Exception ex (:error result)]
+  (when-let [ex (:error result)]
     (binding [*out* *err*]
-      (if (p/option :verbose)
-        (p/print-cause-trace ex)
-        (p/print-throwable ex))
+      (print-error ex)
       (flush)))
   ;; Update results map.
   (let [result-type (:type result)

@@ -11,6 +11,9 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 - The tool accepts a `--report` option which will cause the execution stats to
   be printed at the end of a run.
+- Processing errors are now rethrown with more information about the specific
+  function that failed and the position in the file which was problematic.
+  [#29](//github.com/greglook/cljstyle/issues/29)
 
 ### Fixed
 - Many performance optimizations across the formatting rules.
@@ -37,7 +40,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 - `:list-indent-size` now applies to `ns` forms as well.
-  [#25](https://github.com/greglook/cljstyle/pull/25)
+  [#25](//github.com/greglook/cljstyle/pull/25)
 - `defmacro` is now subject to function line-breaking rules.
 - Fixed some cases where newlines would not be collapsed by line-break rules.
 - A bug previously caused any list in a vector in a `letfn` form to be treated
@@ -118,8 +121,8 @@ better differentiate it from the original `cljfmt`.
   [#12](//github.com/greglook/cljstyle/issues/12)
 - Namespaced maps are indented correctly and allow for abutting same-line
   namespace tags.
-  [#6](https://github.com/greglook/cljstyle/issues/6)
-  [#7](https://github.com/greglook/cljstyle/pull/7)
+  [#6](//github.com/greglook/cljstyle/issues/6)
+  [#7](//github.com/greglook/cljstyle/pull/7)
 
 ### Changed
 - Many new tests around configuration file loading and merge behavior.
