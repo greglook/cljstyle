@@ -52,7 +52,6 @@
   forms, at least one of which is multi-line."
   [zloc]
   (and (z/whitespace? zloc)
-       (zl/root? (z/up zloc))
        (let [prev-zloc (z/skip z/left* z/whitespace? zloc)
              next-zloc (z/skip z/right* z/whitespace? zloc)]
          (and prev-zloc
@@ -66,10 +65,18 @@
 (defn insert-padding-lines
   "Edit the form to replace consecutive blank lines with a single line."
   [form padding-lines]
-  (zl/transform
-    form
-    padding-line-break?
-    #(replace-with-blank-lines % padding-lines)))
+  (if-let [start (z/down (z/edn* form {:track-position? true}))]
+    (loop [zloc start]
+      (cond
+        (z/rightmost? zloc)
+        (z/root zloc)
+
+        (padding-line-break? zloc)
+        (recur (replace-with-blank-lines zloc padding-lines))
+
+        :else
+        (recur (z/right* zloc))))
+    form))
 
 
 
