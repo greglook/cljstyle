@@ -101,3 +101,17 @@
      ~(str \"foo bar \" x)
      [a# b#]
      ~y))"))))
+
+
+(deftest regressions
+  (testing "prismatic schema"
+    (is (= "(s/defn prismatic
+  :- AType
+  \"docs\"
+  [x y z]
+  (+ x (* y z)))"
+           (reformat-string
+             "(s/defn
+          prismatic
+  :- AType
+  \"docs\" [x y z] (+ x (* y z)))")))))

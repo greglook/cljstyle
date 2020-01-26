@@ -106,7 +106,9 @@
         (recur :name zloc)
 
         ;; Break whitespace after name if defn or multiline.
-        (and (= :name section) (z/whitespace? zloc))
+        (and (= :name section)
+             (z/whitespace? zloc)
+             (fn-name? (z/left zloc)))
         (if break?
           (recur :name (zl/line-break zloc))
           (recur :name (zl/line-join zloc)))
