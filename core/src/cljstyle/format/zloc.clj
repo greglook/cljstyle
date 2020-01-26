@@ -338,4 +338,4 @@
   "Transform this form by parsing it as an EDN syntax tree and applying `edit`
   successively to each location in the zipper which `match?` returns true for."
   [form match? edit]
-  (z/root (edit-all (z/edn form {:track-position? true}) match? edit)))
+  (z/root (edit-all (z/edn* form {:track-position? true}) match? edit)))

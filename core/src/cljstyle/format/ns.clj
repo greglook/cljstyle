@@ -514,6 +514,7 @@
 (defn rewrite-namespaces
   "Transform this form by rewriting any namespace forms."
   [form opts]
+  ;; NOTE: using `edn` instead of `edn*` here is intentional.
   (loop [zloc (z/edn form {:track-position? true})]
     (let [zloc' (if (and (ns-node? zloc)
                          (not (zl/ignored-form? zloc)))

@@ -10,7 +10,7 @@
 
 (deftest zprn-debugging
   (let [form (parser/parse-string "(do (prn 123) true)")
-        zloc (z/edn form)]
+        zloc (z/edn* form)]
     (is (str/starts-with?
           (with-out-str
             (is (identical? zloc (zl/zprn zloc :label))))

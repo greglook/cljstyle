@@ -85,6 +85,6 @@
 (defn line-break-vars
   "Transform this form by applying line-breaks to var definition forms."
   [form]
-  (-> (z/edn form {:track-position? true})
+  (-> (z/edn* form {:track-position? true})
       (zl/edit-walk def-form? edit-def)
       (z/root)))

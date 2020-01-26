@@ -22,7 +22,7 @@
 (defn zfind
   [form-string p?]
   (->> (parser/parse-string-all form-string)
-       (z/edn)
+       (z/edn*)
        (iterate #(z/find-next % z/next* p?))
        ;(iterate #(z/find-next-depth-first % p?))
        (next)
@@ -78,7 +78,7 @@
   `(prof/profile
      {:event :cpu
       :transform massage-stack}
-     (dotimes [_ ~n]
+     (dotimes [_# ~n]
        (try
          (binding [*out* null-writer
                    *err* null-writer]

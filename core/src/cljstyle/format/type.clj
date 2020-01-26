@@ -387,7 +387,7 @@
 (defn reformat
   "Transform this form by applying formatting rules to type definition forms."
   [form]
-  (-> (z/edn form {:track-position? true})
+  (-> (z/edn* form {:track-position? true})
       (zl/edit-walk protocol-form? edit-protocol)
       (zl/edit-walk type-form? edit-type)
       (zl/edit-walk reify-form? edit-reify)
