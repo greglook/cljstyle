@@ -142,13 +142,6 @@
     (first rule)))
 
 
-(defn- make-indenter
-  "Construct an indentation function by mapping the multimethod over the
-  configured rule bodies."
-  [list-indent-size [rule-key opts]]
-  (apply some-fn (map (partial indenter-fn rule-key list-indent-size) opts)))
-
-
 (defn- pattern?
   "True if the value if a regular expression pattern."
   [v]
@@ -180,37 +173,49 @@
     (re-find rule-key (str sym))))
 
 
-(defn- custom-indent
-  "Look up custom indentation rules for the node at this location. Returns the
-  number of spaces to indent the node."
-  [zloc list-indent-size indents]
-  (if (empty? indents)
-    (list-indent zloc list-indent-size)
-    (let [indenter (->> (sort-by indent-order indents)
-                        (map (partial make-indenter list-indent-size))
-                        (apply some-fn))]
-      (or (indenter zloc)
-          (list-indent zloc list-indent-size)))))
+(defn- rule-indenter
+  "Construct an indentation function by mapping the multimethod over the
+  configured rule bodies."
+  [list-indent-size [rule-key opts]]
+  (let [indenters (mapv (partial indenter-fn rule-key list-indent-size) opts)]
+    (fn indenter
+      [zloc]
+      (loop [indenters indenters]
+        (when (seq indenters)
+          (let [candidate (first indenters)]
+            (or (candidate zloc)
+                (recur (next indenters)))))))))
 
 
-(defn indent-amount
-  "Calculates the number of spaces the node at this location should be
-  indented, based on the available custom indent rules."
-  [zloc list-indent-size indents]
-  (let [tag (-> zloc z/up z/tag)
-        gp  (-> zloc z/up z/up)]
-    (cond
-      (zl/reader-conditional? gp)
-      (coll-indent zloc)
+(defn- custom-indenter
+  "Construct a function which will return an indent amount for a given zipper
+  location."
+  [opts]
+  (let [list-indent-size (:list-indent-size opts 2)
+        indenters (->> (:indents opts)
+                       (sort-by indent-order)
+                       (mapv (partial rule-indenter list-indent-size)))]
+    (fn indent-amount
+      [zloc]
+      (let [up (z/up zloc)
+            tag (z/tag up)]
+        (cond
+          (zl/reader-conditional? (z/up up))
+          (coll-indent zloc)
 
-      (#{:list :fn} tag)
-      (custom-indent zloc list-indent-size indents)
+          (contains? #{:meta :meta* :reader-macro} tag)
+          (recur up)
 
-      (#{:meta :meta* :reader-macro} tag)
-      (indent-amount (z/up zloc) list-indent-size indents)
+          (contains? #{:list :fn} tag)
+          (loop [indenters indenters]
+            (if (seq indenters)
+              (let [candidate (first indenters)]
+                (or (candidate zloc)
+                    (recur (next indenters))))
+              (list-indent zloc list-indent-size)))
 
-      :else
-      (coll-indent zloc))))
+          :else
+          (coll-indent zloc))))))
 
 
 
@@ -321,8 +326,8 @@
 
 (defn- indent-line
   "Apply indentation to the line beginning at this location."
-  [zloc list-indent-size indents]
-  (let [width (indent-amount zloc list-indent-size indents)]
+  [indenter zloc]
+  (let [width (indenter zloc)]
     (if (pos? width)
       (z/insert-right* zloc (n/spaces width))
       zloc)))
@@ -330,13 +335,12 @@
 
 (defn- indent
   "Transform this form by indenting all lines their proper amounts."
-  [form list-indent-size indents]
-  (zl/transform form should-indent? #(indent-line % list-indent-size indents)))
+  [form opts]
+  (let [indenter (custom-indenter opts)]
+    (zl/transform form should-indent? (partial indent-line indenter))))
 
 
 (defn reindent
   "Transform this form by rewriting all line indentation."
   [form opts]
-  (indent (unindent form)
-          (:list-indent-size opts 2)
-          (:indents opts)))
+  (indent (unindent form) opts))

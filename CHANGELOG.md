@@ -13,7 +13,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
   be printed at the end of a run.
 
 ### Fixed
-- Many performance optimizations to type reformatting rules.
+- Many performance optimizations across the formatting rules.
 
 
 ## [0.11.1] - 2020-01-22
