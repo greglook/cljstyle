@@ -83,6 +83,30 @@
       (p/printerrf "Unknown stats file extension '%s' - ignoring!" ext))))
 
 
+(defn- duration-str
+  "Format a duration in milliseconds for human consumption."
+  [elapsed]
+  (cond
+    ;; 100 ms
+    (< elapsed 100)
+    (format "%.2f ms" (double elapsed))
+
+    ;; 1 second
+    (< elapsed 1000)
+    (format "%d ms" (int elapsed))
+
+    ;; 1 minute
+    (< elapsed (* 60 1000))
+    (format "%.2f sec" (/ elapsed 1000.0))
+
+    ;; any longer
+    :else
+    (let [elapsed-sec (/ elapsed 1000.0)
+          minutes (long (/ elapsed-sec 60))
+          seconds (long (rem elapsed-sec 60))]
+      (format "%d:%02d" minutes seconds))))
+
+
 (defn- report-stats
   "General result reporting logic."
   [results]
@@ -94,12 +118,17 @@
                        :elapsed (:elapsed results)}
                 (pos? diff-lines)
                 (assoc :diff-lines diff-lines))]
-    (p/logf "Checked %d files in %.2f ms"
-            total-files
-            (:elapsed results -1.0))
-    (if (p/option :report)
-      (prn stats)
-      (p/log (pr-str stats)))
+    (p/log (pr-str stats))
+    (when (or (p/option :report) (p/option :verbose))
+      (printf "Checked %d files in %s\n"
+              total-files
+              (if-let [elapsed (:elapsed results)]
+                (duration-str elapsed)
+                "some amount of time"))
+      (doseq [[type-key file-count] (sort-by val (comp - compare) (:files stats))]
+        (printf "%6d %s\n" file-count (name type-key)))
+      (when (pos? diff-lines)
+        (printf "Resulting diff has %d lines\n" diff-lines)))
     (when-let [stats-file (p/option :stats)]
       (write-stats! stats-file stats))))
 
