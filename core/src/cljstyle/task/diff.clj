@@ -23,13 +23,16 @@
 (defn unified-diff
   "Produce a unified diff string comparing the original and revised texts."
   [path original revised]
-  (join-lines
-    (DiffUtils/generateUnifiedDiff
-      (str (io/file "a" path))
-      (str (io/file "b" path))
-      (split-lines original)
-      (DiffUtils/diff (split-lines original) (split-lines revised))
-      3)))
+  (let [path (if (str/starts-with? path "/")
+               (subs path 1)
+               path)]
+    (join-lines
+      (DiffUtils/generateUnifiedDiff
+        (str (io/file "a" path))
+        (str (io/file "b" path))
+        (split-lines original)
+        (DiffUtils/diff (split-lines original) (split-lines revised))
+        3))))
 
 
 (defn count-changes
