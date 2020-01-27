@@ -28,11 +28,11 @@
 
 (defn- print-error
   "Print a processing error for human consumption."
-  [ex]
+  [^Exception ex]
   (cond
     (= :cljstyle/format-error (:type (ex-data ex)))
     (let [max-len 100]
-      (println (ex-message ex))
+      (println (.getMessage ex))
       (when-let [form (and (p/option :verbose)
                            (:form (ex-data ex)))]
         (if (< max-len (count form))
