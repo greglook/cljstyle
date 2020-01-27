@@ -1,6 +1,6 @@
 # Build file for cljstyle
 
-.PHONY: all clean lint package
+.PHONY: all clean lint check package
 
 version := $(shell grep defproject core/project.clj | cut -d ' ' -f 3 | tr -d \")
 platform := $(shell uname -s | tr '[:upper:]' '[:lower:]')
@@ -26,6 +26,11 @@ clean:
 
 lint:
 	clj-kondo --lint core/src core/test tool/src
+	cd core; lein yagni
+
+check: $(lib_install_path)
+	cd core; lein check
+	cd tool; lein check
 
 $(lib_install_path): core/project.clj core/src/**/* core/resources/**/*
 	cd core; lein install

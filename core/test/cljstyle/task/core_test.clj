@@ -103,7 +103,6 @@
             (p/with-options {:verbose true}
               (is (thrown-with-data? {:code 3}
                     (task/check-sources [(str test-dir)]))))
-            (is (str/includes? stdout "Checked 5 files"))
             (is (str/includes? stdout "1 correct"))
             (is (str/includes? stdout "1 process-error"))
             (is (str/includes? stderr "Error while processing file target/test-config/check/a/b/foo.clj"))

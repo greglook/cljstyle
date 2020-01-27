@@ -38,7 +38,7 @@
         (if (< max-len (count form))
           (println (subs form 0 max-len) "...")
           (println form)))
-      (when-let [cause (and (p/option :verbose) (ex-cause ex))]
+      (when-let [cause (and (p/option :verbose) (.getCause ex))]
         (p/print-cause-trace cause)))
 
     (p/option :verbose)
