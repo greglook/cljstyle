@@ -413,3 +413,14 @@
          (reformat-ns
            "(ns foo (:require [\"caz\" :as caz] [bar.core :as bar]))"))
       "sorts a require with a mixture of strings and symbol namespaces"))
+
+
+(deftest regressions
+  (testing "discard macro"
+    (is (= "(ns ab.cd.efg
+  (:require
+    [ab.cd.x :as x]
+    #_[ab.cd.y]
+    [ab.cd.z :as z]))"
+           (reformat-ns
+             "(ns ab.cd.efg (:require [ab.cd.x :as x] #_[ab.cd.y] [ab.cd.z :as z]))")))))

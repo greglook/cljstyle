@@ -60,16 +60,20 @@
                                  assoc ::comments comments))
                 []]
 
+               (= :uneval (n/tag el))
+               [(conj elements (vary-meta el assoc ::comments comments))
+                []]
+
                (and (= :reader-macro (n/tag el))
-                    (contains? #{"?" "?@"} (-> el n/children first n/sexpr str)))
+                    (contains? #{"?" "?@"} (-> el n/children first n/string)))
                [(conj elements (vary-meta
                                  el assoc
-                                 ::spliced? (= "?@" (-> el n/children first n/sexpr str))
+                                 ::spliced? (= "?@" (-> el n/children first n/string))
                                  ::comments comments))
                 []]
 
                :else
-               (throw (ex-info (str "Unrecognized list element: " (z/sexpr el))
+               (throw (ex-info (str "Unrecognized list element: " (n/string el))
                                {:tag (n/tag el)}))))
            [[header] []])
          (first)
@@ -154,7 +158,8 @@
   (case (n/tag element)
     :token (n/vector-node [element])
     :vector element
-    :reader-macro element))
+    :reader-macro element
+    :uneval element))
 
 
 (defn- expand-require-group
@@ -199,7 +204,9 @@
           (cond->
             (= "?@" (str token))
             (first))
-          (first)))))
+          (first)))
+    :uneval
+    (recur (first (n/children el)))))
 
 
 (defn- render-requires*
