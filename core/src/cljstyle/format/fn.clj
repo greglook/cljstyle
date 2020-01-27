@@ -95,11 +95,13 @@
       (cond
         ;; Join whitespace between start and name-or-args
         (and (= :start section)
-             (zl/whitespace-between?
-               fn-sym?
-               (some-fn fn-name? (comp z/vector? zl/unwrap-meta))
-               zloc))
+             (zl/whitespace-between? fn-sym? (some-fn fn-name? fn-args?) zloc))
         (recur :start (zl/line-join zloc))
+
+        ;; Break whitespace between start and arity.
+        (and (= :start section)
+             (zl/whitespace-between? fn-sym? fn-arity? zloc))
+        (recur :arities (zl/line-break zloc))
 
         ;; If we see a function name, switch to :name section.
         (and (= :start section) (fn-name? zloc))

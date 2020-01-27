@@ -190,7 +190,11 @@
   (toString
     [this]
     \"key\"))"
-         (reformat-string "(reify Key\n\n(getKey [this] key-data)\n    Object\n(toString [this] \n\"key\"))"))))
+         (reformat-string "(reify Key\n\n(getKey [this] key-data)\n    Object\n(toString [this] \n\"key\"))")))
+  (is (= "(reify ABC
+  (close [_]))"
+         (reformat-string "(reify ABC\n(close [_]))"))
+      "empty method body should be fine"))
 
 
 (deftest proxy-forms

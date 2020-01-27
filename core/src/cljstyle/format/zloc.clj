@@ -14,7 +14,7 @@
   "Print a zipper location for debugging purposes. Returns the
   location unchanged."
   [zloc tag]
-  (prn tag (:l (second zloc)) (first zloc) (:r (second zloc)))
+  (prn tag (:left zloc) (:node zloc) (:right zloc))
   (flush)
   zloc)
 
@@ -256,10 +256,10 @@
 
 (defn line-break
   "Ensure the node at this location breaks onto a new line. Returns the zipper
-  at the location following the whitespace."
+  at the location following the whitespace, if there is one."
   [zloc]
   (if (z/linebreak? zloc)
-    (z/right zloc)
+    (or (z/right zloc) zloc)
     (-> zloc
         (z/replace (n/newlines 1))
         (z/right*)

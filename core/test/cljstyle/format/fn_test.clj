@@ -104,6 +104,17 @@
 
 
 (deftest regressions
+  (testing "empty bodies"
+    (is (= "(fn [_ _]
+  ;; comment
+  )"
+           (reformat-string "(fn [_ _]\n  ;; comment\n  )")))
+    (is (= "(fn
+  ([x] x)
+  ([_ _]
+   ;; comment
+   ))"
+           (reformat-string "(fn ([x] x) ([_ _]\n   ;; comment\n  ))"))))
   (testing "prismatic schema"
     (is (= "(s/defn prismatic
   :- AType
