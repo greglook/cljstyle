@@ -148,3 +148,10 @@
   (testing "reader macros"
     (is (= "#inst\n\"2018-01-01T00:00:00.000-00:00\""
            (reindent-string "#inst\n\"2018-01-01T00:00:00.000-00:00\"")))))
+
+
+(deftest comment-indentation
+  (is (= "(defn f\n  [a;a\n   b ; b\n   ]\n  #{a\n    b;\n    })"
+         (reindent-string "(defn f [a;a\n  b ; b\n]\n #{a\nb;\n})")))
+  (is (= "(foo [1\n      2;\n      ]\n     [3\n      4;\n      ])"
+         (reindent-string "(foo [1\n2;\n]\n[3\n4;\n])"))))
