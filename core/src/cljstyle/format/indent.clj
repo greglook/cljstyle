@@ -50,7 +50,8 @@
 (defn- should-indent?
   "True if indentation should exist after the current location."
   [zloc]
-  (and (line-break? zloc) (not (line-break-next? zloc))))
+  (or (and (line-break? zloc) (not (line-break-next? zloc)))
+      (and (zl/comment? zloc) (not (comment-next? zloc)))))
 
 
 (defn- should-unindent?
