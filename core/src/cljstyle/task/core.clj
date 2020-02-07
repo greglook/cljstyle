@@ -128,7 +128,8 @@
       (doseq [[type-key file-count] (sort-by val (comp - compare) (:files stats))]
         (printf "%6d %s\n" file-count (name type-key)))
       (when (pos? diff-lines)
-        (printf "Resulting diff has %d lines\n" diff-lines)))
+        (printf "Resulting diff has %d lines\n" diff-lines))
+      (flush))
     (when-let [stats-file (p/option :stats)]
       (write-stats! stats-file stats))))
 

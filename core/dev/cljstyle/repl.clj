@@ -86,6 +86,6 @@
        (try
          (binding [*out* null-writer
                    *err* null-writer]
-           (task/check-sources  [~path]))
+           (task/check-sources [~path]))
          (catch Exception _#
            nil)))))
