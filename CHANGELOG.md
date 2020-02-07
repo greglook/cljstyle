@@ -8,6 +8,11 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+...
+
+
+## [0.12.0] - 2020-02-07
+
 ### Added
 - The tool accepts a `--report` option which will cause the execution stats to
   be printed at the end of a run.
@@ -19,6 +24,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - Many performance optimizations across the formatting rules.
 - Bug causing a `NullPointerException` when formatting type methods with empty
   bodies.
+- Lines following comments are indented correctly now.
+  [#32](//github.com/greglook/cljstyle/pull/32)
 
 
 ## [0.11.1] - 2020-01-22
@@ -188,7 +195,8 @@ functionality.
 Legacy project release.
 
 
-[Unreleased]: https://github.com/greglook/cljstyle/compare/0.11.1...HEAD
+[Unreleased]: https://github.com/greglook/cljstyle/compare/0.12.0...HEAD
+[0.12.0]: https://github.com/greglook/cljstyle/compare/0.11.1...0.12.0
 [0.11.1]: https://github.com/greglook/cljstyle/compare/0.11.0...0.11.1
 [0.11.0]: https://github.com/greglook/cljstyle/compare/0.10.1...0.11.0
 [0.10.1]: https://github.com/greglook/cljstyle/compare/0.10.0...0.10.1

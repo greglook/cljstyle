@@ -1,4 +1,4 @@
-(defproject mvxcvi/cljstyle-tool "0.11.2-SNAPSHOT"
+(defproject mvxcvi/cljstyle-tool "0.12.0"
   :description "An executable tool for running cljstyle."
   :url "https://github.com/greglook/cljstyle"
   :scm {:dir ".."}
@@ -8,7 +8,7 @@
   :dependencies
   [[org.clojure/clojure "1.9.0"]
    [org.clojure/tools.cli "0.4.2"]
-   [mvxcvi/cljstyle "0.11.2-SNAPSHOT"]]
+   [mvxcvi/cljstyle "0.12.0"]]
 
   :main cljstyle.tool.main
 
