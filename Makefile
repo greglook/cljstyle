@@ -2,12 +2,11 @@
 
 .PHONY: all clean lint check package
 
-version := $(shell grep defproject core/project.clj | cut -d ' ' -f 3 | tr -d \")
+version := $(shell grep defproject project.clj | cut -d ' ' -f 3 | tr -d \")
 platform := $(shell uname -s | tr '[:upper:]' '[:lower:]')
-release_name = cljstyle_$(version)_$(platform)
-
-lib_install_path := $(HOME)/.m2/repository/mvxcvi/cljstyle/$(version)/cljstyle-$(version).jar
-tool_uberjar_path := tool/target/uberjar/cljstyle.jar
+uberjar_path := target/uberjar/cljstyle.jar
+release_jar := cljstyle-$(version).jar
+release_tgz := cljstyle_$(version)_$(platform).tar.gz
 
 # Rewrite darwin as a more recognizable OS
 ifeq ($(platform),darwin)
@@ -22,23 +21,19 @@ endif
 all: cljstyle
 
 clean:
-	rm -rf dist cljstyle core/target tool/target
+	rm -rf dist cljstyle target
 
 lint:
-	clj-kondo --lint core/src core/test tool/src
-	cd core; lein yagni
+	clj-kondo --lint src test
+	lein yagni
 
-check: $(lib_install_path)
-	cd core; lein check
-	cd tool; lein check
+check:
+	lein check
 
-$(lib_install_path): core/project.clj core/src/**/* core/resources/**/*
-	cd core; lein install
+$(uberjar_path): project.clj resources/**/* src/**/*
+	lein uberjar
 
-$(tool_uberjar_path): tool/project.clj tool/src/**/* $(lib_install_path)
-	cd tool; lein uberjar
-
-cljstyle: $(tool_uberjar_path)
+cljstyle: $(uberjar_path)
 	$(GRAAL_HOME)/bin/native-image \
 	    --no-fallback \
 	    --allow-incomplete-classpath \
@@ -48,8 +43,12 @@ cljstyle: $(tool_uberjar_path)
 	    --no-server \
 	    -jar $<
 
-dist/$(release_name).tar.gz: cljstyle
+dist/$(release_tgz): cljstyle
 	@mkdir -p dist
 	tar -cvzf $@ $^
 
-package: dist/$(release_name).tar.gz
+dist/$(release_jar): $(uberjar_path)
+	@mkdir -p dist
+	cp $< $@
+
+package: dist/$(release_jar) dist/$(release_tgz)
