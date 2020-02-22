@@ -16,19 +16,16 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - v1-test-{{ checksum "core/project.clj" }}
+            - v1-test-{{ checksum "project.clj" }}
             - v1-test-
       - run:
           command: lein deps
-          pwd: core
       - run:
           command: lein check
-          pwd: core
       - run:
           command: lein test
-          pwd: core
       - save_cache:
-          key: v1-test-{{ checksum "core/project.clj" }}
+          key: v1-test-{{ checksum "project.clj" }}
           paths:
             - ~/.m2
 
@@ -45,7 +42,7 @@ jobs:
             unzip clj-kondo-${CLJ_KONDO_VERSION}-linux-amd64.zip
       - run:
           name: Lint source code
-          command: "./clj-kondo --lint core/src core/test tool/src"
+          command: "./clj-kondo --lint src test"
 
   style:
     executor: clojure
@@ -53,16 +50,11 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - v1-test-{{ checksum "core/project.clj" }}
+            - v1-test-{{ checksum "project.clj" }}
             - v1-test-
       - run:
-          name: Install core project
-          command: lein install
-          pwd: core
-      - run:
           name: Check formatting
-          command: lein run -- check ..
-          pwd: tool
+          command: lein run -- check
 
   coverage:
     executor: clojure
@@ -70,23 +62,22 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - v1-coverage-{{ checksum "core/project.clj" }}
+            - v1-coverage-{{ checksum "project.clj" }}
             - v1-coverage-
             - v1-test-
       - run:
           name: Generate test coverage
           command: lein cloverage --codecov
-          pwd: core
       - save_cache:
           paths:
             - ~/.m2
-          key: v1-coverage-{{ checksum "core/project.clj" }}
+          key: v1-coverage-{{ checksum "project.clj" }}
       - store_artifacts:
-          path: core/target/coverage
+          path: target/coverage
           destination: coverage
       - run:
           name: Publish Coverage
-          command: 'bash <(curl -s https://codecov.io/bash) -f core/target/coverage/codecov.json'
+          command: 'bash <(curl -s https://codecov.io/bash) -f target/coverage/codecov.json'
 
 
 # Workflow definitions
