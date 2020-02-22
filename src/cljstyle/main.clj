@@ -1,4 +1,4 @@
-(ns cljstyle.tool.main
+(ns cljstyle.main
   "Main entry for cljstyle tool."
   (:gen-class)
   (:require
