@@ -96,10 +96,8 @@ As with the `check` task, you can choose to fix a specific file:
 cljstyle fix src/foo/core.clj
 ```
 
-### Integration
-
-The `pipe` command offers a simple integration hook by reading Clojure code from
-stdin and writing the reformatted code to stdout:
+The `pipe` command offers a generic way to correct style by reading Clojure
+code from stdin and writing the reformatted code to stdout:
 
 ```
 cljstyle pipe < in.clj > out.clj
@@ -107,7 +105,12 @@ cljstyle pipe < in.clj > out.clj
 
 This command resolves configuration from the directory it is executed in, since
 there is no explicit file path to use.
-See the [editor integration](doc/editors.md) docs for more details.
+
+### Integrations
+
+`cljstyle` can be integrated into many different tools, including shells,
+editors, and tests. See the [integration docs](doc/integrations.md) for more
+details.
 
 ### Debugging
 

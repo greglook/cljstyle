@@ -5,6 +5,7 @@
 
 _cljstyle() {
     _arguments \
+        "--report[print stats report]" \
         "--stats=[statistics file]:Write formatting stats to this file:_files" \
         "--no-color[disable color output]" \
         "--verbose[verbose logging output]" \
