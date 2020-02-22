@@ -146,9 +146,7 @@
             {:strs [groupId artifactId version revision]} props]
         (format "%s/%s %s (%s)"
                 groupId artifactId version
-                (if revision
-                  (str/trim-newline revision)
-                  "HEAD"))))
+                (str/trim-newline revision))))
     "HEAD"))
 
 
