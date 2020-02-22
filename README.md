@@ -106,12 +106,6 @@ cljstyle pipe < in.clj > out.clj
 This command resolves configuration from the directory it is executed in, since
 there is no explicit file path to use.
 
-### Integrations
-
-`cljstyle` can be integrated into many different tools, including shells,
-editors, and tests. See the [integration docs](doc/integrations.md) for more
-details.
-
 ### Debugging
 
 For inspecting what cljstyle is doing, one tool is to specify the `--verbose`
@@ -137,6 +131,12 @@ Finally, `version` will show what version of the tool you're using:
 ```
 cljstyle version
 ```
+
+### Integrations
+
+`cljstyle` can be integrated into many different tools, including shells,
+editors, and tests. See the [integration docs](doc/integrations.md) for more
+details.
 
 
 ## Configuration
