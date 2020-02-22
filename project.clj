@@ -20,6 +20,9 @@
   {:cluster-depth 2
    :vertical false}
 
+  :cloverage
+  {:ns-exclude-regex #{#"cljstyle\.main"}}
+
   :profiles
   {:repl
    {:source-paths ["dev"]
