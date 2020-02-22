@@ -1,22 +1,18 @@
 # Build file for cljstyle
 
-.PHONY: all clean lint check package
+.PHONY: all clean lint check set-version package
 
 version := $(shell grep defproject project.clj | cut -d ' ' -f 3 | tr -d \")
 platform := $(shell uname -s | tr '[:upper:]' '[:lower:]')
 uberjar_path := target/uberjar/cljstyle.jar
-release_jar := cljstyle-$(version).jar
-release_tgz := cljstyle_$(version)_$(platform).tar.gz
 
 # Rewrite darwin as a more recognizable OS
 ifeq ($(platform),darwin)
 platform := macos
 endif
 
-# Ensure Graal is available
-ifndef GRAAL_HOME
-$(error GRAAL_HOME is not set)
-endif
+release_jar := cljstyle-$(version).jar
+release_tgz := cljstyle_$(version)_$(platform).tar.gz
 
 all: cljstyle
 
@@ -30,10 +26,26 @@ lint:
 check:
 	lein check
 
+new-version=$(version)
+set-version:
+	@echo "Setting project and doc version to $(new-version)"
+	@sed -i '' \
+	    -e 's|^(defproject mvxcvi/cljstyle ".*"|(defproject mvxcvi/cljstyle "$(new-version)"|' \
+	    project.clj
+	@sed -i '' \
+	    -e 's|CLJSTYLE_VERSION: .*|CLJSTYLE_VERSION: $(new-version)|' \
+	    -e 's|{:git/url "https://github.com/greglook/cljstyle.git", :tag ".*"}|{:git/url "https://github.com/greglook/cljstyle.git", :tag "$(new-version)"}|' \
+	    doc/integrations.md
+
 $(uberjar_path): project.clj resources/**/* src/**/*
 	lein uberjar
 
 cljstyle: $(uberjar_path)
+	# Ensure Graal is available
+	ifndef GRAAL_HOME
+	$(error GRAAL_HOME is not set)
+	endif
+	# Build native image
 	$(GRAAL_HOME)/bin/native-image \
 	    --no-fallback \
 	    --allow-incomplete-classpath \

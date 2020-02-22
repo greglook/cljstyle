@@ -31,12 +31,10 @@ If you would like to use `cljstyle` without installing the binary, you can run
 it directly from the `clj` CLI:
 
 ```shell
-clj -Sdeps '{:deps {mvxcvi/cljstyle {:git/url "https://github.com/greglook/cljstyle.git", :tag "VERSION"}}}' \
+clj -Sdeps '{:deps {mvxcvi/cljstyle {:git/url "https://github.com/greglook/cljstyle.git", :tag "0.12.1"}}}' \
     -m cljstyle.main \
     check
 ```
-
-Note that you will have to replace `VERSION` with an appropriate tag.
 
 
 ### CircleCI
@@ -52,7 +50,7 @@ style:
     - run:
         name: Install cljstyle
         environment:
-          CLJSTYLE_VERSION: 0.12.0
+          CLJSTYLE_VERSION: 0.12.1
         command: |
           wget https://github.com/greglook/cljstyle/releases/download/${CLJSTYLE_VERSION}/cljstyle_${CLJSTYLE_VERSION}_linux.tar.gz
           tar -xzf cljstyle_${CLJSTYLE_VERSION}_linux.tar.gz
