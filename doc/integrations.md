@@ -14,7 +14,7 @@ naming it `_cljstyle`. This will complete the commands and tool options.
 For a simple vim integration copy the following into your `.vimrc` or neovim
 `.config/nvim/init.vim`:
 
-```vimscript
+```vim
 function! cljstyle()
     let cwd = getcwd()
     let winsave = winsaveview()
@@ -31,7 +31,7 @@ Calling `cljstyle()` will run `cljstyle pipe` on the current buffer.
 
 You can optionally add this line to auto cljstyle on save:
 
-```vimscript
+```vim
 autocmd BufWritePre *.clj* call cljstyle()
 ```
 
@@ -69,7 +69,7 @@ style:
           tar -xzf cljstyle_${CLJSTYLE_VERSION}_linux.tar.gz
     - run:
         name: Check style
-        command: "./cljstyle check --report
+        command: "./cljstyle check --report"
 ```
 
 This assumes you have defined a common executor configuration named `clojure`.
