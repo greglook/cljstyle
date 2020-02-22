@@ -4,18 +4,4 @@ cljstyle.format.indent/inner-indent
 cljstyle.format.indent/block-indent
 cljstyle.format.indent/stair-indent
 
-cljstyle.task.core/print-find-usage
-cljstyle.task.core/print-check-usage
-cljstyle.task.core/print-fix-usage
-cljstyle.task.core/print-pipe-usage
-cljstyle.task.core/print-config-usage
-
-cljstyle.task.core/find-sources
-cljstyle.task.core/check-sources
-cljstyle.task.core/fix-sources
-cljstyle.task.core/pipe
-cljstyle.task.core/show-config
-cljstyle.task.core/print-version
-
-cljstyle.task.print/with-options
 cljstyle.task.process/cljstyle.task.process.proxy$java.util.concurrent.RecursiveAction$ff19274a
