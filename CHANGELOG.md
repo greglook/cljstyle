@@ -8,10 +8,17 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
-### Changed
-- Merged the `core` and `tool` projects back into one top-level project.
+...
+
+
+## [0.12.1] - 2020-02-22
+
+### Added
 - Added `deps.edn` to support usage from tools.deps and the `clj` CLI.
   [#33](//github.com/greglook/cljstyle/pull/33)
+
+### Changed
+- Merged the `core` and `tool` projects back into one top-level project.
 
 
 ## [0.12.0] - 2020-02-07
@@ -198,7 +205,8 @@ functionality.
 Legacy project release.
 
 
-[Unreleased]: https://github.com/greglook/cljstyle/compare/0.12.0...HEAD
+[Unreleased]: https://github.com/greglook/cljstyle/compare/0.12.1...HEAD
+[0.12.1]: https://github.com/greglook/cljstyle/compare/0.12.0...0.12.1
 [0.12.0]: https://github.com/greglook/cljstyle/compare/0.11.1...0.12.0
 [0.11.1]: https://github.com/greglook/cljstyle/compare/0.11.0...0.11.1
 [0.11.0]: https://github.com/greglook/cljstyle/compare/0.10.1...0.11.0
