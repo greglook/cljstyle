@@ -137,6 +137,19 @@
   ))")))
   (is (= "(ns foo.bar
   (:import
+    [java.io
+      IOException
+      InputStream
+      OutputStream]
+    java.time.Instant))"
+         (reformat-ns
+           "(ns foo.bar (:import java.io.IOException
+ (java.io
+   OutputStream InputStream)
+  java.time.Instant
+  ))" {:import-group-collection-type :vector})))
+  (is (= "(ns foo.bar
+  (:import
    (java.io
     IOException
     InputStream

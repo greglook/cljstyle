@@ -308,7 +308,7 @@
 
 (defn- format-import-group*
   "Format a group of imported classes as a list node."
-  [opts base-indent package class-names]
+  [opts base-indent package class-names import-group-coll-node]
   (->
     (->> (sort class-names)
          (mapcat expand-comments)
@@ -316,7 +316,7 @@
                           (n/newlines 1)
                           (n/spaces (+ base-indent (* 2 (:list-indent-size opts indent-size))))))
          (cons (n/token-node package)))
-    (n/list-node)
+    (import-group-coll-node)
     (with-meta (meta package))
     (expand-comments)))
 
@@ -324,22 +324,28 @@
 (defn- format-import-group
   "Format a group of imported classes, accounting for break-width settings."
   [opts base-indent package class-names]
-  (if (= 1 (count class-names))
-    (let [class-name (first class-names)
-          break-width (:single-import-break-width opts 60)
-          qualified-class (symbol (str package \. class-name))]
-      ;; If the import was fully qualified before and it's under the break
-      ;; width, keep it ungrouped.
-      (if (and (::qualified-import (meta class-name))
-               (<= (count (str qualified-class)) break-width))
-        ;; Format qualified import.
-        (-> (n/token-node qualified-class)
-            (with-meta (meta class-name))
-            (expand-comments))
-        ;; Format singleton group.
-        (format-import-group* opts base-indent package class-names)))
-    ;; Multiple classes, always use a group.
-    (format-import-group* opts base-indent package class-names)))
+  (let [import-group-coll-node (case (:import-group-collection-type opts n/list-node)
+                                 :vector n/vector-node
+                                 :list n/list-node
+                                 (throw (ex-info (str "Invalid import-group-collection-type configuration: "
+                                                      (:import-group-collection-type opts))
+                                                 opts)))]
+    (if (= 1 (count class-names))
+      (let [class-name      (first class-names)
+            break-width     (:single-import-break-width opts 60)
+            qualified-class (symbol (str package \. class-name))]
+        ;; If the import was fully qualified before and it's under the break
+        ;; width, keep it ungrouped.
+        (if (and (::qualified-import (meta class-name))
+                 (<= (count (str qualified-class)) break-width))
+          ;; Format qualified import.
+          (-> (n/token-node qualified-class)
+              (with-meta (meta class-name))
+              (expand-comments))
+          ;; Format singleton group.
+          (format-import-group* opts base-indent package class-names import-group-coll-node)))
+      ;; Multiple classes, always use a group.
+      (format-import-group* opts base-indent package class-names import-group-coll-node))))
 
 
 (defn- render-imports*

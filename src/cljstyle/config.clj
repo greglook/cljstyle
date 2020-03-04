@@ -112,7 +112,8 @@
    :single-import-break-width 30
    :require-eof-newline? true
    :file-pattern #"\.clj[csx]?$"
-   :file-ignore #{}})
+   :file-ignore #{}
+   :import-group-collection-type :list})
 
 
 
