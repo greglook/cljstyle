@@ -96,6 +96,28 @@ But indents at a constant two spaces otherwise:
   bang)
 ```
 
+Indents can be customized to use the nth argument as the basis for indenting.
+
+For example,
+
+```clojure
+{foo [[:block 1 2]]}
+```
+
+Will indent from
+
+```clojure
+(foo bar baz
+bang)
+```
+
+to 
+
+```clojure
+(foo bar baz
+         bang)
+```
+
 ### Stair rules
 
 A `:stair` rule is similar to `:block`, except that it tries to indent

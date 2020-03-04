@@ -45,10 +45,13 @@
   (is (= "(deftype Foo\n  [x]\n\n  Bar)"
          (reindent-string "(deftype Foo\n[x]\nBar)")))
 
-  (is (= "(assoc {} :foo bar\n          :foo2 bar2)"
-         (reindent-string "(assoc {} :foo bar\n:foo2 bar2)")))
-  (is (= "(assoc {}\n  :foo bar\n  :foo2 bar2)"
-         (reindent-string "(assoc {}\n:foo bar\n:foo2 bar2)"))))
+  (let [assoc-config (assoc config/default-indents 'assoc [[:block 1 2]])]
+    (is (= "(assoc {} :foo bar\n          :foo2 bar2)"
+           (reindent-string "(assoc {} :foo bar\n:foo2 bar2)"
+                            assoc-config)))
+    (is (= "(assoc {}\n  :foo bar\n  :foo2 bar2)"
+           (reindent-string "(assoc {}\n:foo bar\n:foo2 bar2)"
+                            assoc-config)))))
 
 
 (deftest stair-indentation

@@ -1,7 +1,6 @@
 {alt!            [[:block 0]]
  alt!!           [[:block 0]]
  are             [[:block 2]]
- assoc           [[:block 1 2]]
  as->            [[:block 1]]
  binding         [[:block 1]]
  bound-fn        [[:inner 0]]
