@@ -120,9 +120,15 @@
   (-> zloc z/leftmost* margin))
 
 
+(defn- repeated-move
+  "Repeatedly move a direction"
+  [zloc move n]
+  (nth (iterate move zloc) n))
+
+
 (defn- list-indent
   "Determine how indented a list at the current location should be."
-  [zloc list-indent-size]
+  [zloc list-indent-size item-count]
   (if (and (some-> zloc z/leftmost* z/right* zl/skip-whitespace z/linebreak?)
            (-> zloc z/leftmost z/tag (= :token)))
     (+ (-> zloc z/up margin)
@@ -131,7 +137,7 @@
          1
          0))
     (if (> (index-of zloc) 1)
-      (-> zloc z/leftmost* z/right margin)
+      (-> zloc z/leftmost* (repeated-move z/right item-count) margin)
       (coll-indent zloc))))
 
 
@@ -213,7 +219,7 @@
               (let [candidate (first indenters)]
                 (or (candidate zloc)
                     (recur (next indenters))))
-              (list-indent zloc list-indent-size)))
+              (list-indent zloc list-indent-size 1)))
 
           :else
           (coll-indent zloc))))))
@@ -280,17 +286,17 @@
 (defn- block-indent
   "Calculate how many spaces the node at this location should be indented as a
   block. Returns nil if the rule does not apply."
-  [zloc rule-key idx list-indent-size]
+  [zloc rule-key idx list-indent-size item-count]
   (when (indent-matches? rule-key (zl/form-symbol-full zloc))
     (if (and (some-> zloc (nth-form (inc idx)) first-form-in-line?)
              (> (index-of zloc) idx))
       (inner-indent zloc rule-key 0 nil)
-      (list-indent zloc list-indent-size))))
+      (list-indent zloc list-indent-size item-count))))
 
 
 (defmethod indenter-fn :block
-  [rule-key list-indent-size [_ idx]]
-  (fn [zloc] (block-indent zloc rule-key idx list-indent-size)))
+  [rule-key list-indent-size [_ idx item-count]]
+  (fn [zloc] (block-indent zloc rule-key idx list-indent-size (or item-count 1))))
 
 
 

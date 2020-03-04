@@ -43,7 +43,12 @@
   (is (= "(do (foo)\n    (bar))"
          (reindent-string "(do (foo)\n(bar))")))
   (is (= "(deftype Foo\n  [x]\n\n  Bar)"
-         (reindent-string "(deftype Foo\n[x]\nBar)"))))
+         (reindent-string "(deftype Foo\n[x]\nBar)")))
+
+  (is (= "(assoc {} :foo bar\n          :foo2 bar2)"
+         (reindent-string "(assoc {} :foo bar\n:foo2 bar2)")))
+  (is (= "(assoc {}\n  :foo bar\n  :foo2 bar2)"
+         (reindent-string "(assoc {}\n:foo bar\n:foo2 bar2)"))))
 
 
 (deftest stair-indentation

@@ -10,3 +10,5 @@ pom.xml.asc
 .clj-kondo/.cache
 /cljstyle
 /dist
+*.iml
+/.idea
