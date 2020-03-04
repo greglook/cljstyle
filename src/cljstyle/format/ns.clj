@@ -324,12 +324,9 @@
 (defn- format-import-group
   "Format a group of imported classes, accounting for break-width settings."
   [opts base-indent package class-names]
-  (let [import-group-coll-node (case (:import-group-collection-type opts n/list-node)
+  (let [import-group-coll-node (case (:import-group-collection-type opts :list)
                                  :vector n/vector-node
-                                 :list n/list-node
-                                 (throw (ex-info (str "Invalid import-group-collection-type configuration: "
-                                                      (:import-group-collection-type opts))
-                                                 opts)))]
+                                 :list n/list-node)]
     (if (= 1 (count class-names))
       (let [class-name      (first class-names)
             break-width     (:single-import-break-width opts 60)

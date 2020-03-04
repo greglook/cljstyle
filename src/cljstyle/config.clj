@@ -36,6 +36,7 @@
 (s/def ::rewrite-namespaces? boolean?)
 (s/def ::single-import-break-width nat-int?)
 (s/def ::require-eof-newline? boolean?)
+(s/def ::import-group-collection-type #{:list :vector})
 
 
 ;; Indentation Rules
@@ -83,7 +84,8 @@
                    ::single-import-break-width
                    ::require-eof-newline?
                    ::file-pattern
-                   ::file-ignore]))
+                   ::file-ignore
+                   ::import-group-collection-type]))
 
 
 

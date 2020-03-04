@@ -43,6 +43,7 @@
     (is (invalid? ::config/settings nil))
     (is (invalid? ::config/settings "foo"))
     (is (invalid? ::config/settings [123]))
+    (is (invalid? ::config/settings {:import-group-collection-type :asdf}))
     (is (valid? ::config/settings {}))
     (is (valid? ::config/settings {:indentation? true}))
     (is (valid? ::config/settings {:something-else 123}))
