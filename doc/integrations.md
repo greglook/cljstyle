@@ -11,11 +11,12 @@ naming it `_cljstyle`. This will complete the commands and tool options.
 
 ### Vim
 
-For a simple vim integration set either `'equalprg'` (or `'formatprg'`) for 
+For a simple vim integration set either `'equalprg'` (or `'formatprg'`) for
 the clojure filetype:
 
 ```vim
 " ~/.vim/after/ftplugin/clojure.vim
+" or ~/.config/nvim/after/ftplugin/clojure.vim
 
 setlocal equalprg=cljstyle\ pipe
 " or setlocal formatprg=cljstyle\ pipe
@@ -23,6 +24,12 @@ setlocal equalprg=cljstyle\ pipe
 
 Use the `=` operator (or the `gq` operator) to filter the selected lines
 through `cljstyle pipe`.
+
+
+### Emacs
+
+The [cljstyle-mode](https://github.com/jstokes/cljstyle-mode) project offers a
+`cljstyle` integration for Emacs users.
 
 
 ### tools.deps
