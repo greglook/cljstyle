@@ -123,7 +123,9 @@
 (defn- repeated-move
   "Repeatedly move a direction"
   [zloc move n]
-  (nth (iterate move zloc) n))
+  (if (> n 0)
+    (recur (move zloc) move (dec n))
+    zloc))
 
 
 (defn- list-indent
