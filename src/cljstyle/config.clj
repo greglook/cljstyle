@@ -36,7 +36,7 @@
 (s/def ::rewrite-namespaces? boolean?)
 (s/def ::single-import-break-width nat-int?)
 (s/def ::require-eof-newline? boolean?)
-(s/def ::import-group-collection-type #{:list :vector})
+(s/def ::vector-for-imports? boolean?)
 
 
 ;; Indentation Rules
@@ -85,7 +85,7 @@
                    ::require-eof-newline?
                    ::file-pattern
                    ::file-ignore
-                   ::import-group-collection-type]))
+                   ::vector-for-imports?]))
 
 
 
@@ -115,7 +115,7 @@
    :require-eof-newline? true
    :file-pattern #"\.clj[csx]?$"
    :file-ignore #{}
-   :import-group-collection-type :list})
+   :vector-for-imports? false})
 
 
 

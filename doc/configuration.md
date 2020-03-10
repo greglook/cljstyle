@@ -142,7 +142,6 @@ disabled:
   Require all files to end with a newline character. One will be added if it is
   not present.
 
-* `:import-group-collection-type`
+* `:vector-for-imports?`
 
-  Permits configuration of the collection type used in ns imports. Defaults to 
-  `:list`. Permissible values for this option are `:list` or `:vector`. 
+  Uses vectors in ns imports. Defaults to false.

@@ -147,7 +147,7 @@
  (java.io
    OutputStream InputStream)
   java.time.Instant
-  ))" {:import-group-collection-type :vector})))
+  ))" {:vector-for-imports? true})))
   (is (= "(ns foo.bar
   (:import
    (java.io
