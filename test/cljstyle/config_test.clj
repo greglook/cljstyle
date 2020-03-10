@@ -14,7 +14,8 @@
     (is (invalid? ::config/indenter [:abc 2]))
     (is (valid? ::config/indenter [:inner 0]))
     (is (valid? ::config/indenter [:inner 0 1]))
-    (is (valid? ::config/indenter [:block 2])))
+    (is (valid? ::config/indenter [:block 2]))
+    (is (valid? ::config/indenter [:block 1 2])))
   (testing "indent-rule"
     (is (invalid? ::config/indent-rule "foo"))
     (is (invalid? ::config/indent-rule #{[:inner 0]}))

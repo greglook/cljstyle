@@ -11,29 +11,18 @@ naming it `_cljstyle`. This will complete the commands and tool options.
 
 ### Vim
 
-For a simple vim integration copy the following into your `.vimrc` or neovim
-`.config/nvim/init.vim`:
+For a simple vim integration set either `'equalprg'` (or `'formatprg'`) for 
+the clojure filetype:
 
 ```vim
-function! cljstyle()
-    let cwd = getcwd()
-    let winsave = winsaveview()
-    execute "cd" . expand('%:p:h')
+" ~/.vim/after/ftplugin/clojure.vim
 
-    :%!cljstyle pipe
-
-    execute "cd" . cwd
-    call winrestview(winsave)
-endfunction
+setlocal equalprg=cljstyle\ pipe
+" or setlocal formatprg=cljstyle\ pipe
 ```
 
-Calling `cljstyle()` will run `cljstyle pipe` on the current buffer.
-
-You can optionally add this line to auto cljstyle on save:
-
-```vim
-autocmd BufWritePre *.clj* call cljstyle()
-```
+Use the `=` operator (or the `gq` operator) to filter the selected lines
+through `cljstyle pipe`.
 
 
 ### tools.deps
