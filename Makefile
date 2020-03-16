@@ -38,7 +38,7 @@ cljstyle: $(uberjar_path)
 	    --no-fallback \
 	    --allow-incomplete-classpath \
 	    --report-unsupported-elements-at-runtime \
-	    --initialize-at-build-time \
+	    --initialize-at-build-time=clojure \
 	    -J-Xms3G -J-Xmx3G \
 	    --no-server \
 	    -jar $<

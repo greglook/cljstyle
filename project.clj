@@ -8,7 +8,7 @@
   [[lein-cloverage "1.1.0"]]
 
   :dependencies
-  [[org.clojure/clojure "1.9.0"]
+  [[org.clojure/clojure "1.10.2-alpha1"]
    [org.clojure/tools.cli "0.4.2"]
    [org.clojure/tools.reader "1.3.2"]
    [com.googlecode.java-diff-utils/diffutils "1.3.0"]
@@ -35,4 +35,6 @@
    :uberjar
    {:target-path "target/uberjar"
     :uberjar-name "cljstyle.jar"
-    :aot :all}})
+    :aot :all
+    :jvm-opts ["-Dclojure.compiler.direct-linking=true"
+               "-Dclojure.spec.skip-macros=true"]}})
