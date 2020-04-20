@@ -60,6 +60,13 @@ Releases are published on the [GitHub project](https://github.com/greglook/cljst
 The native binaries are self-contained, so to install them simply place them on
 your path.
 
+### macOS via Homebrew
+
+`cljstyle` can be installed on macOS via a [Homebrew Cask](https://github.com/Homebrew/homebrew-cask):
+
+```bash
+brew cask install cljstyle
+```
 
 ## Usage
 
