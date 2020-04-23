@@ -18,8 +18,25 @@ the clojure filetype:
 " ~/.vim/after/ftplugin/clojure.vim
 " or ~/.config/nvim/after/ftplugin/clojure.vim
 
-setlocal equalprg=cljstyle\ pipe
-" or setlocal formatprg=cljstyle\ pipe
+" NOTE: typically you'd set these to use a formatter, but in this case it fails
+" since cljstyle usually can't run on partial forms.
+"setlocal equalprg=cljstyle\ pipe
+"setlocal formatprg=cljstyle\ pipe
+
+" This can also go in autoload/cljstyle.vim
+function cljstyle#fix()
+    let cwd = getcwd()
+    let winsave = winsaveview()
+    execute "cd" . expand('%:p:h')
+
+    :%!cljstyle pipe
+
+    execute "cd" . cwd
+    call winrestview(winsave)
+endfunction
+
+" Example shortcut to fix the current file
+nnoremap <leader>cs :call cljstyle#fix()<cr>
 ```
 
 Use the `=` operator (or the `gq` operator) to filter the selected lines
