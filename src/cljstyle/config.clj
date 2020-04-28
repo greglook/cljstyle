@@ -11,10 +11,7 @@
     [clojure.spec.alpha :as s])
   (:import
     java.io.File
-    (java.nio.file
-      FileSystem
-      FileSystems
-      PathMatcher)))
+    java.nio.file.FileSystems))
 
 
 ;; ## Specs
