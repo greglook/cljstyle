@@ -6,10 +6,15 @@
   subtree rooted in the directory the file resides in, with deeper files
   merging and overriding their parents."
   (:require
+    [cljstyle.task.print :as p]
     [clojure.java.io :as io]
     [clojure.spec.alpha :as s])
   (:import
-    java.io.File))
+    java.io.File
+    (java.nio.file
+      FileSystem
+      FileSystems
+      PathMatcher)))
 
 
 ;; ## Specs
@@ -188,18 +193,25 @@
 (defn ignored?
   "True if the file should be ignored."
   [config ^File file]
-  (some
-    (fn test-rule
-      [rule]
-      (cond
-        (string? rule)
-        (= rule (.getName file))
+  (or
+    (some
+      (fn test-rule
+        [rule]
+        (cond
+          (string? rule)
+          (= rule (.getName file))
 
-        (pattern? rule)
-        (boolean (re-seq rule (.getCanonicalPath file)))
+          (pattern? rule)
+          (boolean (re-seq rule (.getCanonicalPath file)))
 
-        :else false))
-    (:file-ignore config)))
+          :else false))
+      (:file-ignore config))
+    (some
+      (fn test-glob
+        [glob]
+        (let [path-matcher (.getPathMatcher (FileSystems/getDefault) (str "glob:" glob))]
+          (.matches path-matcher (.toPath file))))
+      (p/option :exclude-dirs))))
 
 
 

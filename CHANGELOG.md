@@ -8,7 +8,10 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
-...
+### Added
+
+- Added support for setting `--exclude-dir` CLI options that allow you to
+  specify directories to ignore at runtime.
 
 
 ## [0.12.1] - 2020-02-22
