@@ -408,8 +408,8 @@
 (deftest shadow-cljs-requires
   (is (= "(ns foo
   (:require
-    [bar.core :as bar]
-    [\"caz\" :as caz]))"
+    [\"caz\" :as caz]
+    [bar.core :as bar]))"
          (reformat-ns
            "(ns foo (:require [\"caz\" :as caz] [bar.core :as bar]))"))
       "sorts a require with a mixture of strings and symbol namespaces"))
