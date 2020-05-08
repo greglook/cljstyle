@@ -131,10 +131,11 @@
           (is (config/source-file? config foo-clj))))
       (testing "ignored?"
         (let [config {:file-ignore #{"foo" #"test-config/predicates/bar" :bad}}]
-          (is (not (config/ignored? config test-dir)))
-          (is (not (config/ignored? config foo-clj)))
-          (is (config/ignored? config (io/file test-dir "foo")))
-          (is (config/ignored? config (io/file test-dir "bar")))))
+          (is (not (config/ignored? config #{} test-dir)))
+          (is (not (config/ignored? config #{} foo-clj)))
+          (is (config/ignored? config #{} (io/file test-dir "foo")))
+          (is (config/ignored? config #{} (io/file test-dir "bar")))
+          (is (config/ignored? {} #{"**/bar"} (io/file test-dir "bar")))))
       (finally
         (when (.exists foo-clj)
           (.delete foo-clj))))))
