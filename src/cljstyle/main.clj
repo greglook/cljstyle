@@ -15,12 +15,13 @@
    [nil  "--no-color" "Don't output ANSI color codes."]
    ["-v" "--verbose" "Print detailed debugging output."]
    ["-h" "--help" "Show help and usage information."]
-   {:id :exclude-dirs
-    :long-opt "--exclude-dir"
+   {:id :excludes
+    :long-opt "--exclude"
     :required "GLOB"
-    :desc "A directory glob to exclude from styling. May be set multiple times."
+    :desc "A Java file glob to exclude from styling. May be set multiple times."
     :default #{}
-    :assoc-fn (fn assoc-exclude-dirs
+    :default-desc ""
+    :assoc-fn (fn assoc-excludes
                 [options current-id parsed]
                 (update options current-id conj parsed))}])
 

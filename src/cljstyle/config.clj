@@ -6,7 +6,6 @@
   subtree rooted in the directory the file resides in, with deeper files
   merging and overriding their parents."
   (:require
-    [cljstyle.task.print :as p]
     [clojure.java.io :as io]
     [clojure.spec.alpha :as s])
   (:import
@@ -189,7 +188,7 @@
 
 (defn ignored?
   "True if the file should be ignored."
-  [config ^File file]
+  [config exclude-globs ^File file]
   (or
     (some
       (fn test-rule
@@ -208,7 +207,7 @@
         [glob]
         (let [path-matcher (.getPathMatcher (FileSystems/getDefault) (str "glob:" glob))]
           (.matches path-matcher (.toPath file))))
-      (p/option :exclude-dirs))))
+      exclude-globs)))
 
 
 
