@@ -8,7 +8,10 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
-...
+### Added
+- Added support for setting `--exclude` CLI options that allow you to specify
+  directories/files to ignore at runtime.
+  [#44](https://github.com/greglook/cljstyle/pull/44)
 
 
 ## [0.12.1] - 2020-02-22

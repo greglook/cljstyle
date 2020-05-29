@@ -14,7 +14,16 @@
    [nil  "--stats FILE" "Write formatting stats to the named file. The extension controls the format and may be either 'edn' or 'tsv'."]
    [nil  "--no-color" "Don't output ANSI color codes."]
    ["-v" "--verbose" "Print detailed debugging output."]
-   ["-h" "--help" "Show help and usage information."]])
+   ["-h" "--help" "Show help and usage information."]
+   {:id :excludes
+    :long-opt "--exclude"
+    :required "GLOB"
+    :desc "A Java file glob to exclude from styling. May be set multiple times."
+    :default #{}
+    :default-desc ""
+    :assoc-fn (fn assoc-excludes
+                [options current-id parsed]
+                (update options current-id conj parsed))}])
 
 
 (defn- print-general-usage

@@ -95,7 +95,7 @@
         (bound-fn compute!
           []
           (cond
-            (config/ignored? config file)
+            (config/ignored? config (p/option :excludes) file)
             (report!
               {:type :ignored
                :debug (str "Ignoring file " path)})
