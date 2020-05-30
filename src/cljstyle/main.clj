@@ -18,7 +18,7 @@
    {:id :excludes
     :long-opt "--exclude"
     :required "GLOB"
-    :desc "A Java file glob to exclude from styling. May be set multiple times."
+    :desc "A file glob to exclude from styling. May be set multiple times."
     :default #{}
     :default-desc ""
     :assoc-fn (fn assoc-excludes
