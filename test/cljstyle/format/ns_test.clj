@@ -41,6 +41,30 @@
                       {:list-indent-size 1}))))
 
 
+(deftest ns-metadata-as-attr-map
+  (is (= "(ns foo.bar.meta
+  {:no-doc true
+   :internal true})"
+         (reformat-ns "(ns foo.bar.meta
+
+ {:no-doc true
+     :internal true}   )")))
+  (is (= "(ns foo.bar.meta
+  {:no-doc true
+   :internal true})"
+         (reformat-ns "(ns foo.bar.meta
+ {:no-doc true
+,     :internal true}   )")))
+  (is (= "(ns foo.bar.meta
+  {:no-doc true
+   ;; a comment
+   :internal true})"
+         (reformat-ns "(ns foo.bar.meta
+ {    :no-doc true
+     ;; a comment
+ :internal true}   )"))))
+
+
 (deftest ns-requires
   (is (= "(ns foo.bar.baz\n  \"ns-level docstring\"\n  (:require\n    [foo.bar.qux :refer :all]))"
          (reformat-ns "(ns foo.bar.baz\n \"ns-level docstring\"\n (:use foo.bar.qux)\n)")))
