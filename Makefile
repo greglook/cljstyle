@@ -52,6 +52,8 @@ cljstyle: $(uberjar_path)
 	    --report-unsupported-elements-at-runtime \
 	    --initialize-at-build-time \
 	    -J-Xms3G -J-Xmx3G \
+	    -J-Dclojure.compiler.direct-linking=true \
+	    -J-Dclojure.spec.skip-macros=true \
 	    --no-server \
 	    -jar $<
 

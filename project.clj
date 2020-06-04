@@ -27,7 +27,8 @@
   {:repl
    {:source-paths ["dev"]
     :repl-options {:init-ns cljstyle.repl}
-    :jvm-opts ["-XX:+UnlockDiagnosticVMOptions" "-XX:+DebugNonSafepoints"]
+    :jvm-opts ["-XX:+UnlockDiagnosticVMOptions"
+               "-XX:+DebugNonSafepoints"]
     :dependencies
     [[com.clojure-goes-fast/clj-async-profiler "0.4.0"]
      [org.clojure/tools.namespace "0.3.1"]]}
@@ -35,4 +36,7 @@
    :uberjar
    {:target-path "target/uberjar"
     :uberjar-name "cljstyle.jar"
+    :global-vars {*assert* false}
+    :jvm-opts ["-Dclojure.compiler.direct-linking=true"
+               "-Dclojure.spec.skip-macros=true"]
     :aot :all}})
