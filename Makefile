@@ -40,12 +40,13 @@ set-version:
 $(uberjar_path): project.clj resources/**/* src/**/*
 	lein uberjar
 
-cljstyle: $(uberjar_path)
-	# Ensure Graal is available
+$(GRAAL_HOME)/bin/native-image:
 	ifndef GRAAL_HOME
 	$(error GRAAL_HOME is not set)
 	endif
-	# Build native image
+	$(GRAAL_HOME)/bin/gu install native-image
+
+cljstyle: $(uberjar_path) $(GRAAL_HOME)/bin/native-image
 	$(GRAAL_HOME)/bin/native-image \
 	    --no-fallback \
 	    --allow-incomplete-classpath \
