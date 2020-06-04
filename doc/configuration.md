@@ -7,7 +7,7 @@ settings to use:
 
 ```clojure
 ;; cljstyle configuration
-{:max-blank-lines 3
+{:max-consecutive-blank-lines 3
  :file-ignore #{"checkouts" "target"}}
 ```
 
