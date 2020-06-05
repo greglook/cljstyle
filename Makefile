@@ -14,6 +14,11 @@ endif
 release_jar := cljstyle-$(version).jar
 release_tgz := cljstyle_$(version)_$(platform).tar.gz
 
+# Ensure Graal is available
+ifndef GRAAL_HOME
+$(error GRAAL_HOME is not set)
+endif
+
 all: cljstyle
 
 clean:
@@ -41,9 +46,6 @@ $(uberjar_path): project.clj resources/**/* src/**/*
 	lein uberjar
 
 $(GRAAL_HOME)/bin/native-image:
-	ifndef GRAAL_HOME
-	$(error GRAAL_HOME is not set)
-	endif
 	$(GRAAL_HOME)/bin/gu install native-image
 
 cljstyle: $(uberjar_path) $(GRAAL_HOME)/bin/native-image
