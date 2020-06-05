@@ -13,6 +13,11 @@ This project adheres to [Semantic Versioning](http://semver.org/).
   directories/files to ignore at runtime.
   [#44](https://github.com/greglook/cljstyle/pull/44)
 
+### Fixed
+- Namespace reformatting logic handles "attr-map" forms correctly now.
+  [#50](//github.com/greglook/cljstyle/issues/50)
+  [#51](https://github.com/greglook/cljstyle/pull/51)
+
 
 ## [0.12.1] - 2020-02-22
 
