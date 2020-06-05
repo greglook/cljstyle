@@ -17,6 +17,9 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - Namespace reformatting logic handles "attr-map" forms correctly now.
   [#50](//github.com/greglook/cljstyle/issues/50)
   [#51](https://github.com/greglook/cljstyle/pull/51)
+- Files failing because of a missing EOF newline will correctly show a diff in
+  the `check` output.
+  [#48](https://github.com/greglook/cljstyle/issues/48)
 
 
 ## [0.12.1] - 2020-02-22
