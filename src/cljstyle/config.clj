@@ -116,6 +116,50 @@
    :file-ignore #{}})
 
 
+(def new-config
+  {:files
+   {:extensions #{".clj" ".cljs" ".cljc" ".cljx"}
+    :pattern nil
+    :ignored #{".git" ".hg"}}
+
+   :rules
+   {:indentation
+    {:enabled? true
+     :list-indent 2
+     :indents default-indents}
+
+    :whitespace
+    {:enabled? true
+     :remove-surrounding? true
+     :remove-trailing? true
+     :insert-missing? true}
+
+    :blank-lines
+    {:enabled? true
+     :remove-consecutive? true
+     :max-consecutive 2
+     :insert-padding? true
+     :padding-lines 2}
+
+    :eof-newline
+    {:enabled? true}
+
+    :vars
+    {:enabled? true
+     :line-breaks? true}
+
+    :functions
+    {:enabled? true
+     :line-breaks? true}
+
+    :types
+    {:enabled? true}
+
+    :namespaces
+    {:enabled? true
+     :single-import-break-width 30}}})
+
+
 
 ;; ## Utilities
 
