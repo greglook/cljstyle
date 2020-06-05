@@ -115,6 +115,10 @@
           (recur (update ns-data :reader-conditionals (fnil conj []) branches)
                  (z/right zloc)))
 
+        (z/map? zloc)
+        (recur (assoc ns-data :attr-map (z/node zloc))
+               (z/right zloc))
+
         :else
         (throw (ex-info (str "Unknown ns node form " (z/tag zloc))
                         {:tag (z/tag zloc)})))
@@ -385,6 +389,19 @@
     [(n/spaces indent-size) docstr]))
 
 
+(defn- render-attr-map
+  "Render ns metadata provided as an attr-map."
+  [attr-map]
+  (when attr-map
+    [(n/spaces indent-size)
+     (->> (n/children attr-map)
+          (partition-by #(= :newline (n/tag %)))
+          (map #(drop-while (comp #{:whitespace :comma} n/tag) %))
+          (interpose [(n/spaces (inc indent-size))])
+          (apply concat)
+          (n/map-node))]))
+
+
 (defn- render-refer-clojure
   "Render a `:refer-clojure` form."
   [elements]
@@ -498,6 +515,7 @@
           (remove nil?)
           (mapcat (partial cons (n/newlines 1))))
         [(render-docstring (:doc ns-data))
+         (render-attr-map (:attr-map ns-data))
          (render-refer-clojure (:refer-clojure ns-data))
          (render-gen-class opts (:gen-class ns-data))
          (render-requires opts :require (:require ns-data))
