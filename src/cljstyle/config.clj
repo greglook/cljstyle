@@ -95,7 +95,7 @@
   (read-string (slurp (io/resource "cljstyle/indents.clj"))))
 
 
-(def default-config
+(def legacy-config
   {:indentation? true
    :list-indent-size 2
    :indents default-indents
@@ -118,9 +118,16 @@
 
 (def new-config
   {:files
-   {:extensions #{".clj" ".cljs" ".cljc" ".cljx"}
-    :pattern nil
+   {:pattern nil
+    :extensions #{".clj" ".cljs" ".cljc" ".cljx"}
     :ignored #{".git" ".hg"}}
+
+   #_#_ ; probably dooesn't belong here
+   :options
+   {:report? false
+    :verbose? false
+    :stats-file nil
+    :excludes #{}}
 
    :rules
    {:indentation
@@ -157,7 +164,71 @@
 
     :namespaces
     {:enabled? true
-     :single-import-break-width 30}}})
+     :single-import-break-width 60}}})
+
+
+(def default-config
+  "Default configuration settings."
+  legacy-config)
+
+
+(defn legacy?
+  "True if the provided configuration map has legacy properties in it."
+  [config]
+  (some (partial contains? config) (keys legacy-config)))
+
+
+(defn translate-legacy
+  "Convert a legacy config map into a modern one."
+  [config]
+  (letfn [(translate
+            [cfg old-key new-path]
+            (let [v (get cfg old-key)]
+              (if (and (some? v) (not= v (get legacy-config old-key)))
+                (assoc-in cfg new-path v)
+                cfg)))]
+    (->
+      config
+
+      ;; File matching
+      (translate :file-pattern [:files :pattern])
+      (translate :file-ignore  [:files :ignored])
+
+      ;; Indentation rule
+      (translate :indentation?     [:rules :indentation :enabled?])
+      (translate :list-indent-size [:rules :indentation :list-indent])
+      (translate :indents          [:rules :indentation :indents])
+
+      ;; Whitespace rule
+      (translate :remove-surrounding-whitespace? [:rules :whitespace :remove-surrounding?])
+      (translate :remove-trailing-whitespace?    [:rules :whitespace :remove-trailing?])
+      (translate :insert-missing-whitespace?     [:rules :whitespace :insert-missing?])
+
+      ;; Blank lines rule
+      (translate :remove-consecutive-blank-lines? [:rules :blank-lines :remove-consecutive?])
+      (translate :max-consecutive-blank-lines     [:rules :blank-lines :max-consecutive])
+      (translate :insert-padding-lines?           [:rules :blank-lines :insert-padding?])
+      (translate :padding-lines                   [:rules :blank-lines :padding-lines])
+
+      ;; EOF newline rule
+      (translate :require-eof-newline? [:rules :eof-newline :enabled?])
+
+      ;; Vars rule
+      (translate :line-break-vars? [:rules :vars :line-breaks?])
+
+      ;; Functions rule
+      (translate :line-break-functions? [:rules :functions :line-breaks?])
+
+      ;; Types rule
+      (translate :reformat-types? [:rules :types :enabled?])
+
+      ;; Namespaces rule
+      (translate :rewrite-namespaces?       [:rules :namespaces :enabled?])
+      (translate :single-import-break-width [:rules :namespaces :single-import-break-width])
+
+      ;; Remove legacy keys
+      (as-> cfg
+        (apply dissoc cfg (keys legacy-config))))))
 
 
 
