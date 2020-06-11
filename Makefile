@@ -7,15 +7,15 @@ platform := $(shell uname -s | tr '[:upper:]' '[:lower:]')
 uberjar_path := target/uberjar/cljstyle.jar
 
 # Graal settings
-graal_root ?= /tmp/graal
+GRAAL_ROOT ?= /tmp/graal
 graal_version := 20.1.0
 graal_archive := graalvm-ce-java11-$(platform)-amd64-$(graal_version).tar.gz
-graal_home := $(graal_root)/graalvm-ce-java11-$(graal_version)
+graal_home := $(GRAAL_ROOT)/graalvm-ce-java11-$(graal_version)
 
 # Rewrite darwin as a more recognizable OS
 ifeq ($(platform),darwin)
 platform := macos
-graal_home := $(graal_home)/MacOS/Home
+graal_home := $(graal_home)/Contents/Home
 endif
 
 release_jar := cljstyle-$(version).jar
@@ -48,12 +48,12 @@ set-version:
 $(uberjar_path): project.clj $(shell find resources -type f) $(shell find src -type f)
 	lein uberjar
 
-$(graal_root)/fetch/$(graal_archive):
-	@mkdir -p $(graal_root)/fetch
+$(GRAAL_ROOT)/fetch/$(graal_archive):
+	@mkdir -p $(GRAAL_ROOT)/fetch
 	curl --location --output $@ https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-$(graal_version)/$(graal_archive)
 
-$(graal_home): $(graal_root)/fetch/$(graal_archive)
-	tar -xz -C $(graal_root) -f $<
+$(graal_home): $(GRAAL_ROOT)/fetch/$(graal_archive)
+	tar -xz -C $(GRAAL_ROOT) -f $<
 
 $(graal_home)/bin/native-image: $(graal_home)
 	$(graal_home)/bin/gu install native-image

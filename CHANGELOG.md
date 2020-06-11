@@ -12,6 +12,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - Added support for setting `--exclude` CLI options that allow you to specify
   directories/files to ignore at runtime.
   [#44](https://github.com/greglook/cljstyle/pull/44)
+- Automatically download Graal SDK for builds.
 
 ### Fixed
 - Namespace reformatting logic handles "attr-map" forms correctly now.
