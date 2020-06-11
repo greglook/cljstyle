@@ -11,12 +11,13 @@ naming it `_cljstyle`. This will complete the commands and tool options.
 
 ### Vim
 
-For a simple vim integration set either `'equalprg'` (or `'formatprg'`) for
-the clojure filetype:
+For a simple vim integration you can use the following function to reformat the
+current buffer:
 
 ```vim
+" Add to file for vim or neovim:
 " ~/.vim/after/ftplugin/clojure.vim
-" or ~/.config/nvim/after/ftplugin/clojure.vim
+" ~/.config/nvim/after/ftplugin/clojure.vim
 
 " NOTE: typically you'd set these to use a formatter, but in this case it fails
 " since cljstyle usually can't run on partial forms.
@@ -38,9 +39,6 @@ endfunction
 " Example shortcut to fix the current file
 nnoremap <leader>cs :call cljstyle#fix()<cr>
 ```
-
-Use the `=` operator (or the `gq` operator) to filter the selected lines
-through `cljstyle pipe`.
 
 
 ### Emacs
