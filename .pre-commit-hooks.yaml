@@ -1,0 +1,7 @@
+- id: cljstyle
+  name: cljstyle
+  description: cljstyle is a tool for formatting Clojure code
+  entry: cljstyle fix
+  language: docker
+  files: \.(clj[sc]?|edn)$
+  types: [file]
