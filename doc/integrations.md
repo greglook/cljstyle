@@ -47,10 +47,35 @@ The [cljstyle-mode](https://github.com/jstokes/cljstyle-mode) project offers a
 `cljstyle` integration for Emacs users.
 
 
+### Leiningen
+
+Cljstyle may be used from Leiningen by adding `cljstyle` as a dependency and
+running the main namespace:
+
+```clojure
+:aliases
+{"cljstyle" ["with-profile" "+cljstyle" "run" "-m" "cljstyle.main"]}
+
+:profiles
+{:cljstyle
+ {:dependencies
+  [[mvxcvi/cljstyle "0.13.0" :exclusions [org.clojure/clojure]]]}}
+```
+
+Alternately, you can run it directly from the command line:
+
+```shell
+lein update-in :dependencies \
+    conj '[mvxcvi/cljstyle "0.13.0" :exclusions [org.clojure/clojure]]' \
+    -- run -m cljstyle.main \
+    check
+```
+
+
 ### tools.deps
 
 If you would like to use `cljstyle` without installing the binary, you can run
-it directly from the `clj` CLI:
+it directly with `clj`:
 
 ```shell
 clj -Sdeps '{:deps {mvxcvi/cljstyle {:git/url "https://github.com/greglook/cljstyle.git", :tag "0.13.0"}}}' \

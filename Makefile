@@ -41,8 +41,9 @@ set-version:
 	    -e 's|^(defproject mvxcvi/cljstyle ".*"|(defproject mvxcvi/cljstyle "$(new-version)"|' \
 	    project.clj
 	@sed -i '' \
+	    -e 's|mvxcvi/cljstyle ".*"|mvxcvi/cljstyle "$(new-version)"|' \
 	    -e 's|CLJSTYLE_VERSION: .*|CLJSTYLE_VERSION: $(new-version)|' \
-	    -e 's|{:git/url "https://github.com/greglook/cljstyle.git", :tag ".*"}|{:git/url "https://github.com/greglook/cljstyle.git", :tag "$(new-version)"}|' \
+	    -e 's|cljstyle.git", :tag ".*"}|cljstyle.git", :tag "$(new-version)"}|' \
 	    doc/integrations.md
 
 $(uberjar_path): project.clj $(shell find resources -type f) $(shell find src -type f)

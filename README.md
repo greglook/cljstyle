@@ -56,9 +56,14 @@ binary.
 
 ## Installation
 
-Releases are published on the [GitHub project](https://github.com/greglook/cljstyle/releases).
+Binary releases are available on the [GitHub project](https://github.com/greglook/cljstyle/releases).
 The native binaries are self-contained, so to install them simply place them on
 your path.
+
+Releases are also published to Clojars. To use the latest version, add the
+following dependency to your project:
+
+[![Clojars Project](http://clojars.org/mvxcvi/cljstyle/latest-version.svg)](http://clojars.org/mvxcvi/cljstyle)
 
 ### macOS via Homebrew
 
