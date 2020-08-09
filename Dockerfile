@@ -1,7 +1,11 @@
 FROM ubuntu:20.04
+COPY . /src
 RUN apt-get update \
-    && apt-get -y install curl \
-    && curl -LO https://github.com/greglook/cljstyle/releases/download/0.13.0/cljstyle_0.13.0_linux.tar.gz \
-    && tar -zxvf cljstyle_0.13.0_linux.tar.gz \
-    && mv cljstyle /usr/local/bin
+    && apt-get -y install build-essential libz-dev curl leiningen \
+    && cd /src \
+    && make package \
+    && chmod +x cljstyle
+
+FROM ubuntu:20.04
+COPY --from=0 /src/cljstyle /usr/local/bin/cljstyle
 ENTRYPOINT cljstyle
