@@ -11,12 +11,13 @@ naming it `_cljstyle`. This will complete the commands and tool options.
 
 ### Vim
 
-For a simple vim integration set either `'equalprg'` (or `'formatprg'`) for
-the clojure filetype:
+For a simple vim integration you can use the following function to reformat the
+current buffer:
 
 ```vim
+" Add to file for vim or neovim:
 " ~/.vim/after/ftplugin/clojure.vim
-" or ~/.config/nvim/after/ftplugin/clojure.vim
+" ~/.config/nvim/after/ftplugin/clojure.vim
 
 " NOTE: typically you'd set these to use a formatter, but in this case it fails
 " since cljstyle usually can't run on partial forms.
@@ -39,9 +40,6 @@ endfunction
 nnoremap <leader>cs :call cljstyle#fix()<cr>
 ```
 
-Use the `=` operator (or the `gq` operator) to filter the selected lines
-through `cljstyle pipe`.
-
 
 ### Emacs
 
@@ -49,13 +47,38 @@ The [cljstyle-mode](https://github.com/jstokes/cljstyle-mode) project offers a
 `cljstyle` integration for Emacs users.
 
 
+### Leiningen
+
+Cljstyle may be used from Leiningen by adding `cljstyle` as a dependency and
+running the main namespace:
+
+```clojure
+:aliases
+{"cljstyle" ["with-profile" "+cljstyle" "run" "-m" "cljstyle.main"]}
+
+:profiles
+{:cljstyle
+ {:dependencies
+  [[mvxcvi/cljstyle "0.13.0" :exclusions [org.clojure/clojure]]]}}
+```
+
+Alternately, you can run it directly from the command line:
+
+```shell
+lein update-in :dependencies \
+    conj '[mvxcvi/cljstyle "0.13.0" :exclusions [org.clojure/clojure]]' \
+    -- run -m cljstyle.main \
+    check
+```
+
+
 ### tools.deps
 
 If you would like to use `cljstyle` without installing the binary, you can run
-it directly from the `clj` CLI:
+it directly with `clj`:
 
 ```shell
-clj -Sdeps '{:deps {mvxcvi/cljstyle {:git/url "https://github.com/greglook/cljstyle.git", :tag "0.12.1"}}}' \
+clj -Sdeps '{:deps {mvxcvi/cljstyle {:git/url "https://github.com/greglook/cljstyle.git", :tag "0.13.0"}}}' \
     -m cljstyle.main \
     check
 ```
@@ -74,7 +97,7 @@ style:
     - run:
         name: Install cljstyle
         environment:
-          CLJSTYLE_VERSION: 0.12.1
+          CLJSTYLE_VERSION: 0.13.0
         command: |
           wget https://github.com/greglook/cljstyle/releases/download/${CLJSTYLE_VERSION}/cljstyle_${CLJSTYLE_VERSION}_linux.tar.gz
           tar -xzf cljstyle_${CLJSTYLE_VERSION}_linux.tar.gz

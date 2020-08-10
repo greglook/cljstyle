@@ -1,23 +1,26 @@
 # Build file for cljstyle
 
-.PHONY: all clean lint check set-version package
+.PHONY: all clean lint check set-version graal package
 
 version := $(shell grep defproject project.clj | cut -d ' ' -f 3 | tr -d \")
 platform := $(shell uname -s | tr '[:upper:]' '[:lower:]')
 uberjar_path := target/uberjar/cljstyle.jar
 
+# Graal settings
+GRAAL_ROOT ?= /tmp/graal
+graal_version := 20.1.0
+graal_archive := graalvm-ce-java11-$(platform)-amd64-$(graal_version).tar.gz
+graal_home := $(GRAAL_ROOT)/graalvm-ce-java11-$(graal_version)
+
 # Rewrite darwin as a more recognizable OS
 ifeq ($(platform),darwin)
 platform := macos
+graal_home := $(graal_home)/Contents/Home
 endif
 
 release_jar := cljstyle-$(version).jar
 release_tgz := cljstyle_$(version)_$(platform).tar.gz
 
-# Ensure Graal is available
-ifndef GRAAL_HOME
-$(error GRAAL_HOME is not set)
-endif
 
 all: cljstyle
 
@@ -38,18 +41,28 @@ set-version:
 	    -e 's|^(defproject mvxcvi/cljstyle ".*"|(defproject mvxcvi/cljstyle "$(new-version)"|' \
 	    project.clj
 	@sed -i '' \
+	    -e 's|mvxcvi/cljstyle ".*"|mvxcvi/cljstyle "$(new-version)"|' \
 	    -e 's|CLJSTYLE_VERSION: .*|CLJSTYLE_VERSION: $(new-version)|' \
-	    -e 's|{:git/url "https://github.com/greglook/cljstyle.git", :tag ".*"}|{:git/url "https://github.com/greglook/cljstyle.git", :tag "$(new-version)"}|' \
+	    -e 's|cljstyle.git", :tag ".*"}|cljstyle.git", :tag "$(new-version)"}|' \
 	    doc/integrations.md
 
-$(uberjar_path): project.clj resources/**/* src/**/*
+$(uberjar_path): project.clj $(shell find resources -type f) $(shell find src -type f)
 	lein uberjar
 
-$(GRAAL_HOME)/bin/native-image:
-	$(GRAAL_HOME)/bin/gu install native-image
+$(GRAAL_ROOT)/fetch/$(graal_archive):
+	@mkdir -p $(GRAAL_ROOT)/fetch
+	curl --location --output $@ https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-$(graal_version)/$(graal_archive)
 
-cljstyle: $(uberjar_path) $(GRAAL_HOME)/bin/native-image
-	$(GRAAL_HOME)/bin/native-image \
+$(graal_home): $(GRAAL_ROOT)/fetch/$(graal_archive)
+	tar -xz -C $(GRAAL_ROOT) -f $<
+
+$(graal_home)/bin/native-image: $(graal_home)
+	$(graal_home)/bin/gu install native-image
+
+graal: $(graal_home)/bin/native-image
+
+cljstyle: $(uberjar_path) $(graal_home)/bin/native-image
+	$(graal_home)/bin/native-image \
 	    --no-fallback \
 	    --allow-incomplete-classpath \
 	    --report-unsupported-elements-at-runtime \
