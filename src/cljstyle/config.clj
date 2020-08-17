@@ -37,6 +37,7 @@
 (s/def ::rewrite-namespaces? boolean?)
 (s/def ::single-import-break-width nat-int?)
 (s/def ::require-eof-newline? boolean?)
+(s/def ::vector-for-imports? boolean?)
 
 
 ;; Indentation Rules
@@ -84,7 +85,8 @@
                    ::single-import-break-width
                    ::require-eof-newline?
                    ::file-pattern
-                   ::file-ignore]))
+                   ::file-ignore
+                   ::vector-for-imports?]))
 
 
 
@@ -113,7 +115,8 @@
    :single-import-break-width 30
    :require-eof-newline? true
    :file-pattern #"\.clj[csx]?$"
-   :file-ignore #{}})
+   :file-ignore #{}
+   :vector-for-imports? false})
 
 
 

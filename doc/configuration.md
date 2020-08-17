@@ -141,3 +141,7 @@ disabled:
 
   Require all files to end with a newline character. One will be added if it is
   not present.
+
+* `:vector-for-imports?`
+
+  Uses vectors in ns imports. Defaults to false.
