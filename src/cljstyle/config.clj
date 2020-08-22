@@ -267,19 +267,19 @@
 (defn readable?
   "True if the process can read the given `File`."
   [^File file]
-  (and file (.canRead file)))
+  (boolean (and file (.canRead file))))
 
 
 (defn file?
   "True if the given `File` represents a regular file."
   [^File file]
-  (and file (.isFile file)))
+  (boolean (and file (.isFile file))))
 
 
 (defn directory?
   "True if the given `File` represents a directory."
   [^File file]
-  (and file (.isDirectory file)))
+  (boolean (and file (.isDirectory file))))
 
 
 (defn canonical-dir
@@ -296,33 +296,36 @@
 (defn source-file?
   "True if the file is a recognized source file."
   [config ^File file]
-  (and (file? file)
-       (readable? file)
-       (re-seq (:file-pattern config) (.getName file))))
+  (boolean
+    (when (and (file? file) (readable? file))
+      (let [filename (.getName file)]
+        (or (some (partial str/ends-with? filename)
+                  (get-in config [:files :extensions]))
+            (when-let [pattern (get-in config [:files :pattern])]
+              (re-seq pattern filename)))))))
 
 
 (defn ignored?
   "True if the file should be ignored."
   [config exclude-globs ^File file]
-  (or
-    (some
-      (fn test-rule
-        [rule]
-        (cond
-          (string? rule)
-          (= rule (.getName file))
+  (let [filename (.getName file)
+        filepath (.toPath file)
+        canonical-path (.getCanonicalPath file)]
+    (letfn [(test-rule
+              [rule]
+              (cond
+                (string? rule)
+                (= rule filename)
 
-          (pattern? rule)
-          (boolean (re-seq rule (.getCanonicalPath file)))
-
-          :else false))
-      (:file-ignore config))
-    (some
-      (fn test-glob
-        [glob]
-        (let [path-matcher (.getPathMatcher (FileSystems/getDefault) (str "glob:" glob))]
-          (.matches path-matcher (.toPath file))))
-      exclude-globs)))
+                (pattern? rule)
+                (re-seq rule canonical-path)))
+            (test-glob
+              [glob]
+              (-> (FileSystems/getDefault)
+                  (.getPathMatcher (str "glob:" glob))
+                  (.matches filepath)))]
+      (boolean (or (some test-rule (get-in config [:files :ignored]))
+                   (some test-glob exclude-globs))))))
 
 
 
