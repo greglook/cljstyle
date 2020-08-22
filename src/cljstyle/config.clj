@@ -111,7 +111,7 @@
 
 ;; #### Rule: Blank Lines
 
-(s/def :cljstyle.config.rules.blank-lines/remove-consecutive?
+(s/def :cljstyle.config.rules.blank-lines/trim-consecutive?
   boolean?)
 
 
@@ -129,7 +129,7 @@
 
 (s/def :cljstyle.config.rules/blank-lines
   (s/keys :opt-un [:cljstyle.config.rules.global/enabled?
-                   :cljstyle.config.rules.blank-lines/remove-consecutive?
+                   :cljstyle.config.rules.blank-lines/trim-consecutive?
                    :cljstyle.config.rules.blank-lines/max-consecutive
                    :cljstyle.config.rules.blank-lines/insert-padding?
                    :cljstyle.config.rules.blank-lines/padding-lines]))
@@ -258,7 +258,7 @@
 
     :blank-lines
     {:enabled? true
-     :remove-consecutive? true
+     :trim-consecutive? true
      :max-consecutive 2
      :insert-padding? true
      :padding-lines 2}
@@ -320,7 +320,7 @@
       (translate :insert-missing-whitespace?     [:rules :whitespace :insert-missing?])
 
       ;; Blank lines rule
-      (translate :remove-consecutive-blank-lines? [:rules :blank-lines :remove-consecutive?])
+      (translate :remove-consecutive-blank-lines? [:rules :blank-lines :trim-consecutive?])
       (translate :max-consecutive-blank-lines     [:rules :blank-lines :max-consecutive])
       (translate :insert-padding-lines?           [:rules :blank-lines :insert-padding?])
       (translate :padding-lines                   [:rules :blank-lines :padding-lines])
