@@ -252,7 +252,7 @@
                (:displace (meta x)) y
                (sequential? x) (into x y)
                (set? x) (into x y)
-               (map? x) (merge x y)
+               (map? x) (merge-with merge-values x y)
                :else y))]
      (with-meta
        (merge-with merge-values a b)
