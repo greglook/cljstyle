@@ -468,8 +468,9 @@
                           ex))))
       (as-> config
         (if (legacy? config)
-          ;; TODO: warn about legacy config file?
-          (translate-legacy config)
+          (binding [*out* *err*]
+            (println "Translating legacy configuration file at" path)
+            (translate-legacy config))
           config)
         (if (s/valid? ::config config)
           (vary-meta config assoc ::paths [path])
