@@ -7,7 +7,8 @@
   merging and overriding their parents."
   (:require
     [clojure.java.io :as io]
-    [clojure.spec.alpha :as s])
+    [clojure.spec.alpha :as s]
+    [clojure.string :as str])
   (:import
     java.io.File
     java.nio.file.FileSystems))
@@ -21,70 +22,182 @@
   (instance? java.util.regex.Pattern v))
 
 
-;; Formatting Rules
-(s/def ::indentation? boolean?)
-(s/def ::list-indent-size nat-int?)
-(s/def ::line-break-vars? boolean?)
-(s/def ::line-break-functions? boolean?)
-(s/def ::reformat-types? boolean?)
-(s/def ::remove-surrounding-whitespace? boolean?)
-(s/def ::remove-trailing-whitespace? boolean?)
-(s/def ::insert-missing-whitespace? boolean?)
-(s/def ::remove-consecutive-blank-lines? boolean?)
-(s/def ::max-consecutive-blank-lines nat-int?)
-(s/def ::insert-padding-lines? boolean?)
-(s/def ::padding-lines nat-int?)
-(s/def ::rewrite-namespaces? boolean?)
-(s/def ::single-import-break-width nat-int?)
-(s/def ::require-eof-newline? boolean?)
+;; ### Files Configuration
+
+(s/def :cljstyle.config.files/extensions
+  (s/coll-of string? :kind set?))
 
 
-;; Indentation Rules
-(s/def ::indent-key
+(s/def :cljstyle.config.files/pattern
+  pattern?)
+
+
+(s/def :cljstyle.config.files/ignored
+  (s/coll-of (s/or :exact string?
+                   :fuzzy pattern?)
+             :kind set?))
+
+
+#_
+(s/def :cljstyle.config.files/exclude-globs
+  (s/coll-of string? :kind set?))
+
+
+(s/def ::files
+  (s/keys :opt-un [:cljstyle.config.files/extensions
+                   :cljstyle.config.files/pattern
+                   :cljstyle.config.files/ignored
+                   #_:cljstyle.config.files/exclude-globs]))
+
+
+;; ### Rules Configuration
+
+(s/def :cljstyle.config.rules.global/enabled?
+  boolean?)
+
+
+;; #### Rule: Indentation
+
+(s/def :cljstyle.config.rules.indentation/list-indent
+  nat-int?)
+
+
+(s/def :cljstyle.config.rules.indentation/indent-key
   (s/or :symbol symbol?
         :pattern pattern?))
 
 
-(s/def ::indenter
+(s/def :cljstyle.config.rules.indentation/indenter
   (s/cat :type #{:inner :block :stair}
          :args (s/+ nat-int?)))
 
 
-(s/def ::indent-rule
-  (s/coll-of ::indenter :kind vector?))
+(s/def :cljstyle.config.rules.indentation/indent-rule
+  (s/coll-of :cljstyle.config.rules.indentation/indenter
+             :kind vector?))
 
 
-(s/def ::indents
-  (s/map-of ::indent-key ::indent-rule))
+(s/def :cljstyle.config.rules.indentation/indents
+  (s/map-of :cljstyle.config.rules.indentation/indent-key
+            :cljstyle.config.rules.indentation/indent-rule))
 
 
-;; File Behavior
-(s/def ::file-pattern pattern?)
+(s/def :cljstyle.config.rules/indentation
+  (s/keys :opt-un [:cljstyle.config.rules.global/enabled?
+                   :cljstyle.config.rules.indentation/list-indent
+                   :cljstyle.config.rules.indentation/indents]))
 
-(s/def ::file-ignore-rule (s/or :string string? :pattern pattern?))
-(s/def ::file-ignore (s/coll-of ::file-ignore-rule :kind set?))
+
+;; #### Rule: Whitespace
+
+(s/def :cljstyle.config.rules.whitespace/remove-surrounding?
+  boolean?)
 
 
-;; Config Map
-(s/def ::settings
-  (s/keys :opt-un [::indentation?
-                   ::list-indent-size
-                   ::indents
-                   ::line-break-vars?
-                   ::line-break-functions?
-                   ::reformat-types?
-                   ::remove-surrounding-whitespace?
-                   ::remove-trailing-whitespace?
-                   ::insert-missing-whitespace?
-                   ::remove-consecutive-blank-lines?
-                   ::max-consecutive-blank-lines
-                   ::insert-padding-lines?
-                   ::padding-lines
-                   ::rewrite-namespaces?
-                   ::single-import-break-width
-                   ::require-eof-newline?
-                   ::file-pattern
-                   ::file-ignore]))
+(s/def :cljstyle.config.rules.whitespace/remove-trailing?
+  boolean?)
+
+
+(s/def :cljstyle.config.rules.whitespace/insert-missing?
+  boolean?)
+
+
+(s/def :cljstyle.config.rules/whitespace
+  (s/keys :opt-un [:cljstyle.config.rules.global/enabled?
+                   :cljstyle.config.rules.whitespace/remove-surrounding?
+                   :cljstyle.config.rules.whitespace/remove-trailing?
+                   :cljstyle.config.rules.whitespace/insert-missing?]))
+
+
+;; #### Rule: Blank Lines
+
+(s/def :cljstyle.config.rules.blank-lines/remove-consecutive?
+  boolean?)
+
+
+(s/def :cljstyle.config.rules.blank-lines/max-consecutive
+  nat-int?)
+
+
+(s/def :cljstyle.config.rules.blank-lines/insert-padding?
+  boolean?)
+
+
+(s/def :cljstyle.config.rules.blank-lines/padding-lines
+  nat-int?)
+
+
+(s/def :cljstyle.config.rules/blank-lines
+  (s/keys :opt-un [:cljstyle.config.rules.global/enabled?
+                   :cljstyle.config.rules.blank-lines/remove-consecutive?
+                   :cljstyle.config.rules.blank-lines/max-consecutive
+                   :cljstyle.config.rules.blank-lines/insert-padding?
+                   :cljstyle.config.rules.blank-lines/padding-lines]))
+
+
+;; #### Rule: EOF Newline
+
+(s/def :cljstyle.config.rules/eof-newline
+  (s/keys :opt-un [:cljstyle.config.rules.global/enabled?]))
+
+
+;; #### Rule: Vars
+
+(s/def :cljstyle.config.rules.vars/line-breaks?
+  boolean?)
+
+
+(s/def :cljstyle.config.rules/vars
+  (s/keys :opt-un [:cljstyle.config.rules.global/enabled?
+                   :cljstyle.config.rules.vars/line-breaks?]))
+
+
+;; #### Rule: Functions
+
+(s/def :cljstyle.config.rules.functions/line-breaks?
+  boolean?)
+
+
+(s/def :cljstyle.config.rules/functions
+  (s/keys :opt-un [:cljstyle.config.rules.global/enabled?
+                   :cljstyle.config.rules.functions/line-breaks?]))
+
+
+;; #### Rule: Types
+
+(s/def :cljstyle.config.rules/types
+  (s/keys :opt-un [:cljstyle.config.rules.global/enabled?]))
+
+
+;; #### Rule: Namespaces
+
+(s/def :cljstyle.config.rules.namespaces/single-import-break-width
+  nat-int?)
+
+
+(s/def :cljstyle.config.rules/namespaces
+  (s/keys :opt-un [:cljstyle.config.rules.global/enabled?
+                   :cljstyle.config.rules.namespaces/single-import-break-width]))
+
+
+;; #### Rules Map
+
+(s/def ::rules
+  (s/keys :opt-un [:cljstyle.config.rules/indentation
+                   :cljstyle.config.rules/whitespace
+                   :cljstyle.config.rules/blank-lines
+                   :cljstyle.config.rules/eof-newline
+                   :cljstyle.config.rules/vars
+                   :cljstyle.config.rules/functions
+                   :cljstyle.config.rules/types
+                   :cljstyle.config.rules/namespaces]))
+
+
+;; ### Config Map
+
+(s/def ::config
+  (s/keys :opt-un [::files
+                   ::rules]))
 
 
 
@@ -118,16 +231,18 @@
 
 (def new-config
   {:files
-   {:pattern nil
+   {;; Files will be considered valid sources if their name ends in one of
+    ;; these extensions _or_ if they match the pattern regex, if set.
     :extensions #{".clj" ".cljs" ".cljc" ".cljx"}
-    :ignored #{".git" ".hg"}}
+    :pattern nil
 
-   #_#_ ; probably dooesn't belong here
-   :options
-   {:report? false
-    :verbose? false
-    :stats-file nil
-    :excludes #{}}
+    ;; Files will be ignored if their name matches one of the given strings
+    ;; or patterns.
+    :ignored #{".git" ".hg"}
+
+    ;; Files may also be excluded with a glob matched against the full path.
+    ;; This is usually set by the command-line flag.
+    :exclude-globs #{}}
 
    :rules
    {:indentation
@@ -169,7 +284,7 @@
 
 (def default-config
   "Default configuration settings."
-  legacy-config)
+  new-config)
 
 
 (defn legacy?
@@ -352,10 +467,14 @@
                            :path path}
                           ex))))
       (as-> config
-        (if (s/valid? ::settings config)
+        (if (legacy? config)
+          ;; TODO: warn about legacy config file?
+          (translate-legacy config)
+          config)
+        (if (s/valid? ::config config)
           (vary-meta config assoc ::paths [path])
           (throw (ex-info (str "Invalid configuration loaded from file: " path
-                               "\n" (s/explain-str ::settings config))
+                               "\n" (s/explain-str ::config config))
                           {:type ::invalid
                            :path path})))))))
 
