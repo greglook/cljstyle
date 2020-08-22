@@ -236,7 +236,7 @@
   "Check a single source file and produce a result."
   [config path ^File file]
   (let [original (slurp file)
-        revised (format/reformat-file original config)]
+        revised (format/reformat-file original (:rules config))]
     (if (= original revised)
       {:type :correct
        :debug (str "Source file " path " is formatted correctly")}
@@ -280,7 +280,7 @@
   "Fix a single source file and produce a result."
   [config path ^File file]
   (let [original (slurp file)
-        revised (format/reformat-file original config)]
+        revised (format/reformat-file original (:rules config))]
     (if (= original revised)
       {:type :correct
        :debug (str "Source file " path " is formatted correctly")}

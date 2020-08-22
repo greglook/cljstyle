@@ -153,9 +153,9 @@
           (recur section (z/right* zloc)))))))
 
 
-(defn line-break-functions
+(defn reformat-line-breaks
   "Transform this form by applying line-breaks to function definition forms."
-  [form]
+  [form _]
   (-> (z/edn* form {:track-position? true})
       (zl/edit-walk
         (every-pred fn-form? (complement zl/syntax-quoted?))

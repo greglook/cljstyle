@@ -536,7 +536,7 @@
 
 ;; ## Editing Functions
 
-(defn rewrite-namespaces
+(defn reformat
   "Transform this form by rewriting any namespace forms."
   [form opts]
   ;; NOTE: using `edn` instead of `edn*` here is intentional.

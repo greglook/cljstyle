@@ -81,9 +81,9 @@
         (recur (z/right* zloc))))))
 
 
-(defn line-break-vars
+(defn reformat-line-breaks
   "Transform this form by applying line-breaks to var definition forms."
-  [form]
+  [form _]
   (-> (z/edn* form {:track-position? true})
       (zl/edit-walk def-form? edit-def)
       (z/root)))

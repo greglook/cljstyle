@@ -30,9 +30,9 @@
          (surrounding? zloc blank?))))
 
 
-(defn remove-surrounding-whitespace
+(defn remove-surrounding
   "Transform this form by removing any surrounding whitespace nodes."
-  [form]
+  [form _]
   (zl/transform form surrounding-whitespace? z/remove*))
 
 
@@ -58,9 +58,9 @@
              (-> zloc z/up z/node n/tag))))
 
 
-(defn insert-missing-whitespace
+(defn insert-missing
   "Insert a space between abutting elements in the form."
-  [form]
+  [form _]
   (zl/transform form missing-whitespace? z/append-space))
 
 
@@ -82,7 +82,7 @@
            (final? zloc))))
 
 
-(defn remove-trailing-whitespace
+(defn remove-trailing
   "Transform this form by removing all trailing whitespace."
-  [form]
+  [form _]
   (zl/transform form trailing-whitespace? z/remove*))
