@@ -47,6 +47,22 @@ The [cljstyle-mode](https://github.com/jstokes/cljstyle-mode) project offers a
 `cljstyle` integration for Emacs users.
 
 
+### IntelliJ IDEA
+
+Add `cljstyle` as an external tool:
+
+![intellij-idea-config](assets/intellij-idea-config.png)
+
+Record a simple macro:
+1. `Edit` > `Start Macro Recording`
+2. Click `Tools` > `External tools` > `cljstyle`
+3. Click `File` > `Save All`
+4. Stop macro recording and save with the any name. E.g. `cljstyle`.
+
+Add shortcut for the recorded macro. You can override `CMD+S (Save All)` with the recorded macro:
+
+![intellij-idea-shortcut](assets/intellij-idea-shortcut.png)
+
 ### Leiningen
 
 Cljstyle may be used from Leiningen by adding `cljstyle` as a dependency and
