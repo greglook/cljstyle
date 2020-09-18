@@ -24,59 +24,70 @@
 
 ;; ### Files Configuration
 
+;; Files will be treated as sources if their name ends in one of these
+;; extensions.
 (s/def :cljstyle.config.files/extensions
   (s/coll-of string? :kind set?))
 
 
+;; Files will also be treated as sources if this pattern is set and the
+;; filename matches the regular expression.
 (s/def :cljstyle.config.files/pattern
   pattern?)
 
 
+;; Files and directories will be _ignored_ if their name exact-matches a string
+;; or their full path fuzzy-matches a pattern in this set. Ignored files will
+;; not be processed and ignored directories will not be recursed into.
 (s/def :cljstyle.config.files/ignored
   (s/coll-of (s/or :exact string?
                    :fuzzy pattern?)
              :kind set?))
 
 
-#_
-(s/def :cljstyle.config.files/exclude-globs
-  (s/coll-of string? :kind set?))
-
-
 (s/def ::files
   (s/keys :opt-un [:cljstyle.config.files/extensions
                    :cljstyle.config.files/pattern
-                   :cljstyle.config.files/ignored
-                   #_:cljstyle.config.files/exclude-globs]))
+                   :cljstyle.config.files/ignored]))
 
 
 ;; ### Rules Configuration
 
+;; General configuration flag to enable or disable a rule.
 (s/def :cljstyle.config.rules.global/enabled?
   boolean?)
 
 
 ;; #### Rule: Indentation
 
+;; How many spaces should be used for indenting list forms which do not have a
+;; more specific rule applied.
 (s/def :cljstyle.config.rules.indentation/list-indent
   nat-int?)
 
 
+;; A key specifying forms to match to apply indentation to. Unqualified symbols
+;; match the corresponding symbol with or without a namespace; qualified
+;; symbols will only match forms with the same namespace and name; patterns are
+;; matched against the symbol string entirely.
 (s/def :cljstyle.config.rules.indentation/indent-key
   (s/or :symbol symbol?
         :pattern pattern?))
 
 
+;; Specification for a single indenter rule.
 (s/def :cljstyle.config.rules.indentation/indenter
   (s/cat :type #{:inner :block :stair}
          :args (s/+ nat-int?)))
 
 
+;; A collection of indenter rules to apply to a given form.
 (s/def :cljstyle.config.rules.indentation/indent-rule
   (s/coll-of :cljstyle.config.rules.indentation/indenter
              :kind vector?))
 
 
+;; Map containing all of the configured indentation rules.
 (s/def :cljstyle.config.rules.indentation/indents
   (s/map-of :cljstyle.config.rules.indentation/indent-key
             :cljstyle.config.rules.indentation/indent-rule))
@@ -90,14 +101,17 @@
 
 ;; #### Rule: Whitespace
 
+;; Whether to remove extra whitespace around forms.
 (s/def :cljstyle.config.rules.whitespace/remove-surrounding?
   boolean?)
 
 
+;; Whether to remove trailing whitespace on lines.
 (s/def :cljstyle.config.rules.whitespace/remove-trailing?
   boolean?)
 
 
+;; Whether to insert missing whitespace between forms.
 (s/def :cljstyle.config.rules.whitespace/insert-missing?
   boolean?)
 
@@ -111,18 +125,22 @@
 
 ;; #### Rule: Blank Lines
 
+;; Whether to trim consecutive blank lines between top-level forms.
 (s/def :cljstyle.config.rules.blank-lines/trim-consecutive?
   boolean?)
 
 
+;; Maximum number of consecutive blank lines to allow between top-level forms.
 (s/def :cljstyle.config.rules.blank-lines/max-consecutive
   nat-int?)
 
 
+;; Whether to insert blank padding lines between multi-line top-level forms.
 (s/def :cljstyle.config.rules.blank-lines/insert-padding?
   boolean?)
 
 
+;; Number of padding lines to require between top-level forms.
 (s/def :cljstyle.config.rules.blank-lines/padding-lines
   nat-int?)
 
@@ -143,6 +161,7 @@
 
 ;; #### Rule: Vars
 
+;; Whether to apply line-break rules to var definitions.
 (s/def :cljstyle.config.rules.vars/line-breaks?
   boolean?)
 
@@ -154,6 +173,7 @@
 
 ;; #### Rule: Functions
 
+;; Whether to apply line-break rules to function definitions.
 (s/def :cljstyle.config.rules.functions/line-breaks?
   boolean?)
 
@@ -171,6 +191,8 @@
 
 ;; #### Rule: Namespaces
 
+;; If an import in a namespace is longer than this, break it into a singleton
+;; group instead.
 (s/def :cljstyle.config.rules.namespaces/single-import-break-width
   nat-int?)
 
@@ -234,15 +256,11 @@
    {;; Files will be considered valid sources if their name ends in one of
     ;; these extensions _or_ if they match the pattern regex, if set.
     :extensions #{".clj" ".cljs" ".cljc" ".cljx"}
-    :pattern nil
+    ;:pattern nil
 
     ;; Files will be ignored if their name matches one of the given strings
     ;; or patterns.
-    :ignored #{".git" ".hg"}
-
-    ;; Files may also be excluded with a glob matched against the full path.
-    ;; This is usually set by the command-line flag.
-    :exclude-globs #{}}
+    :ignored #{".git" ".hg"}}
 
    :rules
    {:indentation
@@ -279,6 +297,7 @@
 
     :namespaces
     {:enabled? true
+     :indent-size 2
      :single-import-break-width 60}}})
 
 
@@ -339,6 +358,7 @@
 
       ;; Namespaces rule
       (translate :rewrite-namespaces?       [:rules :namespaces :enabled?])
+      (translate :list-indent-size          [:rules :namespaces :indent-size])
       (translate :single-import-break-width [:rules :namespaces :single-import-break-width])
 
       ;; Remove legacy keys
@@ -365,7 +385,8 @@
              (cond
                (:replace (meta y)) y
                (:displace (meta x)) y
-               (sequential? x) (into x y)
+               ;; This causes indent rules to concat, which is usually not the desired outcome.
+               ;(sequential? x) (into x y)
                (set? x) (into x y)
                (map? x) (merge-with merge-values x y)
                :else y))]
@@ -469,7 +490,8 @@
       (as-> config
         (if (legacy? config)
           (binding [*out* *err*]
-            (println "Translating legacy configuration file at" path)
+            ;; TODO: re-enable?
+            ;(println "Translating legacy configuration file at" path)
             (translate-legacy config))
           config)
         (if (s/valid? ::config config)

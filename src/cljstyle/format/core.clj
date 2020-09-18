@@ -27,7 +27,6 @@
                             (get rule-config sub-key)))
                  (let [form' (rule-fn form rule-config)
                        elapsed (- (System/nanoTime) start)]
-                   (printf "Rule %-12s  %7.3f ms\n" (name rule-key) (/ elapsed 1e6))
                    (vary-meta form' update ::rule-nanos update rule-key (fnil + 0) elapsed))
                  form))))]
     (-> form
@@ -41,8 +40,9 @@
         (apply-rule :indentation indent/reindent)
         (apply-rule :namespaces ns/reformat)
         (apply-rule :whitespace ws/remove-trailing)
+        ;; DEBUG
         (as-> form
-          (do (prn (meta form)) form)))))
+          (do #_(prn (meta form)) form)))))
 
 
 (defn reformat-string

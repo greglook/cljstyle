@@ -40,14 +40,14 @@
     (is (valid? ::config/file-ignore #{}))
     (is (valid? ::config/file-ignore #{"foo" "bar"}))
     (is (valid? ::config/file-ignore #{#"bar/baz/qux"})))
-  (testing "settings"
-    (is (invalid? ::config/settings nil))
-    (is (invalid? ::config/settings "foo"))
-    (is (invalid? ::config/settings [123]))
-    (is (valid? ::config/settings {}))
-    (is (valid? ::config/settings {:indentation? true}))
-    (is (valid? ::config/settings {:something-else 123}))
-    (is (valid? ::config/settings config/default-config))))
+  (testing "config"
+    (is (invalid? ::config/config nil))
+    (is (invalid? ::config/config "foo"))
+    (is (invalid? ::config/config [123]))
+    (is (valid? ::config/config {}))
+    (is (valid? ::config/config {:rules {:indentation {:enabled? true}}}))
+    (is (valid? ::config/config {:something-else 123}))
+    (is (valid? ::config/config config/default-config))))
 
 
 (deftest config-merging
@@ -197,9 +197,9 @@
 ;;             └── bar.clj
 (deftest config-hierarchy
   (with-files [test-dir "target/test-config/hierarchy"
-               a-config ["a/.cljstyle" (prn-str {:padding-lines 8})]
-               _abc-config ["a/b/c/.cljstyle" (prn-str {:padding-lines 4})]
-               abd-config ["a/b/d/.cljstyle" (prn-str {:file-ignore #{"f"}})]
+               a-config ["a/.cljstyle" (prn-str {:rules {:blank-lines {:padding-lines 8}}})]
+               _abc-config ["a/b/c/.cljstyle" (prn-str {:rules {:blank-lines {:padding-lines 4}}})]
+               abd-config ["a/b/d/.cljstyle" (prn-str {:files {:ignore #{"f"}}})]
                foo-clj ["a/b/c/foo.clj" "; foo"]
                bar-clj ["a/b/d/e/bar.clj" "; bar"]]
     (testing "read-config"

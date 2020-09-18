@@ -199,9 +199,9 @@
 (defn- custom-indenter
   "Construct a function which will return an indent amount for a given zipper
   location."
-  [opts]
-  (let [list-indent-size (:list-indent-size opts 2)
-        indenters (->> (:indents opts)
+  [rule-config]
+  (let [list-indent-size (:list-indent rule-config 2)
+        indenters (->> (:indents rule-config)
                        (sort-by indent-order)
                        (mapv (partial rule-indenter list-indent-size)))]
     (fn indent-amount
@@ -344,12 +344,12 @@
 
 (defn- indent
   "Transform this form by indenting all lines their proper amounts."
-  [form opts]
-  (let [indenter (custom-indenter opts)]
+  [form rule-config]
+  (let [indenter (custom-indenter rule-config)]
     (zl/transform form should-indent? (partial indent-line indenter))))
 
 
 (defn reindent
   "Transform this form by rewriting all line indentation."
-  [form opts]
-  (indent (unindent form) opts))
+  [form rule-config]
+  (indent (unindent form) rule-config))
