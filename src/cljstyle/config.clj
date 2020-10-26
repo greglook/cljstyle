@@ -385,8 +385,7 @@
              (cond
                (:replace (meta y)) y
                (:displace (meta x)) y
-               ;; This causes indent rules to concat, which is usually not the desired outcome.
-               ;(sequential? x) (into x y)
+               (sequential? x) (if (:concat (meta y)) (into x y) y)
                (set? x) (into x y)
                (map? x) (merge-with merge-values x y)
                :else y))]
