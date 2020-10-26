@@ -3,7 +3,22 @@
   (:require
     [clojure.java.io :as io]
     [clojure.spec.alpha :as s]
-    [clojure.test :as test]))
+    [clojure.test :as test]
+    [rewrite-clj.node :as n]
+    [rewrite-clj.parser :as parser]))
+
+
+(defmethod test/assert-expr 'reformatted?
+  [msg [_ f config in-str out-str]]
+  `(let [f# ~f
+         config# ~config
+         expected# ~out-str
+         actual# (-> ~in-str parser/parse-string-all (f# config#) n/string)]
+     (test/do-report
+       {:type (if (= expected# actual#) :pass :fail)
+        :message ~msg
+        :expected expected#
+        :actual actual#})))
 
 
 (defmethod test/assert-expr 'thrown-with-data?
