@@ -4,6 +4,9 @@
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
 
+  :aliases
+  {"kaocha" ["with-profile" "+kaocha" "run" "-m" "kaocha.runner"]}
+
   :plugins
   [[lein-cloverage "1.1.0"]]
 
@@ -32,6 +35,10 @@
     :dependencies
     [[com.clojure-goes-fast/clj-async-profiler "0.4.1"]
      [org.clojure/tools.namespace "1.0.0"]]}
+
+   :kaocha
+   {:dependencies
+    [[lambdaisland/kaocha "1.0.641"]]}
 
    :uberjar
    {:target-path "target/uberjar"
