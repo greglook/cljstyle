@@ -94,7 +94,7 @@
 (bar
 [foo x]
 \"doc\"))"
-      "option value lists should not be treated like methods")))
+          "option value lists should not be treated like methods")))
   (testing "comments"
     (is (reformatted?
           type/reformat {}
@@ -192,7 +192,7 @@ IFoo
 
   (toString [this]
 \"...\"))"
-      "(defrecord Apple
+          "(defrecord Apple
 [a b]
 
   ;; here are some interstitial comments
@@ -251,7 +251,7 @@ Object
 (close [_]))"
         "(reify ABC
 (close [_]))"
-    "empty method body should be fine")))
+        "empty method body should be fine")))
 
 
 (deftest proxy-forms

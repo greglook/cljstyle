@@ -99,10 +99,10 @@
           "(foo bar)\n(foo baz)")))
   (testing "with surrounding whitespace"
     (is (reformatted?
-        ws/remove-trailing {}
-        "( foo bar ) \n"
-        "( foo bar )\n"))
+          ws/remove-trailing {}
+          "( foo bar ) \n"
+          "( foo bar )\n"))
     (is (reformatted?
-        ws/remove-trailing {}
-        "( foo bar )   \n( foo baz )\n"
-        "( foo bar )\n( foo baz )\n"))))
+          ws/remove-trailing {}
+          "( foo bar )   \n( foo baz )\n"
+          "( foo bar )\n( foo baz )\n"))))

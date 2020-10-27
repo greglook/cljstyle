@@ -80,7 +80,7 @@
   (:refer-clojure :exclude [keys])
   (:require [clojure.string :as str]
             [clojure.spec :as s]))"
-    "(ns foo.bar
+        "(ns foo.bar
   \"Functions for working with bars.\"
   (:refer-clojure :exclude [keys])
   (:require
@@ -101,10 +101,10 @@
     [abc.qrs]))"))
   (is (reformatted?
         ns/reformat {}
-    "(ns abc.xyz (:require (clojure [set :as set]
+        "(ns abc.xyz (:require (clojure [set :as set]
 [string :as str]
 [pprint :refer [pp]]) [abc.def :as def]))"
-    "(ns abc.xyz
+        "(ns abc.xyz
   (:require
     [abc.def :as def]
     [clojure.pprint :refer [pp]]
@@ -223,8 +223,8 @@
 (deftest ns-genclass
   (is (reformatted?
         ns/reformat {}
-      "(ns abc.def (:gen-class))"
-      "(ns abc.def
+        "(ns abc.def (:gen-class))"
+        "(ns abc.def
   (:gen-class))"))
   (is (reformatted?
         ns/reformat {}

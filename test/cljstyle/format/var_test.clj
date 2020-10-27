@@ -21,7 +21,7 @@
           var/reformat-line-breaks {}
           "(def  abc {  :a true  \n  :b false})"
           "(def abc\n{  :a true  \n  :b false})"
-        "multiline body forces break"))
+          "multiline body forces break"))
     (is (reformatted?
           var/reformat-line-breaks {}
           "(def    \n  foo 123)"

@@ -41,8 +41,8 @@
           "(if (= x 1)\n:foo\n:bar)"
           "(if (= x 1)\n  :foo\n  :bar)"))
     (is (reformatted?
-        indent/reindent {:indents {'do [[:block 0]]}
-                         :list-indent 1}
+          indent/reindent {:indents {'do [[:block 0]]}
+                           :list-indent 1}
           "(do\n(foo)\n(bar))"
           "(do\n  (foo)\n  (bar))"))
     (is (reformatted?
