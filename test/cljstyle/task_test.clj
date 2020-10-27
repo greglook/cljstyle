@@ -1,4 +1,4 @@
-(ns cljstyle.task.core-test
+(ns cljstyle.task-test
   (:require
     [cljstyle.task.core :as task]
     [cljstyle.task.print :as p]
