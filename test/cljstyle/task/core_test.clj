@@ -54,7 +54,7 @@
       (is (str/blank? stderr))))
   (testing "task execution"
     (with-files [test-dir "target/test-config/find"
-                 _a-config ["a/.cljstyle" (prn-str {:padding-lines 8})]
+                 _a-config ["a/.cljstyle" (prn-str {:rules {:blank-lines {:padding-lines 8}}})]
                  _foo-clj ["a/b/foo.clj" "; foo"]
                  _bar-clj ["a/x/bar.clj" "; bar"]]
       (capture-io
@@ -75,7 +75,7 @@
       (is (str/blank? stderr))))
   (testing "task execution"
     (with-files [test-dir "target/test-config/check"
-                 a-config ["a/.cljstyle" (prn-str {:rewrite-namespaces? true})]
+                 a-config ["a/.cljstyle" (prn-str {:rules {:namespaces {:enabled? true}}})]
                  foo-clj ["a/b/foo.clj" ";; foo\n"]
                  _bar-clj ["a/x/bar.clj" "(ns a.x.bar\n  (:require\n    [clojure.string :as str]))\n"]]
       (testing "when correct"
@@ -108,7 +108,7 @@
             (is (str/includes? stderr "Error while processing file target/test-config/check/a/b/foo.clj"))
             (is (str/ends-with? stderr "Failed to process 1 files\n")))))
       (testing "ignored file"
-        (spit a-config (prn-str {:file-ignore #{"foo.clj"}}))
+        (spit a-config (prn-str {:files {:ignored #{"foo.clj"}}}))
         (capture-io
           (is (map? (task/check-sources [(str test-dir)])))
           (is (str/blank? stdout))
@@ -140,8 +140,9 @@
       (is (str/blank? stderr))))
   (testing "task execution"
     (with-files [test-dir "target/test-config/fix"
-                 _a-config ["a/.cljstyle" (prn-str {:rewrite-namespaces? true})]
-                 foo-clj ["a/b/foo.clj" "(def abc \"doc string\" 123)"]
+                 _a-config ["a/.cljstyle" (prn-str {:rules {:namespaces {:enabled? true}
+                                                            :vars {:line-breaks? true}}})]
+                 foo-clj ["a/b/foo.clj" "(def abc \"doc string\" 123)\n"]
                  _bar-clj ["a/x/bar.clj" "(ns a.x.bar\n  (:require\n    [clojure.string :as str]))\n"]]
       (testing "fixed files"
         (capture-io

@@ -321,5 +321,5 @@
   []
   (let [cwd (System/getProperty "user.dir")
         config (load-configs cwd (io/file cwd))]
-    (print (format/reformat-file (slurp *in*) config))
+    (print (format/reformat-file (slurp *in*) (:rules config)))
     (flush)))

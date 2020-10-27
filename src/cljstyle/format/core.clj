@@ -15,12 +15,12 @@
 
 (defn reformat-form
   "Transform this form by applying formatting rules to it."
-  [form config]
+  [form rules-config]
   (letfn [(apply-rule
             ([form rule-key rule-fn]
              (apply-rule form rule-key nil rule-fn))
             ([form rule-key sub-key rule-fn]
-             (let [rule-config (get-in config [:rules rule-key])
+             (let [rule-config (get rules-config rule-key)
                    start (System/nanoTime)]
                (if (and (:enabled? rule-config)
                         (or (nil? sub-key)
@@ -37,8 +37,8 @@
         (apply-rule :types type/reformat)
         (apply-rule :blank-lines :trim-consecutive? line/trim-consecutive)
         (apply-rule :blank-lines :insert-padding? line/insert-padding)
-        (apply-rule :indentation indent/reindent)
         (apply-rule :namespaces ns/reformat)
+        (apply-rule :indentation indent/reindent)
         (apply-rule :whitespace ws/remove-trailing)
         ;; DEBUG
         (as-> form
@@ -48,18 +48,18 @@
 (defn reformat-string
   "Helper method to transform a string by parsing it, formatting it, then
   printing it."
-  [form-string config]
+  [form-string rules-config]
   (-> (parser/parse-string-all form-string)
-      (reformat-form config)
+      (reformat-form rules-config)
       (n/string)))
 
 
 (defn reformat-file
   "Like `reformat-string` but applies to an entire file. Will honor
   `:require-eof-newline?`."
-  [file-text config]
-  (let [text' (reformat-string file-text config)]
-    (if (and (get-in config [:eof-newline :enabled?])
+  [file-text rules-config]
+  (let [text' (reformat-string file-text rules-config)]
+    (if (and (get-in rules-config [:eof-newline :enabled?])
              (not (str/ends-with? text' "\n")))
       (str text' "\n")
       text')))
