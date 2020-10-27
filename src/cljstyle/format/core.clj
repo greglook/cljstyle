@@ -27,6 +27,7 @@
                             (get rule-config sub-key)))
                  (let [form' (rule-fn form rule-config)
                        elapsed (- (System/nanoTime) start)]
+                   ;; TODO: how to report these?
                    (vary-meta form' update ::rule-nanos update rule-key (fnil + 0) elapsed))
                  form))))]
     (-> form
@@ -39,10 +40,7 @@
         (apply-rule :blank-lines :insert-padding? line/insert-padding)
         (apply-rule :namespaces ns/reformat)
         (apply-rule :indentation indent/reindent)
-        (apply-rule :whitespace ws/remove-trailing)
-        ;; DEBUG
-        (as-> form
-          (do #_(prn (meta form)) form)))))
+        (apply-rule :whitespace ws/remove-trailing))))
 
 
 (defn reformat-string
