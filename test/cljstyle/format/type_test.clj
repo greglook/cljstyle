@@ -1,93 +1,104 @@
 (ns cljstyle.format.type-test
   (:require
-    [cljstyle.format.core-test :refer [with-test-config is-reformatted]]
+    [cljstyle.format.type :as type]
+    [cljstyle.test-util]
     [clojure.test :refer [deftest testing is]]))
 
 
 (deftest protocol-definitions
   (testing "basics"
-    (is-reformatted
-      "(defprotocol Foo)"
-      "(defprotocol Foo)")
-    (is-reformatted
-     "(defprotocol Foo \"doc string goes here\")"
-     "(defprotocol Foo
-  \"doc string goes here\")")
-    (is-reformatted
-      "(defprotocol Foo \"doc string goes here\"
+    (is (reformatted?
+          type/reformat {}
+          "(defprotocol Foo)"
+          "(defprotocol Foo)"))
+    (is (reformatted?
+          type/reformat {}
+          "(defprotocol Foo \"doc string goes here\")"
+          "(defprotocol Foo
+\"doc string goes here\")"))
+    (is (reformatted?
+          type/reformat {}
+          "(defprotocol Foo \"doc string goes here\"
   (abc [foo]))"
-      "(defprotocol Foo
-  \"doc string goes here\"
+          "(defprotocol Foo
+\"doc string goes here\"
 
-  (abc [foo]))"))
+(abc [foo]))")))
   (testing "method forms"
-    (is-reformatted
-      "(defprotocol Foo
+    (is (reformatted?
+          type/reformat {}
+          "(defprotocol Foo
   (efg [foo] \"method doc\"))"
-      "(defprotocol Foo
+          "(defprotocol Foo
 
-  (efg
-    [foo]
-    \"method doc\"))")
-    (is-reformatted
-      "(defprotocol Foo (bar [foo] [foo x]))"
-      "(defprotocol Foo
+(efg
+[foo]
+\"method doc\"))"))
+    (is (reformatted?
+          type/reformat {}
+          "(defprotocol Foo (bar [foo] [foo x]))"
+          "(defprotocol Foo
 
-  (bar
-    [foo]
-    [foo x]))")
-    (is-reformatted
-      "(defprotocol Foo
+(bar
+[foo]
+[foo x]))"))
+    (is (reformatted?
+          type/reformat {}
+          "(defprotocol Foo
   (bar [foo] [foo x]
     \"multiline
     method doc\"))"
-      "(defprotocol Foo
+          "(defprotocol Foo
 
-  (bar
-    [foo]
-    [foo x]
+(bar
+[foo]
+[foo x]
     \"multiline
-    method doc\"))")
-    ;; --8<--
-    (is-reformatted
-      "(defprotocol Foo
+    method doc\"))"))
+    (is (reformatted?
+          type/reformat {}
+          "(defprotocol Foo
   (bar [foo] \"method doc\")
   (baz [foo x y]))"
-      "(defprotocol Foo
+          "(defprotocol Foo
 
-  (bar
-    [foo]
-    \"method doc\")
+(bar
+[foo]
+\"method doc\")
 
-  (baz [foo x y]))"))
+(baz [foo x y]))")))
   (testing "metadata"
-    (is-reformatted
-      "(defprotocol ^:deprecated Foo (qrs [foo]))"
-      "(defprotocol ^:deprecated Foo
+    (is (reformatted?
+          type/reformat {}
+          "(defprotocol ^:deprecated Foo (qrs [foo]))"
+          "(defprotocol ^:deprecated Foo
 
-  (qrs [foo]))"))
+(qrs [foo]))")))
   (testing "options"
-    (is-reformatted
-      "(defprotocol Foo
-          :extend-via-metadata true (qrs [foo]))"
-      "(defprotocol Foo
-  :extend-via-metadata true
+    (is (reformatted?
+          type/reformat {}
+          "(defprotocol Foo :extend-via-metadata true :baz 123 (qrs [foo]))"
+          "(defprotocol Foo
+:extend-via-metadata true
+:baz 123
 
-  (qrs [foo]))")
-    (is-reformatted
-      "(defprotocol Foo
+(qrs [foo]))"))
+    (is (reformatted?
+          type/reformat {}
+          "(defprotocol Foo
   ::methods (map f ms)
           (bar [foo x] \"doc\"))"
-      "(defprotocol Foo
+          "(defprotocol Foo
   ::methods (map f ms)
 
-  (bar
-    [foo x]
-    \"doc\"))"
-      "option value lists should not be treated like methods"))
+(bar
+[foo x]
+\"doc\"))"
+      "option value lists should not be treated like methods")))
   (testing "comments"
-    (is-reformatted
-      "(defprotocol Bar \"proto doc\"
+    (is (reformatted?
+          type/reformat {}
+          "(defprotocol Bar \"proto doc\"
 
   ;; an option comment
   :some-opt 123
@@ -95,75 +106,82 @@
   ;; a method comment
   (frobble
     [bar x y]))"
-      "(defprotocol Bar
-  \"proto doc\"
+          "(defprotocol Bar
+\"proto doc\"
 
   ;; an option comment
   :some-opt 123
 
   ;; a method comment
   (frobble
-    [bar x y]))"))
+    [bar x y]))")))
   (testing "nesting"
-    (is-reformatted
-      "(do
+    (is (reformatted?
+          type/reformat {}
+          "(do
 (defprotocol Foo \"doc string goes here\"
   (abc [foo])))"
-      "(do
-  (defprotocol Foo
-    \"doc string goes here\"
+          "(do
+(defprotocol Foo
+\"doc string goes here\"
 
-    (abc [foo])))")))
+(abc [foo])))"))))
 
 
 (deftest type-definitions
   (testing "basics"
-    (is-reformatted
-      "(deftype Thing [])"
-      "(deftype Thing
-  [])")
-    (is-reformatted
-      "(defrecord Thing [field-one
+    (is (reformatted?
+          type/reformat {}
+          "(deftype Thing [])"
+          "(deftype Thing\n[])"))
+    (is (reformatted?
+          type/reformat {}
+          "(defrecord Thing [field-one
     field-two
   another-field])"
-      "(defrecord Thing
-  [field-one
-   field-two
-   another-field])")
-    (is-reformatted
-      "(defrecord Foo\n[x]\nCloseable\n(close [_]\n(prn x)))"
-      "(defrecord Foo\n  [x]\n\n  Closeable\n\n  (close\n    [_]\n    (prn x)))"))
+          "(defrecord Thing
+[field-one
+    field-two
+  another-field])"))
+    (is (reformatted?
+          type/reformat {}
+          "(defrecord Foo\n[x]\nCloseable\n(close [_]\n(prn x)))"
+          "(defrecord Foo\n[x]\n\nCloseable\n\n(close\n[_]\n(prn x)))")))
   (testing "complex"
-    (is-reformatted
-      "(deftype Thing [x y z]
+    (is (reformatted?
+          type/reformat {}
+          "(deftype Thing [x y z]
       IFoo (oneline [this] :thing) (foo [this a b]
         (* (+ a x) z)) (bar
-[this c] (- c y))   )"
-      "(deftype Thing
-  [x y z]
+[this c] (- c y)))"
+          "(deftype Thing
+[x y z]
 
-  IFoo
+IFoo
 
-  (oneline [this] :thing)
-
-
-  (foo
-    [this a b]
-    (* (+ a x) z))
+(oneline [this] :thing)
 
 
-  (bar
-    [this c]
-    (- c y)))")
-    (is-reformatted
-      "(t/defrecord Foo\n [x]\nCloseable\n(close [_]\n(prn x)))"
-      "(t/defrecord Foo\n  [x]\n\n  Closeable\n\n  (close\n    [_]\n    (prn x)))")
-    (is-reformatted
-      "(defrecord Baz [x y]\n :load-ns true Object (toString [_] \"Baz\"))"
-      "(defrecord Baz\n  [x y]\n  :load-ns true\n\n  Object\n\n  (toString [_] \"Baz\"))"))
+(foo
+[this a b]
+        (* (+ a x) z))
+
+
+(bar
+[this c]
+(- c y)))"))
+    (is (reformatted?
+          type/reformat {}
+          "(t/defrecord Foo\n [x]\nCloseable\n(close [_]\n(prn x)))"
+          "(t/defrecord Foo\n [x]\n\nCloseable\n\n(close\n[_]\n(prn x)))"))
+    (is (reformatted?
+          type/reformat {}
+          "(defrecord Baz [x y]\n :load-ns true Object (toString [_] \"Baz\"))"
+          "(defrecord Baz\n[x y]\n :load-ns true\n\nObject\n\n(toString [_] \"Baz\"))")))
   (testing "comments"
-    (is-reformatted
-      "(defrecord Apple [a b]
+    (is (reformatted?
+          type/reformat {}
+          "(defrecord Apple [a b]
 
   ;; here are some interstitial comments
   ;; they should be left alone
@@ -173,9 +191,9 @@
   ;; a pre-method comment
 
   (toString [this]
-\"...\"   )  )"
+\"...\"))"
       "(defrecord Apple
-  [a b]
+[a b]
 
   ;; here are some interstitial comments
   ;; they should be left alone
@@ -185,106 +203,116 @@
   ;; a pre-method comment
 
   (toString
-    [this]
-    \"...\"))")))
+[this]
+\"...\"))"))))
 
 
 (deftest reify-forms
-  (is-reformatted
-    "(reify Closeable (close [_]
+  (is (reformatted?
+        type/reformat {}
+        "(reify Closeable (close [_]
 (prn :closed)))"
-    "(reify Closeable
-  (close
-    [_]
-    (prn :closed)))")
-  (is-reformatted
-    "(reify Closeable
+        "(reify Closeable
+(close
+[_]
+(prn :closed)))"))
+  (is (reformatted?
+        type/reformat {}
+        "(reify Closeable
 
 (close [_]
 (prn :closed)))"
-    "(reify Closeable
+        "(reify Closeable
 
-  (close
-    [_]
-    (prn :closed)))")
-  (is-reformatted
-    "(reify Key
+(close
+[_]
+(prn :closed)))"))
+  (is (reformatted?
+        type/reformat {}
+        "(reify Key
 
 (getKey [this] key-data)
     Object
-(toString [this] 
+(toString [this]
 \"key\"))"
-    "(reify Key
+        "(reify Key
 
-  (getKey [this] key-data)
+(getKey [this] key-data)
 
 
-  Object
+Object
 
-  (toString
-    [this]
-    \"key\"))")
-  (is-reformatted
-    "(reify ABC
+(toString
+[this]
+\"key\"))"))
+  (is (reformatted?
+        type/reformat {}
+        "(reify ABC
 (close [_]))"
-    "(reify ABC
-  (close [_]))"
-    "empty method body should be fine"))
+        "(reify ABC
+(close [_]))"
+    "empty method body should be fine")))
 
 
 (deftest proxy-forms
-  (is-reformatted
-    "(proxy [Clazz] [] (method [x y] (+ x y)))"
-    "(proxy [Clazz] []
-  (method [x y] (+ x y)))")
-  (is-reformatted
-    "(proxy [Clazz] []
+  (is (reformatted?
+        type/reformat {}
+        "(proxy [Clazz] [] (method [x y] (+ x y)))"
+        "(proxy [Clazz] []
+(method [x y] (+ x y)))"))
+  (is (reformatted?
+        type/reformat {}
+        "(proxy [Clazz] []
 
 (method [x y] (+ x y)))"
-    "(proxy [Clazz] []
+        "(proxy [Clazz] []
 
-  (method [x y] (+ x y)))")
-  (is-reformatted
-    "(proxy [Clazz IFaceA IFaceB]
+(method [x y] (+ x y)))"))
+  (is (reformatted?
+        type/reformat {}
+        "(proxy [Clazz IFaceA IFaceB]
 [arg1 arg2]
 (method [x y]
     (+ x y)))"
-    "(proxy [Clazz IFaceA IFaceB]
-       [arg1 arg2]
-  (method
-    [x y]
-    (+ x y)))")
-  (is-reformatted
-    "(proxy [Clazz IFaceA IFaceB]
+        "(proxy [Clazz IFaceA IFaceB]
+[arg1 arg2]
+(method
+[x y]
+    (+ x y)))"))
+  (is (reformatted?
+        type/reformat {}
+        "(proxy [Clazz IFaceA IFaceB]
 [arg1 arg2]
 
 (method [x y] (+ x y)))"
-    "(proxy [Clazz IFaceA IFaceB]
-       [arg1 arg2]
+        "(proxy [Clazz IFaceA IFaceB]
+[arg1 arg2]
 
-  (method [x y] (+ x y)))")
-  (is-reformatted
-    "(proxy [Clazz IFaceA IFaceB]
+(method [x y] (+ x y)))"))
+  (is (reformatted?
+        type/reformat {}
+        "(proxy [Clazz IFaceA IFaceB]
     [arg1 arg2]
 
                           (method [x y]
                           (+ x y)))"
-    "(proxy [Clazz IFaceA IFaceB]
-       [arg1 arg2]
+        "(proxy [Clazz IFaceA IFaceB]
+    [arg1 arg2]
 
-  (method
-    [x y]
-    (+ x y)))")
-  (is-reformatted
-    "(proxy [Clazz] [string] (add [x y]
+                          (method
+[x y]
+                          (+ x y)))"))
+  (is (reformatted?
+        type/reformat {}
+        "(proxy [Clazz] [string] (add [x y]
                           (+ x y))
   (mul [x y]
     (* x y)))"
-    "(proxy [Clazz] [string]
-  (add
-    [x y]
-    (+ x y))
+        "(proxy [Clazz] [string]
+(add
+[x y]
+                          (+ x y))
 
-  (mul
-    [x y]
-    (* x y)))"))
+(mul
+[x y]
+    (* x y)))")))

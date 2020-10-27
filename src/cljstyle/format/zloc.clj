@@ -269,7 +269,7 @@
 (defn replace-with-blank-lines
   "Replace all whitespace at the location with `n` blank lines."
   [zloc n]
-  (z/insert-left
+  (z/insert-left*
     (eat-whitespace zloc)
     (n/newlines (inc n))))
 

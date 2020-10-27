@@ -91,6 +91,10 @@
       (zl/whitespace-between? protocol-name? protocol-docstring? zloc)
       (recur (zl/line-break zloc))
 
+      ;; Keyword attributes must be on new lines.
+      (zl/whitespace-between? (complement zl/comment?) zl/keyword? zloc)
+      (recur (zl/line-break zloc))
+
       ;; One blank line preceding each method.
       (zl/whitespace-between? (complement zl/comment?) protocol-method? zloc)
       (recur (zl/replace-with-blank-lines zloc 1))
