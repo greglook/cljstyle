@@ -17,6 +17,31 @@
       (n/comment-node)))
 
 
+(defn- break-comment-tails
+  "Look through the sequence of nodes for comments with embedded trailing
+  newlines, and return an expanded sequence with no embedded newlines and an
+  equivalent newline node."
+  [nodes]
+  (into []
+        (mapcat
+          (fn expand
+            [node]
+            (if (= :comment (n/tag node))
+              (let [comment-str (n/string node)]
+                (if-let [tail (re-find #"\n+$" comment-str)]
+                  ;; expand nodes
+                  [(-> comment-str
+                       (str/replace #"\n+$" "")
+                       (subs 1)
+                       (n/comment-node))
+                   (n/newlines (count tail))]
+                  ;; no trailing newlines
+                  [node]))
+              ;; not a comment node
+              [node])))
+        nodes))
+
+
 (defn- strip-whitespace
   "Remove any whitespace and newline nodes from the element sequence."
   [elements]
@@ -147,7 +172,7 @@
   (->> elements
        (mapcat (partial vector
                         (n/newlines 1)
-                        (n/spaces (+ base-indent (:list-indent-size opts indent-size)))))
+                        (n/spaces (+ base-indent (:indent-size opts indent-size)))))
        (list* (n/keyword-node kw))
        (n/list-node)))
 
@@ -318,7 +343,7 @@
          (mapcat expand-comments)
          (mapcat (partial list
                           (n/newlines 1)
-                          (n/spaces (+ base-indent (* 2 (:list-indent-size opts indent-size))))))
+                          (n/spaces (+ base-indent (* 2 (:indent-size opts indent-size))))))
          (cons (n/token-node package)))
     (n/list-node)
     (with-meta (meta package))
@@ -392,14 +417,25 @@
 (defn- render-attr-map
   "Render ns metadata provided as an attr-map."
   [attr-map]
-  (when attr-map
-    [(n/spaces indent-size)
-     (->> (n/children attr-map)
-          (partition-by #(= :newline (n/tag %)))
-          (map #(drop-while (comp #{:whitespace :comma} n/tag) %))
-          (interpose [(n/spaces (inc indent-size))])
-          (apply concat)
-          (n/map-node))]))
+  (letfn [(newline?
+            [node]
+            (= :newline (n/tag node)))
+          (ws-or-comma?
+            [node]
+            (contains? #{:whitespace :comma} (n/tag node)))
+          (strip-leading-ws
+            [nodes]
+            (drop-while ws-or-comma? nodes))]
+    (when attr-map
+      [(n/spaces indent-size)
+       (->> (n/children attr-map)
+            (break-comment-tails)
+            (partition-by newline?)
+            (remove #(and (= 1 (count %)) (newline? (first %))))
+            (map strip-leading-ws)
+            (interpose [(n/newlines 1) (n/spaces (inc indent-size))])
+            (apply concat)
+            (n/map-node))])))
 
 
 (defn- render-refer-clojure
@@ -420,7 +456,7 @@
           (mapcat (fn format-entry
                     [[k v]]
                     [(n/newlines 1)
-                     (n/spaces (+ indent-size (:list-indent-size opts indent-size)))
+                     (n/spaces (+ indent-size (:indent-size opts indent-size)))
                      k
                      (n/spaces 1)
                      v]))
