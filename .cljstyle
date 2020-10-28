@@ -1,7 +1,15 @@
 ;; vim: filetype=clojure
-{:padding-lines 2
- :max-consecutive-blank-lines 3
- :single-import-break-width 80
- :file-ignore #{".git" "target"}
- :indents {thrown-with-data? [[:block 1]]
-           with-options [[:block 1]]}}
+{:files
+ {:ignored #{"target" ".git"}}
+
+ :rules
+ {:blank-lines
+  {:max-consecutive 3}
+
+  :namespaces
+  {:single-import-break-width 80}
+
+  :indentation
+  {:indents
+   {thrown-with-data? [[:block 1]]
+    with-options [[:block 1]]}}}}
