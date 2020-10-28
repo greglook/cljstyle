@@ -471,6 +471,11 @@
   ".cljstyle")
 
 
+(def legacy-files
+  "A set of legacy files observed during config reading."
+  (atom (sorted-set)))
+
+
 (defn read-config
   "Read a configuration file. Throws an exception if the read fails or the
   contents are not valid configuration settings."
@@ -488,10 +493,8 @@
                           ex))))
       (as-> config
         (if (legacy? config)
-          (binding [*out* *err*]
-            ;; TODO: re-enable?
-            ;(println "Translating legacy configuration file at" path)
-            (translate-legacy config))
+          (do (swap! legacy-files conj file)
+              (translate-legacy config))
           config)
         (if (s/valid? ::config config)
           (vary-meta config assoc ::paths [path])
