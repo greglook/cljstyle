@@ -13,7 +13,7 @@
   :dependencies
   [[org.clojure/clojure "1.10.2-alpha1"]
    [org.clojure/tools.cli "1.0.194"]
-   [org.clojure/tools.reader "1.3.2"]
+   [org.clojure/tools.reader "1.3.3"]
    [com.googlecode.java-diff-utils/diffutils "1.3.0"]
    [rewrite-clj "0.6.1"]]
 
@@ -38,7 +38,7 @@
 
    :kaocha
    {:dependencies
-    [[lambdaisland/kaocha "1.0.641"]]}
+    [[lambdaisland/kaocha "1.0.700"]]}
 
    :uberjar
    {:target-path "target/uberjar"
