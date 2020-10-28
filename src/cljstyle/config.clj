@@ -6,6 +6,7 @@
   subtree rooted in the directory the file resides in, with deeper files
   merging and overriding their parents."
   (:require
+    [clojure.edn :as edn]
     [clojure.java.io :as io]
     [clojure.spec.alpha :as s]
     [clojure.string :as str])
@@ -476,32 +477,38 @@
   (atom (sorted-set)))
 
 
+(defn read-config*
+  "A 'raw' version of `read-config` that just loads the EDN in the file,
+  checking for syntax errors."
+  [^File file]
+  (try
+    (edn/read-string (slurp file))
+    (catch Exception ex
+      (let [path (.getAbsolutePath file)]
+        (throw (ex-info (str "Error loading configuration from file: "
+                             path "\n" (.getSimpleName (class ex))
+                             ": " (ex-message ex))
+                        {:type ::invalid
+                         :path path}
+                        ex))))))
+
+
 (defn read-config
   "Read a configuration file. Throws an exception if the read fails or the
   contents are not valid configuration settings."
   [^File file]
-  (let [path (.getAbsolutePath file)]
-    (->
-      (try
-        (read-string (slurp file))
-        (catch Exception ex
-          (throw (ex-info (str "Error loading configuration from file: "
-                               path "\n" (.getSimpleName (class ex))
-                               ": " (.getMessage ex))
-                          {:type ::invalid
-                           :path path}
-                          ex))))
-      (as-> config
-        (if (legacy? config)
-          (do (swap! legacy-files conj file)
-              (translate-legacy config))
-          config)
-        (if (s/valid? ::config config)
-          (vary-meta config assoc ::paths [path])
-          (throw (ex-info (str "Invalid configuration loaded from file: " path
-                               "\n" (s/explain-str ::config config))
-                          {:type ::invalid
-                           :path path})))))))
+  (let [path (.getAbsolutePath file)
+        raw-config (read-config* file)
+        config (if (legacy? raw-config)
+                 (do (swap! legacy-files conj file)
+                     (translate-legacy raw-config))
+                 raw-config)]
+    (when-not (s/valid? ::config config)
+      (throw (ex-info (str "Invalid configuration loaded from file: " path
+                           "\n" (s/explain-str ::config config))
+                      {:type ::invalid
+                       :path path})))
+    (vary-meta config assoc ::paths [path])))
 
 
 (defn dir-config

@@ -37,6 +37,7 @@
   (println "    fix       Edit source files to fix formatting errors.")
   (println "    pipe      Fixes formatting errors from stdin and pipes the results to stdout.")
   (println "    config    Show config used for a given path.")
+  (println "    migrate   Migrate legacy configuration files.")
   (println "    version   Print program version information.")
   (newline)
   (println "Options:")
@@ -52,7 +53,7 @@
               (count files)
               (if (< 1 (count files)) "s" ""))
       (run! (comp println str) files)
-      ;; TODO: tip for running config-upgrade task
+      (println "Run the migrate command to update your configuration")
       (flush))))
 
 
@@ -71,11 +72,12 @@
     ;; Show help for general usage or a command.
     (when (:help options)
       (case command
-        "find"   (task/print-find-usage)
-        "check"  (task/print-check-usage)
-        "fix"    (task/print-fix-usage)
-        "pipe"   (task/print-pipe-usage)
-        "config" (task/print-config-usage)
+        "find"    (task/print-find-usage)
+        "check"   (task/print-check-usage)
+        "fix"     (task/print-fix-usage)
+        "pipe"    (task/print-pipe-usage)
+        "config"  (task/print-config-usage)
+        "migrate" (task/print-migrate-usage)
         (print-general-usage (parsed :summary)))
       (flush)
       (System/exit 0))
@@ -93,6 +95,7 @@
           "fix"     (task/fix-sources args)
           "pipe"    (task/pipe)
           "config"  (task/show-config args)
+          "migrate" (task/migrate-config args)
           "version" (task/print-version args)
           (do (p/printerr "Unknown cljstyle command:" command)
               (System/exit 1))))

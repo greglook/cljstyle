@@ -189,6 +189,34 @@
 
 
 
+;; ## Migrate Command
+
+(defn print-migrate-usage
+  "Print help for the migrate command."
+  []
+  (println "Usage: cljstyle [options] migrate [path]")
+  (newline)
+  (println "Update configuration files by migrating them to the latest format. Migrates")
+  (println "all legacy config files found in the given paths, or the working directory.")
+  (println "WARNING: this will strip any comments from the existing files!"))
+
+
+(defn migrate-config
+  "Implementation of the `migrate` command."
+  [paths]
+  (let [results (walk-files! (constantly {:type :noop}) paths)]
+    (run!
+      (fn migrate
+        [file]
+        (println "Migrating configuration" (str file))
+        (let [old-config (config/read-config* file)
+              new-config (config/translate-legacy old-config)]
+          (spit file (with-out-str (pprint new-config)))))
+      @config/legacy-files)
+    (swap! config/legacy-files empty)))
+
+
+
 ;; ## Find Command
 
 (defn print-find-usage
