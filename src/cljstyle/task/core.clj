@@ -204,16 +204,16 @@
 (defn migrate-config
   "Implementation of the `migrate` command."
   [paths]
-  (let [results (walk-files! (constantly {:type :noop}) paths)]
-    (run!
-      (fn migrate
-        [file]
-        (println "Migrating configuration" (str file))
-        (let [old-config (config/read-config* file)
-              new-config (config/translate-legacy old-config)]
-          (spit file (with-out-str (pprint new-config)))))
-      @config/legacy-files)
-    (swap! config/legacy-files empty)))
+  (walk-files! (constantly {:type :noop}) paths)
+  (run!
+    (fn migrate
+      [file]
+      (println "Migrating configuration" (str file))
+      (let [old-config (config/read-config* file)
+            new-config (config/translate-legacy old-config)]
+        (spit file (with-out-str (pprint new-config)))))
+    @config/legacy-files)
+  (swap! config/legacy-files empty))
 
 
 
