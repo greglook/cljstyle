@@ -1,4 +1,4 @@
-(defproject mvxcvi/cljstyle "0.13.0"
+(defproject mvxcvi/cljstyle "0.14.0-SNAPSHOT"
   :description "A tool for formatting Clojure code"
   :url "https://github.com/greglook/cljstyle"
   :license {:name "Eclipse Public License"
