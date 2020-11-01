@@ -256,7 +256,7 @@
   {:files
    {;; Files will be considered valid sources if their name ends in one of
     ;; these extensions _or_ if they match the pattern regex, if set.
-    :extensions #{".clj" ".cljs" ".cljc" ".cljx"}
+    :extensions #{"clj" "cljs" "cljc" "cljx"}
     ;:pattern nil
 
     ;; Files will be ignored if their name matches one of the given strings
@@ -435,7 +435,7 @@
   (boolean
     (when (and (file? file) (readable? file))
       (let [filename (.getName file)]
-        (or (some (partial str/ends-with? filename)
+        (or (some #(str/ends-with? filename (str "." %))
                   (get-in config [:files :extensions]))
             (when-let [pattern (get-in config [:files :pattern])]
               (re-seq pattern filename)))))))
