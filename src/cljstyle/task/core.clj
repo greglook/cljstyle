@@ -55,10 +55,10 @@
   [f paths]
   (->>
     (search-roots paths)
-    (pmap (fn prep-root
-            [^File root]
-            (let [canonical (.getCanonicalFile root)]
-              [(load-configs (.getPath root) canonical) root canonical])))
+    (map (fn prep-root
+           [^File root]
+           (let [canonical (.getCanonicalFile root)]
+             [(load-configs (.getPath root) canonical) root canonical])))
     (process/walk-files! f)))
 
 
