@@ -6,7 +6,6 @@
   subtree rooted in the directory the file resides in, with deeper files
   merging and overriding their parents."
   (:require
-    [clojure.edn :as edn]
     [clojure.java.io :as io]
     [clojure.spec.alpha :as s]
     [clojure.string :as str])
@@ -482,7 +481,9 @@
   checking for syntax errors."
   [^File file]
   (try
-    (edn/read-string (slurp file))
+    ;; NOTE: this can't be `clojure.edn/read-string` because we need to support
+    ;; patterns and metadata, which are not part of the EDN standard.
+    (read-string (slurp file))
     (catch Exception ex
       (let [path (.getAbsolutePath file)]
         (throw (ex-info (str "Error loading configuration from file: "
