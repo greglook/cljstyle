@@ -38,7 +38,8 @@
 
    :kaocha
    {:dependencies
-    [[lambdaisland/kaocha "1.0.700"]]}
+    [[org.clojure/test.check "1.1.0"]
+     [lambdaisland/kaocha "1.0.700"]]}
 
    :uberjar
    {:target-path "target/uberjar"

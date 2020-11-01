@@ -8,7 +8,26 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
-...
+This release significantly changes the way that `cljstyle` is configured.
+Instead of a single flat map of options, configuration has been split up into
+rule-specific and file-specific nested maps. This helps make the options more
+understandable, less repetitive, and will support more nuanced configuration
+options.
+
+Legacy configuration will still work, but the tool now emits a warning when it
+loads files with the old style config. Use the new `migrate` command to
+automatically update your config files.
+
+### Changed
+- Configuration files have a new structure which is rule-oriented.
+- Refactor blank line rules out of whitespace rules.
+- Protocol keyword attributes must start on a new line.
+
+### Added
+- All commands now warn when reading legacy configuration files.
+- The `migrate` command will rewrite configuration files to use the new syntax.
+- Configuration merging now supports `^:concat` on sequential values to have
+  the value appended to instead of replacing the previous value.
 
 
 ## [0.13.0] - 2020-06-13

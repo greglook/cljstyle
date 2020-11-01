@@ -1,4 +1,5 @@
-## Configuration
+Configuration
+=============
 
 The `cljstyle` tool reads configuration from `.cljstyle` files which may be
 placed in any directories to control cljstyle's behavior on files in those
@@ -7,9 +8,12 @@ settings to use:
 
 ```clojure
 ;; cljstyle configuration
-{:max-consecutive-blank-lines 3
- :file-ignore #{"checkouts" "target"}}
+{:files {:ignored #{"checkouts" "target"}}
+ :rules {:blank-lines {:max-consecutive 3}}}
 ```
+
+
+## Configuration Layout
 
 When `cljstyle` is run, it searches upwards in the filesystem to find parent
 configuration, and as it searches in directories it will merge in local config
@@ -39,38 +43,49 @@ hints. If you want to override all existing indents, instead of just supplying
 new indents that are merged with the defaults, you can use the `:replace` hint:
 
 ```clojure
-{:indents ^:replace {#".*" [[:inner 0]]}}
+{:rules {:indentation {:indents ^:replace {#".*" [[:inner 0]]}}}}
 ```
 
-### File Settings
+
+## File Settings
 
 You can configure the way `cljstyle` looks for source files with the following
-settings:
+settings under the `:files` key:
 
-* `:file-pattern`
+* `:extensions`
 
-  Pattern to match against filenames to determine which files to check. Includes
-  all Clojure, ClojureScript, and cross-compiled files by default.
+  Set of string extensions (omitting the `.`) of files to consider. A value of
+  `"clj"` would match `foo.clj`, `bar.clj`, etc. Includes all Clojure,
+  ClojureScript, and cross-compiled files by default.
 
-* `:file-ignore`
+* `:pattern`
+
+  Pattern to match against filenames to determine which files to check.
+
+* `:ignored`
 
   Set of strings or patterns of files to ignore. Strings are matched against
   file and directory names exactly; patterns are matched against the entire
   (relative) file path. Ignored files will not be checked and ignored
   directories will not be recursed into.
 
-### Format Rules
+
+## Format Rules
 
 `cljstyle` has many formatting rules, and these can be selectively enabled or
-disabled:
+disabled. The rule configuration is a map under the `:rules` key, with one
+entry per formatting rule. The key is a rule keyword, and values are maps of
+options for that rule. All rules support an `:enabled?` option, which can be
+used to completely enable or disable that rule from running.
 
-* `:indentation?`
+### `:indentation`
 
-  Whether cljstyle should correct the indentation of your code.
+This rule corrects the indentation of code forms by rewriting the number of
+leading spaces on each line.
 
-* `:list-indent-size`
+* `:list-indent`
 
-  Control indent size of list. The default is 2 spaces. If this setting is 1,
+  Control indent size of lists. The default is 2 spaces. If this setting is 1,
   lists are formatted as follows.
 
   ```clojure
@@ -84,60 +99,91 @@ disabled:
   A map of indentation patterns to vectors of rules to apply to the matching
   forms. See the [indentation doc](indentation.md) for details.
 
-* `:line-break-vars?`
+### `:whitespace`
 
-  Whether cljstyle should enforce line breaks in var definitions.
+This rule corrects whitespace between and around forms.
 
-* `:line-break-functions?`
+* `:remove-surrounding?`
 
-  Whether cljstyle should enforce line breaks in function definitions.
+  Whether to remove whitespace surrounding inner forms. This will convert
+  `(  foo  )` to `(foo)`.
 
-* `:reformat-types?`
+* `:remove-trailing?`
 
-  Whether cljstyle should reformat type-related expressions like `defprotocol`,
-  `deftype`, `defrecord`, `reify`, and `proxy` by inserting line breaks and
-  padding lines.
-
-* `:remove-surrounding-whitespace?`
-
-  Whether cljstyle should remove whitespace surrounding inner forms. This will
-  convert `(  foo  )` to `(foo)`.
-
-* `:remove-trailing-whitespace?`
-
-  Whether cljstyle should remove trailing whitespace in lines. This will convert
+  Whether to remove trailing whitespace in lines. This will convert
   `(foo)   \n` to `(foo)\n`.
 
-* `:insert-missing-whitespace?`
+* `:insert-missing?`
 
-  Whether cljstyle should insert whitespace missing from between elements. This
-  will convert `(foo(bar))` to `(foo (bar))`.
+  Whether to insert whitespace missing from between elements. This will convert
+  `(foo(bar))` to `(foo (bar))`.
 
-* `:remove-consecutive-blank-lines?`
+### `:blank-lines`
 
-  Whether cljstyle should collapse consecutive blank lines. Any runs of empty
-  lines longer than `:max-consecutive-blank-lines` will be truncated to the
-  configured limit. The default limit is 2. This will convert
-  `(foo)\n\n\n\n(bar)` to `(foo)\n\n\n(bar)`.
+This rule corrects the number of blank lines between top-level forms.
 
-* `:insert-padding-lines?`
+* `:trim-consecutive?`
 
-  Whether cljstyle should insert blank lines between certain top-level forms. Any
-  multi-line form will be padded with at least `:padding-lines` empty lines
-  between it and other non-comment forms. The defaults is 2 lines.
+  Whether to collapse consecutive blank lines. Any runs of empty lines longer
+  than the limit will be truncated. This will convert `(foo)\n\n\n\n(bar)` to
+  `(foo)\n\n\n(bar)` with the default setting of 2.
 
-* `:rewrite-namespaces?`
+* `:max-consecutive`
 
-  Whether cljstyle should rewrite namespace forms to standardize their layout.
+  The maximum number of consecutive blank lines to allow between top-level
+  forms.
 
-* `:single-import-break-width`
+* `:insert-padding?`
 
-  Control the threshold for breaking a single class import into a package import
-  group. If the combined package and class name would be longer than this limit,
-  it is represented as a singleton group. Classes under this threshold may be
-  either fully qualified or grouped.
+  Whether to insert blank lines between certain top-level forms. Any multi-line
+  form will be padded with at least the configured number of empty lines
+  between it and other non-comment forms.
 
-* `:require-eof-newline?`
+* `:padding-lines`
 
-  Require all files to end with a newline character. One will be added if it is
-  not present.
+  The minimum number of blank lines to include between top-level multiline
+  forms.
+
+### `:eof-newline`
+
+This rule requires all files to end with a newline character. One will be added
+if it is not present. There is no configuration for this rule beyond the
+`:enabled?` state.
+
+### `:vars`
+
+This rule corrects formatting of var definition forms like `def`.
+
+* `:line-breaks?`
+
+  Whether to enforce line breaks in var definitions.
+
+### `:functions`
+
+This rule corrects the formatting of function forms like `fn`, `defn`, and
+`letfn`.
+
+* `:line-breaks?`
+
+  Whether to enforce line breaks in function definitions.
+
+### `:types`
+
+This rule corrects the formatting of type definitions like `deftype`,
+`defrecord`, `defprotocol`, `reify`, and `proxy`. There is no configuration for
+this rule beyond the `:enabled?` state.
+
+### `:namespaces`
+
+This rule corrects and standardizes the formatting of `ns` definitions.
+
+* `:indent-size`
+
+  Number of spaces to indent in ns forms.
+
+* `:import-break-width`
+
+  Threshold for breaking a single class import into a package import group. If
+  the combined package and class name would be longer than this limit, it is
+  represented as a singleton group. Classes under this threshold may be either
+  fully qualified or grouped.
