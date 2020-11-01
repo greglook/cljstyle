@@ -7,7 +7,7 @@
     [cljstyle.task.print :as p]
     [cljstyle.task.process :as process]
     [clojure.java.io :as io]
-    [clojure.pprint :refer [pprint]]
+    [clojure.pprint :as pp]
     [clojure.string :as str])
   (:import
     java.io.File))
@@ -113,11 +113,17 @@
   (let [counts (:counts results)
         total-files (apply + (vals counts))
         diff-lines (apply + (keep :diff-lines (vals (:results results))))
+        durations (->> (vals (:results results))
+                       (keep :durations)
+                       (apply merge-with +))
         stats (cond-> {:files counts
                        :total total-files
                        :elapsed (:elapsed results)}
                 (pos? diff-lines)
-                (assoc :diff-lines diff-lines))]
+                (assoc :diff-lines diff-lines)
+
+                (seq durations)
+                (assoc :durations durations))]
     (p/log (pr-str stats))
     (when (or (p/option :report) (p/option :verbose))
       (printf "Checked %d files in %s\n"
@@ -129,6 +135,14 @@
         (printf "%6d %s\n" file-count (name type-key)))
       (when (pos? diff-lines)
         (printf "Resulting diff has %d lines\n" diff-lines))
+      (when-let [durations (->> durations
+                                (sort-by val (comp - compare))
+                                (map (fn [[[rule-key sub-key] duration]]
+                                       {"rule" (name rule-key)
+                                        "subrule" (name (or sub-key "(all)"))
+                                        "duration" (duration-str (/ duration 1e6))}))
+                                (seq))]
+        (pp/print-table ["rule" "subrule" "duration"] durations))
       (flush))
     (when-let [stats-file (p/option :stats)]
       (write-stats! stats-file stats))))
@@ -184,7 +198,7 @@
       (exit! 1)))
   (let [^File file (first (search-roots paths))
         config (load-configs (.getPath file) file)]
-    (pprint config)
+    (pp/pprint config)
     config))
 
 
@@ -211,7 +225,7 @@
       (println "Migrating configuration" (str file))
       (let [old-config (config/read-config* file)
             new-config (config/translate-legacy old-config)]
-        (spit file (with-out-str (pprint new-config)))))
+        (spit file (with-out-str (pp/pprint new-config)))))
     @config/legacy-files)
   (swap! config/legacy-files empty))
 

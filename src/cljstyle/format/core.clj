@@ -27,7 +27,7 @@
                             (get rule-config sub-key)))
                  (let [form' (rule-fn form rule-config)
                        elapsed (- (System/nanoTime) start)]
-                   (vary-meta form' update ::rule-elapsed update-in [rule-key sub-key] (fnil + 0) elapsed))
+                   (vary-meta form' update ::rule-elapsed update [rule-key sub-key] (fnil + 0) elapsed))
                  form))))]
     (-> form
         (apply-rule :whitespace :remove-surrounding? ws/remove-surrounding)
