@@ -264,17 +264,19 @@
   "Check a single source file and produce a result."
   [config path ^File file]
   (let [original (slurp file)
-        revised (format/reformat-file original (:rules config))]
+        [revised durations] (format/reformat-file original (:rules config))]
     (if (= original revised)
       {:type :correct
-       :debug (str "Source file " path " is formatted correctly")}
+       :debug (str "Source file " path " is formatted correctly")
+       :durations durations}
       (let [diff (diff/unified-diff path original revised)]
         {:type :incorrect
          :debug (str "Source file " path " is formatted incorrectly")
          :info (cond-> diff
                  (not (p/option :no-color))
                  (diff/colorize))
-         :diff-lines (diff/count-changes diff)}))))
+         :diff-lines (diff/count-changes diff)
+         :durations durations}))))
 
 
 (defn check-sources
@@ -308,14 +310,16 @@
   "Fix a single source file and produce a result."
   [config path ^File file]
   (let [original (slurp file)
-        revised (format/reformat-file original (:rules config))]
+        [revised durations] (format/reformat-file original (:rules config))]
     (if (= original revised)
       {:type :correct
-       :debug (str "Source file " path " is formatted correctly")}
+       :debug (str "Source file " path " is formatted correctly")
+       :durations durations}
       (do
         (spit file revised)
         {:type :fixed
-         :info (str "Reformatting source file " path)}))))
+         :info (str "Reformatting source file " path)
+         :durations durations}))))
 
 
 (defn fix-sources
@@ -348,6 +352,7 @@
   "Implementation of the `pipe` command."
   []
   (let [cwd (System/getProperty "user.dir")
-        config (load-configs cwd (io/file cwd))]
-    (print (format/reformat-file (slurp *in*) (:rules config)))
+        config (load-configs cwd (io/file cwd))
+        revised (first (format/reformat-file (slurp *in*) (:rules config)))]
+    (print revised)
     (flush)))

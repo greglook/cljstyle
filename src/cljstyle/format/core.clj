@@ -27,8 +27,7 @@
                             (get rule-config sub-key)))
                  (let [form' (rule-fn form rule-config)
                        elapsed (- (System/nanoTime) start)]
-                   ;; TODO: how to report these?
-                   (vary-meta form' update ::rule-nanos update rule-key (fnil + 0) elapsed))
+                   (vary-meta form' update ::rule-elapsed update-in [rule-key sub-key] (fnil + 0) elapsed))
                  form))))]
     (-> form
         (apply-rule :whitespace :remove-surrounding? ws/remove-surrounding)
@@ -40,24 +39,28 @@
         (apply-rule :blank-lines :insert-padding? line/insert-padding)
         (apply-rule :namespaces ns/reformat)
         (apply-rule :indentation indent/reindent)
-        (apply-rule :whitespace ws/remove-trailing))))
+        (apply-rule :whitespace :remove-trailing? ws/remove-trailing))))
 
 
 (defn reformat-string
   "Helper method to transform a string by parsing it, formatting it, then
-  printing it."
+  printing it. Returns a tuple of the revised string and a map of the durations
+  of each rule applied."
   [form-string rules-config]
-  (-> (parser/parse-string-all form-string)
-      (reformat-form rules-config)
-      (n/string)))
+  (let [reformed (-> form-string
+                     (parser/parse-string-all)
+                     (reformat-form rules-config))
+        durations (::rule-elapsed (meta reformed))]
+    [(n/string reformed) durations]))
 
 
 (defn reformat-file
-  "Like `reformat-string` but applies to an entire file. Will honor
-  `:require-eof-newline?`."
+  "Like `reformat-string` but applies to an entire file. Will add a final
+  newline if configured to do so."
   [file-text rules-config]
-  (let [text' (reformat-string file-text rules-config)]
-    (if (and (get-in rules-config [:eof-newline :enabled?])
-             (not (str/ends-with? text' "\n")))
-      (str text' "\n")
-      text')))
+  (let [[text' durations] (reformat-string file-text rules-config)]
+    [(if (and (get-in rules-config [:eof-newline :enabled?])
+              (not (str/ends-with? text' "\n")))
+       (str text' "\n")
+       text')
+     durations]))
