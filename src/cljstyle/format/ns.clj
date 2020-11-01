@@ -355,7 +355,7 @@
   [opts base-indent package class-names]
   (if (= 1 (count class-names))
     (let [class-name (first class-names)
-          break-width (:single-import-break-width opts 60)
+          break-width (:import-break-width opts 60)
           qualified-class (symbol (str package \. class-name))]
       ;; If the import was fully qualified before and it's under the break
       ;; width, keep it ungrouped.

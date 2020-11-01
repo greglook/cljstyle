@@ -194,13 +194,13 @@
 
 ;; If an import in a namespace is longer than this, break it into a singleton
 ;; group instead.
-(s/def :cljstyle.config.rules.namespaces/single-import-break-width
+(s/def :cljstyle.config.rules.namespaces/import-break-width
   nat-int?)
 
 
 (s/def :cljstyle.config.rules/namespaces
   (s/keys :opt-un [:cljstyle.config.rules.global/enabled?
-                   :cljstyle.config.rules.namespaces/single-import-break-width]))
+                   :cljstyle.config.rules.namespaces/import-break-width]))
 
 
 ;; #### Rules Map
@@ -299,7 +299,7 @@
     :namespaces
     {:enabled? true
      :indent-size 2
-     :single-import-break-width 60}}})
+     :import-break-width 60}}})
 
 
 (def default-config
@@ -360,7 +360,7 @@
       ;; Namespaces rule
       (translate :rewrite-namespaces?       [:rules :namespaces :enabled?])
       (translate :list-indent-size          [:rules :namespaces :indent-size])
-      (translate :single-import-break-width [:rules :namespaces :single-import-break-width])
+      (translate :single-import-break-width [:rules :namespaces :import-break-width])
 
       ;; Remove legacy keys
       (as-> cfg
