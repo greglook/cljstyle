@@ -116,6 +116,7 @@
         durations (->> (vals (:results results))
                        (keep :durations)
                        (apply merge-with +))
+        total-duration (apply + (vals durations))
         stats (cond-> {:files counts
                        :total total-files
                        :elapsed (:elapsed results)}
@@ -140,9 +141,12 @@
                                 (map (fn [[[rule-key sub-key] duration]]
                                        {"rule" (name rule-key)
                                         "subrule" (name (or sub-key "(all)"))
-                                        "duration" (duration-str (/ duration 1e6))}))
+                                        "duration" (duration-str (/ duration 1e6))
+                                        "percent" (if (pos? total-duration)
+                                                    (format "%.1f%%" (* 100.0 (/ duration total-duration)))
+                                                    "--")}))
                                 (seq))]
-        (pp/print-table ["rule" "subrule" "duration"] durations))
+        (pp/print-table ["rule" "subrule" "duration" "percent"] durations))
       (flush))
     (when-let [stats-file (p/option :stats)]
       (write-stats! stats-file stats))))
