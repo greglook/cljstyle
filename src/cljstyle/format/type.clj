@@ -384,13 +384,24 @@
 
 ;; ## Editing Functions
 
+(defn- edit-type-forms
+  [zloc]
+  ;; TODO: add options to separately enable these
+  (cond
+    (protocol-form? zloc)
+    edit-protocol
+
+    (type-form? zloc)
+    edit-type
+
+    (reify-form? zloc)
+    edit-reify
+
+    (proxy-form? zloc)
+    edit-proxy))
+
+
 (defn reformat
   "Transform this form by applying formatting rules to type definition forms."
   [form _]
-  ;; TODO: split this up with more options
-  (-> (z/edn* form {:track-position? true})
-      (zl/edit-walk protocol-form? edit-protocol)
-      (zl/edit-walk type-form? edit-type)
-      (zl/edit-walk reify-form? edit-reify)
-      (zl/edit-walk proxy-form? edit-proxy)
-      (z/root)))
+  (zl/transform form edit-type-forms))

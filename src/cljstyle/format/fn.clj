@@ -156,8 +156,7 @@
 (defn reformat-line-breaks
   "Transform this form by applying line-breaks to function definition forms."
   [form _]
-  (-> (z/edn* form {:track-position? true})
-      (zl/edit-walk
-        (every-pred fn-form? (complement zl/syntax-quoted?))
-        edit-fn)
-      (z/root)))
+  (zl/transform
+    form
+    (every-pred fn-form? (complement zl/syntax-quoted?))
+    edit-fn))

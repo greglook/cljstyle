@@ -84,6 +84,4 @@
 (defn reformat-line-breaks
   "Transform this form by applying line-breaks to var definition forms."
   [form _]
-  (-> (z/edn* form {:track-position? true})
-      (zl/edit-walk def-form? edit-def)
-      (z/root)))
+  (zl/transform form def-form? edit-def))
