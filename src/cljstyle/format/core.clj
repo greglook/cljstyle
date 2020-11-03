@@ -42,25 +42,40 @@
         (apply-rule :whitespace :remove-trailing? ws/remove-trailing))))
 
 
-(defn reformat-string
-  "Helper method to transform a string by parsing it, formatting it, then
-  printing it. Returns a tuple of the revised string and a map of the durations
-  of each rule applied."
+(defn reformat-string*
+  "Transform a string by parsing it, formatting it, then rendering it. Returns
+  a map with the revised string under `:formatted` and a map of the durations
+  spent applying each rule under `:durations`."
   [form-string rules-config]
-  (let [reformed (-> form-string
-                     (parser/parse-string-all)
-                     (reformat-form rules-config))
-        durations (::rule-elapsed (meta reformed))]
-    [(n/string reformed) durations]))
+  (let [formatted (-> form-string
+                      (parser/parse-string-all)
+                      (reformat-form rules-config))]
+    {:original form-string
+     :formatted (n/string formatted)
+     :durations (::rule-elapsed (meta formatted))}))
+
+
+(defn reformat-string
+  "Transform a string by parsing it, formatting it, then
+  printing it. Returns the formatted string."
+  [form-string rules-config]
+  (:formatted (reformat-string* form-string rules-config)))
+
+
+(defn reformat-file*
+  "Like `reformat-string*` but applies to an entire file. Will add a final
+  newline if configured to do so. Returns a map with the revised text and other
+  information."
+  [file-text rules-config]
+  (let [result (reformat-string* file-text rules-config)]
+    (cond-> result
+      (and (get-in rules-config [:eof-newline :enabled?])
+           (not (str/ends-with? (:formatted result) "\n")))
+      (update :formatted str "\n"))))
 
 
 (defn reformat-file
   "Like `reformat-string` but applies to an entire file. Will add a final
   newline if configured to do so."
   [file-text rules-config]
-  (let [[text' durations] (reformat-string file-text rules-config)]
-    [(if (and (get-in rules-config [:eof-newline :enabled?])
-              (not (str/ends-with? text' "\n")))
-       (str text' "\n")
-       text')
-     durations]))
+  (:formatted (reformat-file* file-text rules-config)))

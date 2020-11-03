@@ -282,12 +282,14 @@
   "Check a single source file and produce a result."
   [config path ^File file]
   (let [original (slurp file)
-        [revised durations] (format/reformat-file original (:rules config))]
-    (if (= original revised)
+        result (format/reformat-file* original (:rules config))
+        formatted (:formatted result)
+        durations (:durations result)]
+    (if (= original formatted)
       {:type :correct
        :debug (str "Source file " path " is formatted correctly")
        :durations durations}
-      (let [diff (diff/unified-diff path original revised)]
+      (let [diff (diff/unified-diff path original formatted)]
         {:type :incorrect
          :debug (str "Source file " path " is formatted incorrectly")
          :info (cond-> diff
@@ -328,13 +330,15 @@
   "Fix a single source file and produce a result."
   [config path ^File file]
   (let [original (slurp file)
-        [revised durations] (format/reformat-file original (:rules config))]
-    (if (= original revised)
+        result (format/reformat-file* original (:rules config))
+        formatted (:formatted result)
+        durations (:durations result)]
+    (if (= original formatted)
       {:type :correct
        :debug (str "Source file " path " is formatted correctly")
        :durations durations}
       (do
-        (spit file revised)
+        (spit file formatted)
         {:type :fixed
          :info (str "Reformatting source file " path)
          :durations durations}))))
@@ -371,6 +375,6 @@
   []
   (let [cwd (System/getProperty "user.dir")
         config (load-configs cwd (io/file cwd))
-        revised (first (format/reformat-file (slurp *in*) (:rules config)))]
-    (print revised)
+        formatted (format/reformat-file (slurp *in*) (:rules config))]
+    (print formatted)
     (flush)))
