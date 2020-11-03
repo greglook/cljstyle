@@ -140,7 +140,9 @@
                                 (sort-by val (comp - compare))
                                 (map (fn [[[rule-key sub-key] duration]]
                                        {"rule" (name rule-key)
-                                        "subrule" (name (or sub-key "(all)"))
+                                        "subrule" (if sub-key
+                                                    (str/replace (name sub-key) #"\?$" "")
+                                                    "(all)")
                                         "duration" (duration-str (/ duration 1e6))
                                         "percent" (if (pos? total-duration)
                                                     (format "%.1f%%" (* 100.0 (/ duration total-duration)))

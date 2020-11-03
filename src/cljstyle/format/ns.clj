@@ -560,7 +560,7 @@
          (render-reader-conditionals opts (:reader-conditionals ns-data))]))))
 
 
-(defn- rewrite-ns-form
+(defn- rewrite-ns
   "Insert appropriate line breaks and indentation before each ns child form."
   [zloc opts]
   (let [ns-data (-> (parse-ns-node zloc)
@@ -578,4 +578,4 @@
   (zl/transform-top
     form
     ns-node?
-    #(rewrite-ns-form % opts)))
+    #(rewrite-ns % opts)))

@@ -84,6 +84,7 @@
 
 ;; NOTE: these are reproduced from `clojure.stacktrace` in order to eliminate
 ;; reflective calls that break Graal.
+;; TODO: see if these can be removed now
 
 (defn print-throwable
   "Prints the class and message of a Throwable."
