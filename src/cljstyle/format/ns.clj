@@ -575,12 +575,7 @@
 (defn reformat
   "Transform this form by rewriting any namespace forms."
   [form opts]
-  ;; NOTE: using `edn` instead of `edn*` here is intentional.
-  (loop [zloc (z/edn form {:track-position? true})]
-    (let [zloc' (if (and (ns-node? zloc)
-                         (not (zl/ignored-form? zloc)))
-                  (rewrite-ns-form zloc opts)
-                  zloc)]
-      (if (z/rightmost? zloc')
-        (z/root zloc')
-        (recur (z/right zloc'))))))
+  (zl/transform-top
+    form
+    ns-node?
+    #(rewrite-ns-form % opts)))
