@@ -115,14 +115,6 @@
   (-> zloc z/leftmost* margin))
 
 
-(defn- repeated-move
-  "Repeatedly move a direction"
-  [zloc move n]
-  (if (> n 0)
-    (recur (move zloc) move (dec n))
-    zloc))
-
-
 (defn- list-indent
   "Determine how indented a list at the current location should be."
   [zloc list-indent-size item-count]
@@ -134,16 +126,11 @@
          1
          0))
     (if (> (index-of zloc) 1)
-      (-> zloc z/leftmost* (repeated-move z/right item-count) margin)
+      (-> zloc z/leftmost* (zl/move-n z/right item-count) margin)
       (coll-indent zloc))))
 
 
-(defmulti ^:private indenter-fn
-  "Multimethod for applying indentation rules to forms."
-  ;; Accepts [rule-key list-indent-size [rule-type & args]]
-  (fn dispatch
-    [_ _ rule]
-    (first rule)))
+(declare indenter-fn)
 
 
 (defn- pattern?
@@ -177,6 +164,19 @@
     (re-find rule-key (str sym))))
 
 
+(defn- some-candidate
+  "Find the first candidate indenter which returns a value when called on zloc.
+  Returns the indent size or nil, if every indenter returned nil."
+  [zloc indenters]
+  (reduce
+    (fn apply-rule
+      [_ candidate]
+      (when-let [n (candidate zloc)]
+        (reduced n)))
+    nil
+    indenters))
+
+
 (defn- rule-indenter
   "Construct an indentation function by mapping the multimethod over the
   configured rule bodies."
@@ -184,11 +184,7 @@
   (let [indenters (mapv (partial indenter-fn rule-key list-indent-size) opts)]
     (fn indenter
       [zloc]
-      (loop [indenters indenters]
-        (when (seq indenters)
-          (let [candidate (first indenters)]
-            (or (candidate zloc)
-                (recur (next indenters)))))))))
+      (some-candidate zloc indenters))))
 
 
 (defn- custom-indenter
@@ -211,12 +207,8 @@
           (recur up)
 
           (contains? #{:list :fn} tag)
-          (loop [indenters indenters]
-            (if (seq indenters)
-              (let [candidate (first indenters)]
-                (or (candidate zloc)
-                    (recur (next indenters))))
-              (list-indent zloc list-indent-size 1)))
+          (or (some-candidate zloc indenters)
+              (list-indent zloc list-indent-size 1))
 
           :else
           (coll-indent zloc))))))
@@ -253,11 +245,6 @@
         (+ (margin zup) (indent-width zup))))))
 
 
-(defmethod indenter-fn :inner
-  [rule-key _ [_ depth idx]]
-  (fn [zloc] (inner-indent zloc rule-key depth idx)))
-
-
 
 ;; ### Block Style Rule
 
@@ -291,11 +278,6 @@
       (list-indent zloc list-indent-size item-count))))
 
 
-(defmethod indenter-fn :block
-  [rule-key list-indent-size [_ idx item-count]]
-  (fn [zloc] (block-indent zloc rule-key idx list-indent-size (or item-count 1))))
-
-
 
 ;; ### Stair Style Rule
 
@@ -314,13 +296,31 @@
         indent))))
 
 
-(defmethod indenter-fn :stair
-  [rule-key _ [_ idx]]
-  (fn [zloc] (stair-indent zloc rule-key idx)))
-
-
 
 ;; ## Editing Functions
+
+(defn- indenter-fn
+  "Dispatch for applying indentation rules to forms."
+  [rule-key list-indent-size rule]
+  (case (first rule)
+    :inner
+    (let [[_ depth idx] rule]
+      (fn inner-indenter
+        [zloc]
+        (inner-indent zloc rule-key depth idx)))
+
+    :block
+    (let [[_ idx item-count] rule]
+      (fn block-indenter
+        [zloc]
+        (block-indent zloc rule-key idx list-indent-size (or item-count 1))))
+
+    :stair
+    (let [[_ idx] rule]
+      (fn stair-indenter
+        [zloc]
+        (stair-indent zloc rule-key idx)))))
+
 
 (defn- unindent-line
   "Remove whitespace at the locations following the current linebreak or comment."

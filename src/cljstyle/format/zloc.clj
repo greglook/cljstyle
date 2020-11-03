@@ -192,6 +192,14 @@
 
 ;; ## Editing Utilities
 
+(defn move-n
+  "Repeatedly move in a direction `n` times."
+  [zloc move n]
+  (if (pos? n)
+    (recur (move zloc) move (dec n))
+    zloc))
+
+
 (defn skip-whitespace
   "Skip to the location of the next non-whitespace node."
   [zloc]
