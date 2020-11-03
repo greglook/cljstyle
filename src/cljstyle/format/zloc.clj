@@ -262,19 +262,21 @@
   "Wrap an editing function with error handling logic which will capture
   information about the surrounding form and the cause of the failure."
   [f zloc]
-  (try
-    (let [zloc' (f zloc)]
-      (when-not zloc'
-        (throw (format-error "returned nil" f zloc nil)))
-      zloc')
-    (catch Exception ex
-      (throw (format-error (str "threw " (.getSimpleName (class ex)))
-                           f zloc ex)))))
+  (if f
+    (try
+      (let [zloc' (f zloc)]
+        (when-not zloc'
+          (throw (format-error "returned nil" f zloc nil)))
+        zloc')
+      (catch Exception ex
+        (throw (format-error (str "threw " (.getSimpleName (class ex)))
+                             f zloc ex))))
+    zloc))
 
 
-(defn- edit-walk
-  "Edit all nodes in `zloc` matching the predicate by applying `f` to them.
-  Returns the original zipper location."
+(defn edit-walk
+  "Edit all nodes in `zloc` for which `transformer` returns an editing
+  function. Returns the final zipper location."
   [zloc transformer]
   (loop [zloc zloc]
     (cond
@@ -287,9 +289,21 @@
         zloc)
 
       :else
-      (if-let [f (transformer zloc)]
-        (recur (z/next* (safe-edit f zloc)))
-        (recur (z/next* zloc))))))
+      (recur (z/next* (safe-edit (transformer zloc) zloc))))))
+
+
+(defn edit-scan
+  "Scan rightward from the given location, editing nodes for which
+  `transformer` returns an editing function. Returns the final zipper
+  location."
+  [zloc transformer]
+  (loop [zloc zloc]
+    (let [f (and (not (ignored-form? zloc))
+                 (transformer zloc))
+          zloc' (safe-edit f zloc)]
+      (if-let [right (z/right* zloc')]
+        (recur right)
+        zloc'))))
 
 
 (defn transform
@@ -304,6 +318,26 @@
        (z/root)))
   ([form match? edit]
    (transform
+     form
+     (fn edit-matched
+       [zl]
+       (when (match? zl)
+         edit)))))
+
+
+(defn transform-top
+  "Edit the form by parsing it as an EDN syntax tree and applying `transformer`
+  to successively to each top-level location to determine whether to transform
+  it. If `transformer` returns a value, it is called on the zipper location to
+  edit it. Otherwise, the location is left as is and the traversal continues."
+  ([form transformer]
+   (if-let [start (z/down (z/edn* form {:track-position? true}))]
+     (-> start
+         (edit-scan transformer)
+         (z/root))
+     form))
+  ([form match? edit]
+   (transform-top
      form
      (fn edit-matched
        [zl]
