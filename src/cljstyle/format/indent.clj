@@ -27,14 +27,6 @@
   (or (z/linebreak? zloc) (zl/comment? zloc)))
 
 
-(defn- indentation?
-  "True if the node at this location consists of whitespace and is the first
-  node on a line."
-  [zloc]
-  (and (line-break? (z/prev* zloc))
-       (zl/space? zloc)))
-
-
 (defn- comment-next?
   "True if the next non-whitespace node after this location is a comment."
   [zloc]
@@ -47,18 +39,21 @@
   (-> zloc z/next* zl/skip-whitespace line-break?))
 
 
+(defn- indentation?
+  "True if the node at this location consists of whitespace and is the first
+  node on a line."
+  [zloc]
+  (and zloc
+       (zl/space? zloc)
+       (line-break? (z/prev* zloc))
+       (not (comment-next? zloc))))
+
+
 (defn- should-indent?
   "True if indentation should exist after the current location."
   [zloc]
   (or (and (line-break? zloc) (not (line-break-next? zloc)))
       (and (zl/comment? zloc) (not (comment-next? zloc)))))
-
-
-(defn- should-unindent?
-  "True if the current location is indentation whitespace that should be
-  reformatted."
-  [zloc]
-  (and (indentation? zloc) (not (comment-next? zloc))))
 
 
 
@@ -327,10 +322,16 @@
 
 ;; ## Editing Functions
 
-(defn- unindent
-  "Remove indentation whitespace from the form in preparation for reformatting."
-  [form]
-  (zl/transform form should-unindent? z/remove*))
+(defn- unindent-line
+  "Remove whitespace at the locations following the current linebreak or comment."
+  [zloc]
+  (if (indentation? (z/next* zloc))
+    (loop [z zloc]
+      (let [znext (z/next* z)]
+        (if (and znext (zl/space? znext))
+          (recur (z/remove* znext))
+          z)))
+    zloc))
 
 
 (defn- indent-line
@@ -342,14 +343,13 @@
       zloc)))
 
 
-(defn- indent
-  "Transform this form by indenting all lines their proper amounts."
-  [form rule-config]
-  (let [indenter (custom-indenter rule-config)]
-    (zl/transform form should-indent? (partial indent-line indenter))))
-
-
 (defn reindent
   "Transform this form by rewriting all line indentation."
   [form rule-config]
-  (indent (unindent form) rule-config))
+  (let [indenter (custom-indenter rule-config)]
+    (zl/transform
+      form
+      should-indent?
+      (fn edit-indent
+        [zloc]
+        (indent-line indenter (unindent-line zloc))))))
