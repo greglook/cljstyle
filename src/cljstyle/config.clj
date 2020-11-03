@@ -293,7 +293,11 @@
      :line-breaks? true}
 
     :types
-    {:enabled? true}
+    {:enabled? true
+     :types? true
+     :protocols? true
+     :reifies? true
+     :proxies? true}
 
     :namespaces
     {:enabled? true

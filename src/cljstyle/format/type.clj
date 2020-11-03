@@ -385,23 +385,26 @@
 ;; ## Editing Functions
 
 (defn- edit-type-forms
-  [zloc]
-  ;; TODO: add options to separately enable these
+  [zloc rule-config]
   (cond
-    (protocol-form? zloc)
+    (and (:protocols? rule-config)
+         (protocol-form? zloc))
     edit-protocol
 
-    (type-form? zloc)
+    (and (:types? rule-config)
+         (type-form? zloc))
     edit-type
 
-    (reify-form? zloc)
+    (and (:reifies? rule-config)
+         (reify-form? zloc))
     edit-reify
 
-    (proxy-form? zloc)
+    (and (:proxies? rule-config)
+         (proxy-form? zloc))
     edit-proxy))
 
 
 (defn reformat
   "Transform this form by applying formatting rules to type definition forms."
-  [form _]
-  (zl/transform form edit-type-forms))
+  [form rule-config]
+  (zl/transform form #(edit-type-forms % rule-config)))

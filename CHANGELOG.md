@@ -28,6 +28,8 @@ automatically update your config files.
 - The `migrate` command will rewrite configuration files to use the new syntax.
 - Configuration merging now supports `^:concat` on sequential values to have
   the value appended to instead of replacing the previous value.
+- Type formatting can be controlled for individual kinds of types to separately
+  enable protocols, types, reifies, and proxies.
 
 
 ## [0.13.0] - 2020-06-13

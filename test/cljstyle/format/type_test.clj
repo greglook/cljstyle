@@ -8,16 +8,16 @@
 (deftest protocol-definitions
   (testing "basics"
     (is (reformatted?
-          type/reformat {}
+          type/reformat {:protocols? true}
           "(defprotocol Foo)"
           "(defprotocol Foo)"))
     (is (reformatted?
-          type/reformat {}
+          type/reformat {:protocols? true}
           "(defprotocol Foo \"doc string goes here\")"
           "(defprotocol Foo
 \"doc string goes here\")"))
     (is (reformatted?
-          type/reformat {}
+          type/reformat {:protocols? true}
           "(defprotocol Foo \"doc string goes here\"
   (abc [foo]))"
           "(defprotocol Foo
@@ -26,7 +26,7 @@
 (abc [foo]))")))
   (testing "method forms"
     (is (reformatted?
-          type/reformat {}
+          type/reformat {:protocols? true}
           "(defprotocol Foo
   (efg [foo] \"method doc\"))"
           "(defprotocol Foo
@@ -35,7 +35,7 @@
 [foo]
 \"method doc\"))"))
     (is (reformatted?
-          type/reformat {}
+          type/reformat {:protocols? true}
           "(defprotocol Foo (bar [foo] [foo x]))"
           "(defprotocol Foo
 
@@ -43,7 +43,7 @@
 [foo]
 [foo x]))"))
     (is (reformatted?
-          type/reformat {}
+          type/reformat {:protocols? true}
           "(defprotocol Foo
   (bar [foo] [foo x]
     \"multiline
@@ -56,7 +56,7 @@
     \"multiline
     method doc\"))"))
     (is (reformatted?
-          type/reformat {}
+          type/reformat {:protocols? true}
           "(defprotocol Foo
   (bar [foo] \"method doc\")
   (baz [foo x y]))"
@@ -69,14 +69,14 @@
 (baz [foo x y]))")))
   (testing "metadata"
     (is (reformatted?
-          type/reformat {}
+          type/reformat {:protocols? true}
           "(defprotocol ^:deprecated Foo (qrs [foo]))"
           "(defprotocol ^:deprecated Foo
 
 (qrs [foo]))")))
   (testing "options"
     (is (reformatted?
-          type/reformat {}
+          type/reformat {:protocols? true}
           "(defprotocol Foo :extend-via-metadata true :baz 123 (qrs [foo]))"
           "(defprotocol Foo
 :extend-via-metadata true
@@ -84,7 +84,7 @@
 
 (qrs [foo]))"))
     (is (reformatted?
-          type/reformat {}
+          type/reformat {:protocols? true}
           "(defprotocol Foo
   ::methods (map f ms)
           (bar [foo x] \"doc\"))"
@@ -97,7 +97,7 @@
           "option value lists should not be treated like methods")))
   (testing "comments"
     (is (reformatted?
-          type/reformat {}
+          type/reformat {:protocols? true}
           "(defprotocol Bar \"proto doc\"
 
   ;; an option comment
@@ -117,7 +117,7 @@
     [bar x y]))")))
   (testing "nesting"
     (is (reformatted?
-          type/reformat {}
+          type/reformat {:protocols? true}
           "(do
 (defprotocol Foo \"doc string goes here\"
   (abc [foo])))"
@@ -131,11 +131,11 @@
 (deftest type-definitions
   (testing "basics"
     (is (reformatted?
-          type/reformat {}
+          type/reformat {:types? true}
           "(deftype Thing [])"
           "(deftype Thing\n[])"))
     (is (reformatted?
-          type/reformat {}
+          type/reformat {:types? true}
           "(defrecord Thing [field-one
     field-two
   another-field])"
@@ -144,12 +144,12 @@
     field-two
   another-field])"))
     (is (reformatted?
-          type/reformat {}
+          type/reformat {:types? true}
           "(defrecord Foo\n[x]\nCloseable\n(close [_]\n(prn x)))"
           "(defrecord Foo\n[x]\n\nCloseable\n\n(close\n[_]\n(prn x)))")))
   (testing "complex"
     (is (reformatted?
-          type/reformat {}
+          type/reformat {:types? true}
           "(deftype Thing [x y z]
       IFoo (oneline [this] :thing) (foo [this a b]
         (* (+ a x) z)) (bar
@@ -171,16 +171,16 @@ IFoo
 [this c]
 (- c y)))"))
     (is (reformatted?
-          type/reformat {}
+          type/reformat {:types? true}
           "(t/defrecord Foo\n [x]\nCloseable\n(close [_]\n(prn x)))"
           "(t/defrecord Foo\n [x]\n\nCloseable\n\n(close\n[_]\n(prn x)))"))
     (is (reformatted?
-          type/reformat {}
+          type/reformat {:types? true}
           "(defrecord Baz [x y]\n :load-ns true Object (toString [_] \"Baz\"))"
           "(defrecord Baz\n[x y]\n :load-ns true\n\nObject\n\n(toString [_] \"Baz\"))")))
   (testing "comments"
     (is (reformatted?
-          type/reformat {}
+          type/reformat {:types? true}
           "(defrecord Apple [a b]
 
   ;; here are some interstitial comments
@@ -209,7 +209,7 @@ IFoo
 
 (deftest reify-forms
   (is (reformatted?
-        type/reformat {}
+        type/reformat {:reifies? true}
         "(reify Closeable (close [_]
 (prn :closed)))"
         "(reify Closeable
@@ -217,7 +217,7 @@ IFoo
 [_]
 (prn :closed)))"))
   (is (reformatted?
-        type/reformat {}
+        type/reformat {:reifies? true}
         "(reify Closeable
 
 (close [_]
@@ -228,7 +228,7 @@ IFoo
 [_]
 (prn :closed)))"))
   (is (reformatted?
-        type/reformat {}
+        type/reformat {:reifies? true}
         "(reify Key
 
 (getKey [this] key-data)
@@ -246,7 +246,7 @@ Object
 [this]
 \"key\"))"))
   (is (reformatted?
-        type/reformat {}
+        type/reformat {:reifies? true}
         "(reify ABC
 (close [_]))"
         "(reify ABC
@@ -256,12 +256,12 @@ Object
 
 (deftest proxy-forms
   (is (reformatted?
-        type/reformat {}
+        type/reformat {:proxies? true}
         "(proxy [Clazz] [] (method [x y] (+ x y)))"
         "(proxy [Clazz] []
 (method [x y] (+ x y)))"))
   (is (reformatted?
-        type/reformat {}
+        type/reformat {:proxies? true}
         "(proxy [Clazz] []
 
 (method [x y] (+ x y)))"
@@ -269,7 +269,7 @@ Object
 
 (method [x y] (+ x y)))"))
   (is (reformatted?
-        type/reformat {}
+        type/reformat {:proxies? true}
         "(proxy [Clazz IFaceA IFaceB]
 [arg1 arg2]
 (method [x y]
@@ -280,7 +280,7 @@ Object
 [x y]
     (+ x y)))"))
   (is (reformatted?
-        type/reformat {}
+        type/reformat {:proxies? true}
         "(proxy [Clazz IFaceA IFaceB]
 [arg1 arg2]
 
@@ -290,7 +290,7 @@ Object
 
 (method [x y] (+ x y)))"))
   (is (reformatted?
-        type/reformat {}
+        type/reformat {:proxies? true}
         "(proxy [Clazz IFaceA IFaceB]
     [arg1 arg2]
 
@@ -303,7 +303,7 @@ Object
 [x y]
                           (+ x y)))"))
   (is (reformatted?
-        type/reformat {}
+        type/reformat {:proxies? true}
         "(proxy [Clazz] [string] (add [x y]
                           (+ x y))
   (mul [x y]

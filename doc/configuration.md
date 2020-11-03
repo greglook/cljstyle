@@ -169,9 +169,23 @@ This rule corrects the formatting of function forms like `fn`, `defn`, and
 
 ### `:types`
 
-This rule corrects the formatting of type definitions like `deftype`,
-`defrecord`, `defprotocol`, `reify`, and `proxy`. There is no configuration for
-this rule beyond the `:enabled?` state.
+This rule corrects the formatting of type definitions.
+
+* `:types?`
+
+  Whether to format type definition forms like `deftype` and `defrecord`.
+
+* `:protocols?`
+
+  Whether to format protocol definition forms like `defprotocol`.
+
+* `:reifies?`
+
+  Whether to format reified type forms like `reify`.
+
+* `:proxies?`
+
+  Whether to format proxied type forms like `proxy`.
 
 ### `:namespaces`
 
