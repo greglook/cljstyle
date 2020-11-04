@@ -6,58 +6,58 @@
 
 
 (deftest general-forms
-  (is (reformatted?
-        ns/reformat {}
+  (is (rule-reformatted?
+        ns/format-namespaces {}
         "(thing 'ns :bar)"
         "(thing 'ns :bar)"))
-  (is (reformatted?
-        ns/reformat {}
+  (is (rule-reformatted?
+        ns/format-namespaces {}
         "(  ns\n  foo.bar.baz\n)"
         "(ns foo.bar.baz)"))
-  (is (reformatted?
-        ns/reformat {}
+  (is (rule-reformatted?
+        ns/format-namespaces {}
         "(ns foo.bar.baz\n \"ns-level docstring\"\n)"
         "(ns foo.bar.baz\n  \"ns-level docstring\")"))
-  (is (reformatted?
-        ns/reformat {:indent-size 1}
+  (is (rule-reformatted?
+        ns/format-namespaces {:indent-size 1}
         "(ns foo.bar.baz\n \"ns-level docstring\"\n)"
         "(ns foo.bar.baz\n  \"ns-level docstring\")")))
 
 
 (deftest ns-metadata
-  (is (reformatted?
-        ns/reformat {}
+  (is (rule-reformatted?
+        ns/format-namespaces {}
         "(ns \n ^:no-doc\n foo.bar.meta   )"
         "(ns ^:no-doc foo.bar.meta)"))
-  (is (reformatted?
-        ns/reformat {}
+  (is (rule-reformatted?
+        ns/format-namespaces {}
         "(ns \n ^:no-doc\n ^:internal    foo.bar.meta   )"
         "(ns ^:internal ^:no-doc foo.bar.meta)"))
-  (is (reformatted?
-        ns/reformat {}
+  (is (rule-reformatted?
+        ns/format-namespaces {}
         "(ns \n ^{:abc 123}\n foo.bar.meta   )"
         "(ns ^{:abc 123} foo.bar.meta)"))
-  (is (reformatted?
-        ns/reformat {}
+  (is (rule-reformatted?
+        ns/format-namespaces {}
         "(ns ^{:def \"x\"  } ^:no-doc \n ^{:abc 123}\n foo.bar.meta   )"
         "(ns ^:no-doc ^{:abc 123, :def \"x\"} foo.bar.meta)"))
-  (is (reformatted?
-        ns/reformat {:indent-size 1}
+  (is (rule-reformatted?
+        ns/format-namespaces {:indent-size 1}
         "(ns ^{:def \"x\"  } ^:no-doc \n ^{:abc 123}\n foo.bar.meta   )"
         "(ns ^:no-doc ^{:abc 123, :def \"x\"} foo.bar.meta)")))
 
 
 (deftest ns-metadata-as-attr-map
-  (is (reformatted?
-        ns/reformat {}
+  (is (rule-reformatted?
+        ns/format-namespaces {}
         "(ns foo.bar.meta\n\n {:no-doc true\n   :internal true}   )"
         "(ns foo.bar.meta\n  {:no-doc true\n   :internal true})"))
-  (is (reformatted?
-        ns/reformat {}
+  (is (rule-reformatted?
+        ns/format-namespaces {}
         "(ns foo.bar.meta\n {:no-doc true\n:internal true}   )"
         "(ns foo.bar.meta\n  {:no-doc true\n   :internal true})"))
-  (is (reformatted?
-        ns/reformat {}
+  (is (rule-reformatted?
+        ns/format-namespaces {}
         "(ns foo.bar.meta
  {    :no-doc true
      ;; a comment
@@ -69,12 +69,12 @@
 
 
 (deftest ns-requires
-  (is (reformatted?
-        ns/reformat {}
+  (is (rule-reformatted?
+        ns/format-namespaces {}
         "(ns foo.bar.baz\n \"ns-level docstring\"\n (:use foo.bar.qux)\n)"
         "(ns foo.bar.baz\n  \"ns-level docstring\"\n  (:require\n    [foo.bar.qux :refer :all]))"))
-  (is (reformatted?
-        ns/reformat {}
+  (is (rule-reformatted?
+        ns/format-namespaces {}
         "(ns foo.bar
   \"Functions for working with bars.\"
   (:refer-clojure :exclude [keys])
@@ -86,21 +86,21 @@
   (:require
     [clojure.spec :as s]
     [clojure.string :as str]))"))
-  (is (reformatted?
-        ns/reformat {}
+  (is (rule-reformatted?
+        ns/format-namespaces {}
         "(ns abc.def (:load clojure.string))"
         "(ns abc.def
   (:require
     [clojure.string]))"))
-  (is (reformatted?
-        ns/reformat {}
+  (is (rule-reformatted?
+        ns/format-namespaces {}
         "(ns abc.def (:require (abc qrs nop)))"
         "(ns abc.def
   (:require
     [abc.nop]
     [abc.qrs]))"))
-  (is (reformatted?
-        ns/reformat {}
+  (is (rule-reformatted?
+        ns/format-namespaces {}
         "(ns abc.xyz (:require (clojure [set :as set]
 [string :as str]
 [pprint :refer [pp]]) [abc.def :as def]))"
@@ -110,8 +110,8 @@
     [clojure.pprint :refer [pp]]
     [clojure.set :as set]
     [clojure.string :as str]))"))
-  (is (reformatted?
-        ns/reformat {}
+  (is (rule-reformatted?
+        ns/format-namespaces {}
         "(ns abc.xyz (:require
   (clojure ; about set
     [set :as set])
@@ -124,18 +124,18 @@
     ; about set
     [clojure.set :as set]))"))
   (testing "indent size"
-    (is (reformatted?
-          ns/reformat {:indent-size 1}
+    (is (rule-reformatted?
+          ns/format-namespaces {:indent-size 1}
           "(ns foo.bar.baz\n \"ns-level docstring\"\n (:use foo.bar.qux)\n)"
           "(ns foo.bar.baz\n  \"ns-level docstring\"\n  (:require\n   [foo.bar.qux :refer :all]))"))
-    (is (reformatted?
-          ns/reformat {:indent-size 1}
+    (is (rule-reformatted?
+          ns/format-namespaces {:indent-size 1}
           "(ns abc.def (:load clojure.string))"
           "(ns abc.def
   (:require
    [clojure.string]))"))
-    (is (reformatted?
-          ns/reformat {:indent-size 1}
+    (is (rule-reformatted?
+          ns/format-namespaces {:indent-size 1}
           "(ns abc.xyz (:require (clojure [set :as set]
 [string :as str]
 [pprint :refer [pp]]) [abc.def :as def]))"
@@ -145,8 +145,8 @@
    [clojure.pprint :refer [pp]]
    [clojure.set :as set]
    [clojure.string :as str]))"))
-    (is (reformatted?
-          ns/reformat {:indent-size 1}
+    (is (rule-reformatted?
+          ns/format-namespaces {:indent-size 1}
           "(ns abc.xyz (:require
  (clojure ; about set
    [set :as set])
@@ -161,8 +161,8 @@
 
 
 (deftest ns-import
-  (is (reformatted?
-        ns/reformat {}
+  (is (rule-reformatted?
+        ns/format-namespaces {}
         "(ns foo.bar (:import java.io.IOException
  (java.io
    OutputStream InputStream)
@@ -175,8 +175,8 @@
       InputStream
       OutputStream)
     java.time.Instant))"))
-  (is (reformatted?
-        ns/reformat {:indent-size 1}
+  (is (rule-reformatted?
+        ns/format-namespaces {:indent-size 1}
         "(ns foo.bar (:import java.io.IOException
 (java.io
   OutputStream InputStream)
@@ -189,16 +189,16 @@
     InputStream
     OutputStream)
    java.time.Instant))"))
-  (is (reformatted?
-        ns/reformat {}
+  (is (rule-reformatted?
+        ns/format-namespaces {}
         "(ns foo (:import [goog.async Debouncer]))"
         "(ns foo
   (:import
     (goog.async
       Debouncer)))"))
   (testing "comments"
-    (is (reformatted?
-          ns/reformat {}
+    (is (rule-reformatted?
+          ns/format-namespaces {}
           "(ns foo
   (:import
     ;; Single-class imports can be collapsed into a symbol
@@ -221,13 +221,13 @@
 
 
 (deftest ns-genclass
-  (is (reformatted?
-        ns/reformat {}
+  (is (rule-reformatted?
+        ns/format-namespaces {}
         "(ns abc.def (:gen-class))"
         "(ns abc.def
   (:gen-class))"))
-  (is (reformatted?
-        ns/reformat {}
+  (is (rule-reformatted?
+        ns/format-namespaces {}
         "(ns ab.cd.ef
               (:require [foo.bar :as bar])
         (:gen-class :name ab.cd.EFThing :extends foo.bar.AbstractThing)
@@ -238,8 +238,8 @@
     :extends foo.bar.AbstractThing)
   (:require
     [foo.bar :as bar]))"))
-  (is (reformatted?
-        ns/reformat {:indent-size 1}
+  (is (rule-reformatted?
+        ns/format-namespaces {:indent-size 1}
         "(ns ab.cd.ef
               (:require [foo.bar :as bar])
         (:gen-class :name ab.cd.EFThing :extends foo.bar.AbstractThing)
@@ -254,8 +254,8 @@
 
 (deftest reader-conditionals
   (testing "top level"
-    (is (reformatted?
-          ns/reformat {}
+    (is (rule-reformatted?
+          ns/format-namespaces {}
           "(ns foo.bar.baz
   (:require [a.b.c :as c] [x.y.z :as z])
   #?(:cljs (:require-macros
@@ -267,8 +267,8 @@
   #?(:cljs
      (:require-macros
        [q.r.s :refer [x y]])))"))
-    (is (reformatted?
-          ns/reformat {}
+    (is (rule-reformatted?
+          ns/format-namespaces {}
           "(ns a.b.c
   #?(:cljs (:require-macros [q.r.s :refer [x y]])
          :clj  (:require [q.r.j :refer [x y]])))"
@@ -279,8 +279,8 @@
      :cljs
      (:require-macros
        [q.r.s :refer [x y]])))"))
-    (is (reformatted?
-          ns/reformat {}
+    (is (rule-reformatted?
+          ns/format-namespaces {}
           "(ns a.b.c (:require
             [q.r.j :refer [x y]])
       #?@(:clj [(:gen-class) (:import foo.bar.Bar foo.baz.Qux)]
@@ -290,8 +290,8 @@
     [q.r.j :refer [x y]])
   #?@(:clj
       [(:gen-class) (:import foo.bar.Bar foo.baz.Qux)]))"))
-    (is (reformatted?
-          ns/reformat {}
+    (is (rule-reformatted?
+          ns/format-namespaces {}
           "(ns x.y.z (:require [a.b.q :as q])
   #?(:clj (:import a.b.c.E x.y.Y a.b.c.D)
      :cljs (:import [goog.foo Bar] [goog.baz Qux Thing])))"
@@ -311,8 +311,8 @@
          Thing)
        (goog.foo
          Bar))))"))
-    (is (reformatted?
-          ns/reformat {}
+    (is (rule-reformatted?
+          ns/format-namespaces {}
           "(ns x.y.z
   #?(:clj (:import a.b.c.E x.y.Y a.b.c.D))
              (:require [a.b.q :as q])
@@ -333,8 +333,8 @@
          Thing)
        (goog.foo
          Bar))))"))
-    (is (reformatted?
-          ns/reformat {:indent-size 1}
+    (is (rule-reformatted?
+          ns/format-namespaces {:indent-size 1}
           "(ns foo.bar.baz
  (:require [a.b.c :as c] [x.y.z :as z])
  #?(:cljs (:require-macros
@@ -346,8 +346,8 @@
   #?(:cljs
      (:require-macros
       [q.r.s :refer [x y]])))"))
-    (is (reformatted?
-          ns/reformat {:indent-size 1}
+    (is (rule-reformatted?
+          ns/format-namespaces {:indent-size 1}
           "(ns x.y.z
  #?(:clj (:import a.b.c.E x.y.Y a.b.c.D))
             (:require [a.b.q :as q])
@@ -369,8 +369,8 @@
       (goog.foo
        Bar))))")))
   (testing "inside require"
-    (is (reformatted?
-          ns/reformat {}
+    (is (rule-reformatted?
+          ns/format-namespaces {}
           "(ns a.b.c
   (:require
     #?(:clj [clj-time.core :as time]
@@ -382,8 +382,8 @@
     #?(:clj [clj-time.core :as time]
        :cljs [cljs-time.core :as time])
     [f.g.h :as h :refer [x y]]))"))
-    (is (reformatted?
-          ns/reformat {:indent-size 1}
+    (is (rule-reformatted?
+          ns/format-namespaces {:indent-size 1}
           "(ns a.b.c
  (:require
    #?(:clj [clj-time.core :as time]
@@ -395,8 +395,8 @@
    #?(:clj [clj-time.core :as time]
       :cljs [cljs-time.core :as time])
    [f.g.h :as h :refer [x y]]))"))
-    (is (reformatted?
-          ns/reformat {}
+    (is (rule-reformatted?
+          ns/format-namespaces {}
           "(ns foo.bar
             (:require
         #?@(:clj [[foo.core :as foo]
@@ -412,8 +412,8 @@
     [p.q.r :as r :refer [x y]]
     #?@(:cljs [[x.y.z :as z]])))")))
   (testing "inside libspec"
-    (is (reformatted?
-          ns/reformat {}
+    (is (rule-reformatted?
+          ns/format-namespaces {}
           "(ns a.b.c
   (:require
     [#?(:clj clj-time.core
@@ -426,8 +426,8 @@
     [#?(:clj clj-time.core
         :cljs cljs-time.core) :as time]
     [p.q.r :as r]))"))
-    (is (reformatted?
-          ns/reformat {:indent-size 1}
+    (is (rule-reformatted?
+          ns/format-namespaces {:indent-size 1}
           "(ns a.b.c
  (:require
    [#?(:clj clj-time.core
@@ -440,8 +440,8 @@
    [#?(:clj clj-time.core
        :cljs cljs-time.core) :as time]
    [p.q.r :as r]))"))
-    (is (reformatted?
-          ns/reformat {}
+    (is (rule-reformatted?
+          ns/format-namespaces {}
           "(ns a.b.c
   (:require
     [#?(:clj clj-time.core :cljs cljs-time.core) :as time]
@@ -459,8 +459,8 @@
 
 
 (deftest shadow-cljs-requires
-  (is (reformatted?
-        ns/reformat {}
+  (is (rule-reformatted?
+        ns/format-namespaces {}
         "(ns foo (:require [\"caz\" :as caz] [bar.core :as bar]))"
         "(ns foo
   (:require
@@ -470,8 +470,8 @@
 
 (deftest regressions
   (testing "discard macro"
-    (is (reformatted?
-          ns/reformat {}
+    (is (rule-reformatted?
+          ns/format-namespaces {}
           "(ns ab.cd.efg (:require [ab.cd.x :as x] #_[ab.cd.y] [ab.cd.z :as z]))"
           "(ns ab.cd.efg
   (:require

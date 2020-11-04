@@ -7,17 +7,17 @@
 
 (deftest protocol-definitions
   (testing "basics"
-    (is (reformatted?
-          type/reformat {:protocols? true}
+    (is (rule-reformatted?
+          type/format-protocols {}
           "(defprotocol Foo)"
           "(defprotocol Foo)"))
-    (is (reformatted?
-          type/reformat {:protocols? true}
+    (is (rule-reformatted?
+          type/format-protocols {}
           "(defprotocol Foo \"doc string goes here\")"
           "(defprotocol Foo
 \"doc string goes here\")"))
-    (is (reformatted?
-          type/reformat {:protocols? true}
+    (is (rule-reformatted?
+          type/format-protocols {}
           "(defprotocol Foo \"doc string goes here\"
   (abc [foo]))"
           "(defprotocol Foo
@@ -25,8 +25,8 @@
 
 (abc [foo]))")))
   (testing "method forms"
-    (is (reformatted?
-          type/reformat {:protocols? true}
+    (is (rule-reformatted?
+          type/format-protocols {}
           "(defprotocol Foo
   (efg [foo] \"method doc\"))"
           "(defprotocol Foo
@@ -34,16 +34,16 @@
 (efg
 [foo]
 \"method doc\"))"))
-    (is (reformatted?
-          type/reformat {:protocols? true}
+    (is (rule-reformatted?
+          type/format-protocols {}
           "(defprotocol Foo (bar [foo] [foo x]))"
           "(defprotocol Foo
 
 (bar
 [foo]
 [foo x]))"))
-    (is (reformatted?
-          type/reformat {:protocols? true}
+    (is (rule-reformatted?
+          type/format-protocols {}
           "(defprotocol Foo
   (bar [foo] [foo x]
     \"multiline
@@ -55,8 +55,8 @@
 [foo x]
     \"multiline
     method doc\"))"))
-    (is (reformatted?
-          type/reformat {:protocols? true}
+    (is (rule-reformatted?
+          type/format-protocols {}
           "(defprotocol Foo
   (bar [foo] \"method doc\")
   (baz [foo x y]))"
@@ -68,23 +68,23 @@
 
 (baz [foo x y]))")))
   (testing "metadata"
-    (is (reformatted?
-          type/reformat {:protocols? true}
+    (is (rule-reformatted?
+          type/format-protocols {}
           "(defprotocol ^:deprecated Foo (qrs [foo]))"
           "(defprotocol ^:deprecated Foo
 
 (qrs [foo]))")))
   (testing "options"
-    (is (reformatted?
-          type/reformat {:protocols? true}
+    (is (rule-reformatted?
+          type/format-protocols {}
           "(defprotocol Foo :extend-via-metadata true :baz 123 (qrs [foo]))"
           "(defprotocol Foo
 :extend-via-metadata true
 :baz 123
 
 (qrs [foo]))"))
-    (is (reformatted?
-          type/reformat {:protocols? true}
+    (is (rule-reformatted?
+          type/format-protocols {}
           "(defprotocol Foo
   ::methods (map f ms)
           (bar [foo x] \"doc\"))"
@@ -96,8 +96,8 @@
 \"doc\"))"
           "option value lists should not be treated like methods")))
   (testing "comments"
-    (is (reformatted?
-          type/reformat {:protocols? true}
+    (is (rule-reformatted?
+          type/format-protocols {}
           "(defprotocol Bar \"proto doc\"
 
   ;; an option comment
@@ -116,8 +116,8 @@
   (frobble
     [bar x y]))")))
   (testing "nesting"
-    (is (reformatted?
-          type/reformat {:protocols? true}
+    (is (rule-reformatted?
+          type/format-protocols {}
           "(do
 (defprotocol Foo \"doc string goes here\"
   (abc [foo])))"
@@ -130,12 +130,12 @@
 
 (deftest type-definitions
   (testing "basics"
-    (is (reformatted?
-          type/reformat {:types? true}
+    (is (rule-reformatted?
+          type/format-types {}
           "(deftype Thing [])"
           "(deftype Thing\n[])"))
-    (is (reformatted?
-          type/reformat {:types? true}
+    (is (rule-reformatted?
+          type/format-types {}
           "(defrecord Thing [field-one
     field-two
   another-field])"
@@ -143,13 +143,13 @@
 [field-one
     field-two
   another-field])"))
-    (is (reformatted?
-          type/reformat {:types? true}
+    (is (rule-reformatted?
+          type/format-types {}
           "(defrecord Foo\n[x]\nCloseable\n(close [_]\n(prn x)))"
           "(defrecord Foo\n[x]\n\nCloseable\n\n(close\n[_]\n(prn x)))")))
   (testing "complex"
-    (is (reformatted?
-          type/reformat {:types? true}
+    (is (rule-reformatted?
+          type/format-types {}
           "(deftype Thing [x y z]
       IFoo (oneline [this] :thing) (foo [this a b]
         (* (+ a x) z)) (bar
@@ -170,17 +170,17 @@ IFoo
 (bar
 [this c]
 (- c y)))"))
-    (is (reformatted?
-          type/reformat {:types? true}
+    (is (rule-reformatted?
+          type/format-types {}
           "(t/defrecord Foo\n [x]\nCloseable\n(close [_]\n(prn x)))"
           "(t/defrecord Foo\n [x]\n\nCloseable\n\n(close\n[_]\n(prn x)))"))
-    (is (reformatted?
-          type/reformat {:types? true}
+    (is (rule-reformatted?
+          type/format-types {}
           "(defrecord Baz [x y]\n :load-ns true Object (toString [_] \"Baz\"))"
           "(defrecord Baz\n[x y]\n :load-ns true\n\nObject\n\n(toString [_] \"Baz\"))")))
   (testing "comments"
-    (is (reformatted?
-          type/reformat {:types? true}
+    (is (rule-reformatted?
+          type/format-types {}
           "(defrecord Apple [a b]
 
   ;; here are some interstitial comments
@@ -208,16 +208,16 @@ IFoo
 
 
 (deftest reify-forms
-  (is (reformatted?
-        type/reformat {:reifies? true}
+  (is (rule-reformatted?
+        type/format-reifies {}
         "(reify Closeable (close [_]
 (prn :closed)))"
         "(reify Closeable
 (close
 [_]
 (prn :closed)))"))
-  (is (reformatted?
-        type/reformat {:reifies? true}
+  (is (rule-reformatted?
+        type/format-reifies {}
         "(reify Closeable
 
 (close [_]
@@ -227,8 +227,8 @@ IFoo
 (close
 [_]
 (prn :closed)))"))
-  (is (reformatted?
-        type/reformat {:reifies? true}
+  (is (rule-reformatted?
+        type/format-reifies {}
         "(reify Key
 
 (getKey [this] key-data)
@@ -245,8 +245,8 @@ Object
 (toString
 [this]
 \"key\"))"))
-  (is (reformatted?
-        type/reformat {:reifies? true}
+  (is (rule-reformatted?
+        type/format-reifies {}
         "(reify ABC
 (close [_]))"
         "(reify ABC
@@ -255,21 +255,21 @@ Object
 
 
 (deftest proxy-forms
-  (is (reformatted?
-        type/reformat {:proxies? true}
+  (is (rule-reformatted?
+        type/format-proxies {}
         "(proxy [Clazz] [] (method [x y] (+ x y)))"
         "(proxy [Clazz] []
 (method [x y] (+ x y)))"))
-  (is (reformatted?
-        type/reformat {:proxies? true}
+  (is (rule-reformatted?
+        type/format-proxies {}
         "(proxy [Clazz] []
 
 (method [x y] (+ x y)))"
         "(proxy [Clazz] []
 
 (method [x y] (+ x y)))"))
-  (is (reformatted?
-        type/reformat {:proxies? true}
+  (is (rule-reformatted?
+        type/format-proxies {}
         "(proxy [Clazz IFaceA IFaceB]
 [arg1 arg2]
 (method [x y]
@@ -279,8 +279,8 @@ Object
 (method
 [x y]
     (+ x y)))"))
-  (is (reformatted?
-        type/reformat {:proxies? true}
+  (is (rule-reformatted?
+        type/format-proxies {}
         "(proxy [Clazz IFaceA IFaceB]
 [arg1 arg2]
 
@@ -289,8 +289,8 @@ Object
 [arg1 arg2]
 
 (method [x y] (+ x y)))"))
-  (is (reformatted?
-        type/reformat {:proxies? true}
+  (is (rule-reformatted?
+        type/format-proxies {}
         "(proxy [Clazz IFaceA IFaceB]
     [arg1 arg2]
 
@@ -302,8 +302,8 @@ Object
                           (method
 [x y]
                           (+ x y)))"))
-  (is (reformatted?
-        type/reformat {:proxies? true}
+  (is (rule-reformatted?
+        type/format-proxies {}
         "(proxy [Clazz] [string] (add [x y]
                           (+ x y))
   (mul [x y]

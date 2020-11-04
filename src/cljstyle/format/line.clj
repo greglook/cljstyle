@@ -29,14 +29,23 @@
       (zl/eat-whitespace)))
 
 
-(defn trim-consecutive
-  "Edit the form to replace consecutive blank lines with a single line."
-  [form rule-config]
+(defn- too-many-blanks?
+  "True if there are too many blank lines at this location."
+  [zloc rule-config]
   (let [max-consecutive (:max-consecutive rule-config 2)]
-    (zl/transform-top
-      form
-      #(< (inc max-consecutive) (count-newlines %))
-      #(replace-with-blank-lines % max-consecutive))))
+    (< (inc max-consecutive) (count-newlines zloc))))
+
+
+(defn- trim-blanks
+  "Edit the location to replace consecutive blank lines with the max allowed."
+  [zloc rule-config]
+  (let [max-consecutive (:max-consecutive rule-config 2)]
+    (replace-with-blank-lines zloc max-consecutive)))
+
+
+(def trim-consecutive
+  "Rule to remove consecutive top-level blank lines beyond a limit."
+  [:blank-lines :trim-consecutive too-many-blanks? trim-blanks])
 
 
 
@@ -45,7 +54,7 @@
 (defn- padding-line-break?
   "True if the node at this location is whitespace between two top-level
   forms, at least one of which is multi-line."
-  [zloc]
+  [zloc _]
   (and (z/whitespace? zloc)
        (let [prev-zloc (z/skip z/left* z/whitespace? zloc)
              next-zloc (z/skip z/right* z/whitespace? zloc)]
@@ -57,11 +66,13 @@
                   (zl/multiline? next-zloc))))))
 
 
-(defn insert-padding
-  "Edit the form to replace consecutive blank lines with a single line."
-  [form rule-config]
+(defn- insert-padding-lines
+  "Edit the location to insert padding lines as needed."
+  [zloc rule-config]
   (let [padding-lines (:padding-lines rule-config 2)]
-    (zl/transform-top
-      form
-      padding-line-break?
-      #(replace-with-blank-lines % padding-lines))))
+    (replace-with-blank-lines zloc padding-lines)))
+
+
+(def insert-padding
+  "Rule to ensure a minimum number of blank lines between top-level forms."
+  [:blank-lines :insert-padding padding-line-break? insert-padding-lines])

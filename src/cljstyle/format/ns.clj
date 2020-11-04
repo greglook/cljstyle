@@ -168,11 +168,11 @@
 
 (defn- render-block
   "Render a namespace group as a multi-line block."
-  [opts base-indent kw elements]
+  [rule-config base-indent kw elements]
   (->> elements
        (mapcat (partial vector
                         (n/newlines 1)
-                        (n/spaces (+ base-indent (:indent-size opts indent-size)))))
+                        (n/spaces (+ base-indent (:indent-size rule-config indent-size)))))
        (list* (n/keyword-node kw))
        (n/list-node)))
 
@@ -240,13 +240,13 @@
 
 (defn- render-requires*
   "Render a `:require` form as a list node."
-  [opts base-indent kw elements]
+  [rule-config base-indent kw elements]
   (when (seq elements)
     (->> elements
          (mapcat expand-require-group)
          (sort-by (comp str libspec-sort-key))
          (mapcat expand-comments)
-         (render-block opts base-indent kw))))
+         (render-block rule-config base-indent kw))))
 
 
 (defn- replace-loads
@@ -337,13 +337,13 @@
 
 (defn- format-import-group*
   "Format a group of imported classes as a list node."
-  [opts base-indent package class-names]
+  [rule-config base-indent package class-names]
   (->
     (->> (sort class-names)
          (mapcat expand-comments)
          (mapcat (partial list
                           (n/newlines 1)
-                          (n/spaces (+ base-indent (* 2 (:indent-size opts indent-size))))))
+                          (n/spaces (+ base-indent (* 2 (:indent-size rule-config indent-size))))))
          (cons (n/token-node package)))
     (n/list-node)
     (with-meta (meta package))
@@ -352,10 +352,10 @@
 
 (defn- format-import-group
   "Format a group of imported classes, accounting for break-width settings."
-  [opts base-indent package class-names]
+  [rule-config base-indent package class-names]
   (if (= 1 (count class-names))
     (let [class-name (first class-names)
-          break-width (:import-break-width opts 60)
+          break-width (:import-break-width rule-config 60)
           qualified-class (symbol (str package \. class-name))]
       ;; If the import was fully qualified before and it's under the break
       ;; width, keep it ungrouped.
@@ -366,21 +366,21 @@
             (with-meta (meta class-name))
             (expand-comments))
         ;; Format singleton group.
-        (format-import-group* opts base-indent package class-names)))
+        (format-import-group* rule-config base-indent package class-names)))
     ;; Multiple classes, always use a group.
-    (format-import-group* opts base-indent package class-names)))
+    (format-import-group* rule-config base-indent package class-names)))
 
 
 (defn- render-imports*
   "Render an `:import` form."
-  [opts base-indent elements]
+  [rule-config base-indent elements]
   (when (seq elements)
     (->> elements
          (mapcat expand-import)
          (group-imports)
          (sort-by key)
-         (mapcat (partial apply format-import-group opts base-indent))
-         (render-block opts base-indent :import))))
+         (mapcat (partial apply format-import-group rule-config base-indent))
+         (render-block rule-config base-indent :import))))
 
 
 
@@ -448,7 +448,7 @@
 
 (defn- render-gen-class
   "Render a `:gen-class` form."
-  [opts elements]
+  [rule-config elements]
   (when elements
     [(n/spaces indent-size)
      (->> elements
@@ -456,7 +456,7 @@
           (mapcat (fn format-entry
                     [[k v]]
                     [(n/newlines 1)
-                     (n/spaces (+ indent-size (:indent-size opts indent-size)))
+                     (n/spaces (+ indent-size (:indent-size rule-config indent-size)))
                      k
                      (n/spaces 1)
                      v]))
@@ -466,23 +466,23 @@
 
 (defn- render-requires
   "Render a `:require` form."
-  [opts kw elements]
+  [rule-config kw elements]
   (when (seq elements)
     [(n/spaces indent-size)
-     (render-requires* opts indent-size kw elements)]))
+     (render-requires* rule-config indent-size kw elements)]))
 
 
 (defn- render-imports
   "Render an `:import` form."
-  [opts elements]
+  [rule-config elements]
   (when (seq elements)
     [(n/spaces indent-size)
-     (render-imports* opts indent-size elements)]))
+     (render-imports* rule-config indent-size elements)]))
 
 
 (defn- render-reader-branch
   "Render a single branch in a top-level reader-conditional macro."
-  [opts base-indent [branch clause]]
+  [rule-config base-indent [branch clause]]
   (let [list-kw (when (= :list (n/tag clause))
                   (n/sexpr (first (n/children clause))))]
     [(n/token-node branch)
@@ -491,11 +491,11 @@
      (cond
        (= :import list-kw)
        (let [elements (rest (n/children (parse-list-with-comments clause)))]
-         (render-imports* opts base-indent elements))
+         (render-imports* rule-config base-indent elements))
 
        (contains? #{:require :require-macros} list-kw)
        (let [elements (rest (n/children (parse-list-with-comments clause)))]
-         (render-requires* opts base-indent list-kw elements))
+         (render-requires* rule-config base-indent list-kw elements))
 
        :else
        clause)]))
@@ -503,7 +503,7 @@
 
 (defn- render-reader-conditionals
   "Render top-level reader-conditional macros."
-  [opts elements]
+  [rule-config elements]
   (when (seq elements)
     (->>
       elements
@@ -517,7 +517,7 @@
                [(n/token-node (symbol (if spliced? "?@" "?")))
                 (->>
                   branches
-                  (map (partial render-reader-branch opts base-indent))
+                  (map (partial render-reader-branch rule-config base-indent))
                   (interpose [(n/newlines 1) (n/spaces base-indent)])
                   (into [] cat)
                   (n/list-node))])])))
@@ -530,7 +530,7 @@
 
 (defn- ns-node?
   "True if the node at this location is a namespace declaration."
-  [zloc]
+  [zloc _]
   (and (z/list? zloc)
        (let [zl (z/down zloc)]
          (and (= :token (z/tag zl))
@@ -539,7 +539,7 @@
 
 (defn- render-ns-form
   "Render a whole namespace form."
-  [ns-data opts]
+  [ns-data rule-config]
   (n/list-node
     (concat
       [(n/token-node 'ns)
@@ -553,29 +553,22 @@
         [(render-docstring (:doc ns-data))
          (render-attr-map (:attr-map ns-data))
          (render-refer-clojure (:refer-clojure ns-data))
-         (render-gen-class opts (:gen-class ns-data))
-         (render-requires opts :require (:require ns-data))
-         (render-requires opts :require-macros (:require-macros ns-data))
-         (render-imports opts (:import ns-data))
-         (render-reader-conditionals opts (:reader-conditionals ns-data))]))))
+         (render-gen-class rule-config (:gen-class ns-data))
+         (render-requires rule-config :require (:require ns-data))
+         (render-requires rule-config :require-macros (:require-macros ns-data))
+         (render-imports rule-config (:import ns-data))
+         (render-reader-conditionals rule-config (:reader-conditionals ns-data))]))))
 
 
 (defn- rewrite-ns
   "Insert appropriate line breaks and indentation before each ns child form."
-  [zloc opts]
+  [zloc rule-config]
   (let [ns-data (-> (parse-ns-node zloc)
                     (replace-loads)
                     (replace-uses))]
-    (z/replace zloc (render-ns-form ns-data opts))))
+    (z/replace zloc (render-ns-form ns-data rule-config))))
 
 
-
-;; ## Editing Functions
-
-(defn reformat
-  "Transform this form by rewriting any namespace forms."
-  [form opts]
-  (zl/transform-top
-    form
-    ns-node?
-    #(rewrite-ns % opts)))
+(def format-namespaces
+  "Rule to format namespace definitions."
+  [:namespaces nil ns-node? rewrite-ns])

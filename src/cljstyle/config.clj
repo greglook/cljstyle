@@ -161,32 +161,44 @@
 
 ;; #### Rule: Vars
 
-;; Whether to apply line-break rules to var definitions.
-(s/def :cljstyle.config.rules.vars/line-breaks?
-  boolean?)
-
-
 (s/def :cljstyle.config.rules/vars
-  (s/keys :opt-un [:cljstyle.config.rules.global/enabled?
-                   :cljstyle.config.rules.vars/line-breaks?]))
+  (s/keys :opt-un [:cljstyle.config.rules.global/enabled?]))
 
 
 ;; #### Rule: Functions
 
-;; Whether to apply line-break rules to function definitions.
-(s/def :cljstyle.config.rules.functions/line-breaks?
-  boolean?)
-
-
 (s/def :cljstyle.config.rules/functions
-  (s/keys :opt-un [:cljstyle.config.rules.global/enabled?
-                   :cljstyle.config.rules.functions/line-breaks?]))
+  (s/keys :opt-un [:cljstyle.config.rules.global/enabled?]))
 
 
 ;; #### Rule: Types
 
+;; Whether to format protocols.
+(s/def :cljstyle.config.rules.types/protocols?
+  boolean?)
+
+
+;; Whether to format types.
+(s/def :cljstyle.config.rules.types/types?
+  boolean?)
+
+
+;; Whether to format reifies.
+(s/def :cljstyle.config.rules.types/reifies?
+  boolean?)
+
+
+;; Whether to format proxies.
+(s/def :cljstyle.config.rules.types/proxies?
+  boolean?)
+
+
 (s/def :cljstyle.config.rules/types
-  (s/keys :opt-un [:cljstyle.config.rules.global/enabled?]))
+  (s/keys :opt-un [:cljstyle.config.rules.global/enabled?
+                   :cljstyle.config.rules.types/protocols?
+                   :cljstyle.config.rules.types/types?
+                   :cljstyle.config.rules.types/reifies?
+                   :cljstyle.config.rules.types/proxies?]))
 
 
 ;; #### Rule: Namespaces
@@ -285,12 +297,10 @@
     {:enabled? true}
 
     :vars
-    {:enabled? true
-     :line-breaks? true}
+    {:enabled? true}
 
     :functions
-    {:enabled? true
-     :line-breaks? true}
+    {:enabled? true}
 
     :types
     {:enabled? true
@@ -352,10 +362,10 @@
       (translate :require-eof-newline? [:rules :eof-newline :enabled?])
 
       ;; Vars rule
-      (translate :line-break-vars? [:rules :vars :line-breaks?])
+      (translate :line-break-vars? [:rules :vars :enabled?])
 
       ;; Functions rule
-      (translate :line-break-functions? [:rules :functions :line-breaks?])
+      (translate :line-break-functions? [:rules :functions :enabled?])
 
       ;; Types rule
       (translate :reformat-types? [:rules :types :enabled?])

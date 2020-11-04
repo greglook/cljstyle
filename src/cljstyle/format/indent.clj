@@ -51,7 +51,7 @@
 
 (defn- should-indent?
   "True if indentation should exist after the current location."
-  [zloc]
+  [zloc _]
   (or (and (line-break? zloc) (not (line-break-next? zloc)))
       (and (zl/comment? zloc) (not (comment-next? zloc)))))
 
@@ -343,13 +343,12 @@
       zloc)))
 
 
-(defn reindent
-  "Transform this form by rewriting all line indentation."
-  [form rule-config]
-  (let [indenter (custom-indenter rule-config)]
-    (zl/transform
-      form
-      should-indent?
-      (fn edit-indent
-        [zloc]
-        (indent-line indenter (unindent-line zloc))))))
+(let [memo-indenter (memoize custom-indenter)]
+  (defn- edit-line-indent
+    [zloc rule-config]
+    (indent-line (memo-indenter rule-config) (unindent-line zloc))))
+
+
+(def reindent-lines
+  "Rule to rewrite all line indentation."
+  [:indentation nil should-indent? edit-line-indent])

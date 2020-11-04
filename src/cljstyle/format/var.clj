@@ -14,7 +14,7 @@
 
 (defn- def-form?
   "True if the node at this location is a `def` form declaring a var."
-  [zloc]
+  [zloc _]
   (and (z/list? zloc)
        (def? (z/down zloc))))
 
@@ -59,7 +59,7 @@
 (defn- edit-def
   "Reformat a definition form. Returns a zipper located at the root of the
   edited form."
-  [zloc]
+  [zloc _rule-config]
   (loop [zloc (z/down zloc)]
     (cond
       ;; Join def symbol and name.
@@ -81,7 +81,6 @@
         (recur (z/right* zloc))))))
 
 
-(defn reformat-line-breaks
-  "Transform this form by applying line-breaks to var definition forms."
-  [form _]
-  (zl/transform form def-form? edit-def))
+(def format-defs
+  "Rule to format var definition forms."
+  [:vars nil def-form? edit-def])

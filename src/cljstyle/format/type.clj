@@ -17,7 +17,7 @@
 
 (defn- protocol-form?
   "True if the node at this location is a protocol definition form."
-  [zloc]
+  [zloc _]
   (and (z/list? zloc)
        (defprotocol? (z/down zloc))))
 
@@ -84,7 +84,7 @@
 (defn- edit-protocol
   "Reformat a `defprotocol` form. Returns a zipper located at the root of the
   edited form."
-  [zloc]
+  [zloc _]
   (loop [zloc (z/down zloc)]
     (cond
       ;; Protocol-level docstring must be on a new line.
@@ -109,6 +109,11 @@
           (recur (z/right* zloc')))))))
 
 
+(def format-protocols
+  "Rule to format protocol definition forms."
+  [:types :protocols protocol-form? edit-protocol])
+
+
 
 ;; ## Type Definition Rules
 
@@ -121,7 +126,7 @@
 
 (defn- type-form?
   "True if the node at this location is a type definition form."
-  [zloc]
+  [zloc _]
   (and (z/list? zloc)
        (deftypish? (z/down zloc))))
 
@@ -211,7 +216,7 @@
 (defn- edit-type
   "Reformat a type definition form. Returns a zipper located at the root of the
   edited form."
-  [zloc]
+  [zloc _]
   (loop [zloc (z/down zloc)]
     (cond
       ;; Field vectors must be on a new line.
@@ -244,6 +249,11 @@
           (recur (z/right* zloc')))))))
 
 
+(def format-types
+  "Rule to format type definition forms."
+  [:types :types type-form? edit-type])
+
+
 
 ;; ## Reify Rules
 
@@ -255,7 +265,7 @@
 
 (defn- reify-form?
   "True if the node at this location is a reified definition form."
-  [zloc]
+  [zloc _]
   (and (z/list? zloc)
        (reify? (z/down zloc))))
 
@@ -285,7 +295,7 @@
 (defn- edit-reify
   "Reformat a reify form. Returns a zipper located at the root of the edited
   form."
-  [zloc]
+  [zloc _]
   (loop [zloc (z/down zloc)]
     (cond
       ;; Two blank lines preceding interface symbols.
@@ -314,6 +324,11 @@
           (recur (z/right* zloc')))))))
 
 
+(def format-reifies
+  "Rule to format reified type forms."
+  [:types :reifies reify-form? edit-reify])
+
+
 
 ;; ## Proxy Rules
 
@@ -325,7 +340,7 @@
 
 (defn- proxy-form?
   "True if the node at this location is a proxy definition form."
-  [zloc]
+  [zloc _]
   (and (z/list? zloc)
        (proxy? (z/down zloc))))
 
@@ -356,7 +371,7 @@
 (defn- edit-proxy
   "Reformat a proxy form. Returns a zipper located at the root of the edited
   form."
-  [zloc]
+  [zloc _]
   (loop [zloc (z/down zloc)]
     (cond
       ;; Class and interfaces vector should be on the same line as proxy.
@@ -381,30 +396,6 @@
           (recur (z/right* zloc')))))))
 
 
-
-;; ## Editing Functions
-
-(defn- edit-type-forms
-  [zloc rule-config]
-  (cond
-    (and (:protocols? rule-config)
-         (protocol-form? zloc))
-    edit-protocol
-
-    (and (:types? rule-config)
-         (type-form? zloc))
-    edit-type
-
-    (and (:reifies? rule-config)
-         (reify-form? zloc))
-    edit-reify
-
-    (and (:proxies? rule-config)
-         (proxy-form? zloc))
-    edit-proxy))
-
-
-(defn reformat
-  "Transform this form by applying formatting rules to type definition forms."
-  [form rule-config]
-  (zl/transform form #(edit-type-forms % rule-config)))
+(def format-proxies
+  "Rule to format proxy definition forms."
+  [:types :proxies proxy-form? edit-proxy])

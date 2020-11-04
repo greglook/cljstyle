@@ -24,10 +24,11 @@
 
 (defn- fn-form?
   "True if the node at this location is a function form."
-  [zloc]
+  [zloc _]
   (and (z/list? zloc)
        (or (fn-sym? (z/down zloc))
-           (letfn-form? zloc))))
+           (letfn-form? zloc))
+       (not (zl/syntax-quoted? zloc))))
 
 
 (defn- defn-or-multiline?
@@ -88,7 +89,7 @@
 (defn- edit-fn
   "Reformat a function form. Returns a zipper located at the root of the edited
   form."
-  [zloc]
+  [zloc _rule-config]
   (let [break? (defn-or-multiline? zloc)]
     (loop [section :start
            zloc (z/down zloc)]
@@ -153,10 +154,6 @@
           (recur section (z/right* zloc)))))))
 
 
-(defn reformat-line-breaks
-  "Transform this form by applying line-breaks to function definition forms."
-  [form _]
-  (zl/transform
-    form
-    (every-pred fn-form? (complement zl/syntax-quoted?))
-    edit-fn))
+(def format-functions
+  "Rule to format function forms."
+  [:functions nil fn-form? edit-fn])

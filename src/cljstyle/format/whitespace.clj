@@ -20,7 +20,7 @@
 (defn- surrounding-whitespace?
   "True if the node at this location is part of whitespace surrounding a
   top-level form."
-  [zloc]
+  [zloc _]
   (letfn [(blank?
             [zloc]
             (and (z/whitespace? zloc)
@@ -30,10 +30,15 @@
          (surrounding? zloc blank?))))
 
 
-(defn remove-surrounding
-  "Transform this form by removing any surrounding whitespace nodes."
-  [form _]
-  (zl/transform form surrounding-whitespace? z/remove*))
+(defn- remove-space
+  "Editing function to remove the space at the current location."
+  [zloc _]
+  (z/remove* zloc))
+
+
+(def remove-surrounding
+  "Rule to remove surrounding whitespace."
+  [:whitespace :remove-surrounding surrounding-whitespace? remove-space])
 
 
 
@@ -49,7 +54,7 @@
 (defn- missing-whitespace?
   "True if the node at this location is an element and the immediately
   following location is a different element."
-  [zloc]
+  [zloc _]
   (and (element? zloc)
        (not (zl/reader-macro? (z/up* zloc)))
        (element? (z/right* zloc))
@@ -58,10 +63,15 @@
              (-> zloc z/up z/node n/tag))))
 
 
-(defn insert-missing
-  "Insert a space between abutting elements in the form."
-  [form _]
-  (zl/transform form missing-whitespace? z/append-space))
+(defn- append-space
+  "Insert a missing space node."
+  [zloc _]
+  (z/append-space zloc))
+
+
+(def insert-missing
+  "Rule to insert missing whitespace."
+  [:whitespace :insert-missing missing-whitespace? append-space])
 
 
 
@@ -76,13 +86,12 @@
 (defn- trailing-whitespace?
   "True if the node at this location represents whitespace trailing a form on a
   line or the final top-level node."
-  [zloc]
+  [zloc _]
   (and (zl/space? zloc)
        (or (z/linebreak? (z/right* zloc))
            (final? zloc))))
 
 
-(defn remove-trailing
-  "Transform this form by removing all trailing whitespace."
-  [form _]
-  (zl/transform form trailing-whitespace? z/remove*))
+(def remove-trailing
+  "Rule to remove trailing whitespace."
+  [:whitespace :remove-trailing trailing-whitespace? remove-space])

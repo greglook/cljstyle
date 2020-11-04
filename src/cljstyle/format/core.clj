@@ -8,11 +8,14 @@
     [cljstyle.format.type :as type]
     [cljstyle.format.var :as var]
     [cljstyle.format.whitespace :as ws]
+    [cljstyle.format.zloc :as zl]
     [clojure.string :as str]
     [rewrite-clj.node :as n]
-    [rewrite-clj.parser :as parser]))
+    [rewrite-clj.parser :as parser]
+    [rewrite-clj.zip :as z]))
 
 
+#_
 (defn reformat-form
   "Transform this form by applying formatting rules to it."
   [form rules-config]
@@ -40,6 +43,60 @@
         (apply-rule :namespaces ns/reformat)
         (apply-rule :indentation indent/reindent)
         (apply-rule :whitespace :remove-trailing? ws/remove-trailing))))
+
+
+(defn- rules-transformer*
+  [rules-config rules]
+  (let [active (into []
+                     (filter
+                       (fn enabled?
+                         [[rule-key sub-key]]
+                         (let [rule-config (get rules-config rule-key)]
+                           (and (:enabled? rule-config)
+                                (or (nil? sub-key)
+                                    (get rule-config (keyword (str (name sub-key) "?"))))))))
+                     rules)]
+    (fn transformer
+      [zloc]
+      (reduce
+        (fn test-zloc
+          [_ [rule-key sub-key match? edit :as rule]]
+          ;; TODO: time match application
+          (let [rule-config (get rules-config rule-key)]
+            (when (match? zloc rule-config)
+              ;; TODO: wrap edit function?
+              (reduced #(edit % rule-config)))))
+        nil active))))
+
+
+(def ^:private rules-transformer (memoize rules-transformer*))
+
+
+(defn reformat-form
+  "A better version of reformat-form?"
+  [form rules-config]
+  (let [wrap-edit (fn wrap-edit
+                    [f]
+                    (fn editor
+                      [zloc _]
+                      (f zloc)))
+        walk-rules [ws/remove-surrounding
+                    ws/insert-missing
+                    var/format-defs
+                    fn/format-functions
+                    type/format-protocols
+                    type/format-types
+                    type/format-reifies
+                    type/format-proxies]
+        top-rules [line/trim-consecutive
+                   line/insert-padding
+                   ns/format-namespaces]
+        indent-rules [indent/reindent-lines
+                      ws/remove-trailing]]
+    (-> form
+        (zl/transform (rules-transformer* rules-config walk-rules))
+        (zl/transform-top (rules-transformer* rules-config top-rules))
+        (zl/transform (rules-transformer* rules-config indent-rules)))))
 
 
 (defn reformat-string*

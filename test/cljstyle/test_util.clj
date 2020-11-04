@@ -1,6 +1,7 @@
 (ns cljstyle.test-util
   "Unit testing utilities."
   (:require
+    [cljstyle.format.zloc :as zl]
     [clojure.java.io :as io]
     [clojure.spec.alpha :as s]
     [clojure.test :as test]
@@ -14,6 +15,25 @@
          config# ~config
          expected# ~out-str
          actual# (-> ~in-str parser/parse-string-all (f# config#) n/string)]
+     (test/do-report
+       {:type (if (= expected# actual#) :pass :fail)
+        :message ~msg
+        :expected expected#
+        :actual actual#})))
+
+
+(defmethod test/assert-expr 'rule-reformatted?
+  [msg [_ rule config in-str out-str]]
+  `(let [[rule-key# sub-key# match?# edit#] ~rule
+         config# ~config
+         expected# ~out-str
+         ;; TODO: clean this up once standardized
+         actual# (-> ~in-str
+                     (parser/parse-string-all)
+                     (zl/transform
+                       #(match?# % config#)
+                       #(edit# % config#))
+                     (n/string))]
      (test/do-report
        {:type (if (= expected# actual#) :pass :fail)
         :message ~msg

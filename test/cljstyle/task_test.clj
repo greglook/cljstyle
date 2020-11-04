@@ -141,7 +141,7 @@
   (testing "task execution"
     (with-files [test-dir "target/test-config/fix"
                  _a-config ["a/.cljstyle" (prn-str {:rules {:namespaces {:enabled? true}
-                                                            :vars {:line-breaks? true}}})]
+                                                            :vars {:defs? true}}})]
                  foo-clj ["a/b/foo.clj" "(def abc \"doc string\" 123)\n"]
                  _bar-clj ["a/x/bar.clj" "(ns a.x.bar\n  (:require\n    [clojure.string :as str]))\n"]]
       (testing "fixed files"
