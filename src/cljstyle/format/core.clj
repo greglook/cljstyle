@@ -109,8 +109,8 @@
         (apply-walk-rules
           [ws/remove-surrounding
            ws/insert-missing
-           var/format-defs
            fn/format-functions
+           var/format-defs
            type/format-protocols
            type/format-types
            type/format-reifies
