@@ -15,88 +15,151 @@
     [rewrite-clj.zip :as z]))
 
 
-#_
-(defn reformat-form
-  "Transform this form by applying formatting rules to it."
-  [form rules-config]
-  (letfn [(apply-rule
-            ([form rule-key rule-fn]
-             (apply-rule form rule-key nil rule-fn))
-            ([form rule-key sub-key rule-fn]
-             (let [rule-config (get rules-config rule-key)
-                   start (System/nanoTime)]
-               (if (and (:enabled? rule-config)
-                        (or (nil? sub-key)
-                            (get rule-config sub-key)))
-                 (let [form' (rule-fn form rule-config)
-                       elapsed (- (System/nanoTime) start)]
-                   (vary-meta form' update ::rule-elapsed update [rule-key sub-key] (fnil + 0) elapsed))
-                 form))))]
+(defn- edit-walk
+  "Visit all nodes in `zloc` by applying the given function. Returns the final
+  zipper location."
+  [zloc f]
+  (loop [zloc zloc]
+    (cond
+      (z/end? zloc)
+      zloc
+
+      (zl/ignored-form? zloc)
+      (if-let [right (z/right* zloc)]
+        (recur right)
+        zloc)
+
+      :else
+      (recur (z/next* (f zloc))))))
+
+
+(defn- edit-scan
+  "Scan rightward from the given location, editing nodes by applying the given
+  function. Returns the final zipper location."
+  [zloc f]
+  (loop [zloc zloc]
+    (let [zloc' (if-not (zl/ignored-form? zloc)
+                  (f zloc)
+                  zloc)]
+      (if-let [right (z/right* zloc')]
+        (recur right)
+        zloc'))))
+
+
+(defn- record-elapsed!
+  "Update a duration map to record an increase in a rule duration."
+  [^java.util.Map durations rule-key sub-key elapsed]
+  (when (pos? elapsed)
+    (let [duration-key (keyword (name rule-key) (name (or sub-key "all")))
+          prev-dur (or (.get durations duration-key) 0)]
+      (.put durations duration-key (+ prev-dur elapsed)))))
+
+
+(defn- rule-enabled?
+  "True if the given sub-rule is enabled in the config."
+  [rules-config rule]
+  (let [[rule-key sub-key] rule
+        rule-config (get rules-config rule-key)]
+    (and (:enabled? rule-config)
+         (or (nil? sub-key)
+             (get rule-config (keyword (str (name sub-key) "?")))))))
+
+
+(defn- match-rules
+  "Check the given rules against this zipper location, returning the first rule
+  which matches, or nil if none match."
+  [zloc rules rules-config durations]
+  (reduce
+    (fn test-rule
+      [_ [rule-key sub-key match? _ :as rule]]
+      (let [start (System/nanoTime)
+            rule-config (get rules-config rule-key)
+            matches? (match? zloc rule-config)
+            elapsed (- (System/nanoTime) start)]
+        (record-elapsed! durations rule-key sub-key elapsed)
+        (when matches?
+          (reduced rule))))
+    nil
+    rules))
+
+
+(defn- apply-rule
+  "Apply the rule to the current location, returning the updated zipper."
+  [zloc rule rules-config durations]
+  (let [[rule-key sub-key _ edit] rule
+        rule-config (get rules-config rule-key)
+        start (System/nanoTime)
+        zloc' (zl/safe-edit edit zloc rule-config)
+        elapsed (- (System/nanoTime) start)]
+    (record-elapsed! durations rule-key sub-key elapsed)
+    zloc'))
+
+
+(defn- apply-walk-rules
+  "Edit all nodes in the form by applying the given rules. Returns the updated
+  form with attached metadata."
+  [form rules rules-config durations]
+  (let [active-rules (into []
+                           (filter (partial rule-enabled? rules-config))
+                           rules)]
     (-> form
-        (apply-rule :whitespace :remove-surrounding? ws/remove-surrounding)
-        (apply-rule :whitespace :insert-missing? ws/insert-missing)
-        (apply-rule :vars :line-breaks? var/reformat-line-breaks)
-        (apply-rule :functions :line-breaks? fn/reformat-line-breaks)
-        (apply-rule :types type/reformat)
-        (apply-rule :blank-lines :trim-consecutive? line/trim-consecutive)
-        (apply-rule :blank-lines :insert-padding? line/insert-padding)
-        (apply-rule :namespaces ns/reformat)
-        (apply-rule :indentation indent/reindent)
-        (apply-rule :whitespace :remove-trailing? ws/remove-trailing))))
+        (z/edn* {:track-position? true})
+        (edit-walk
+          (fn check-rule
+            [zloc]
+            (if-let [rule (match-rules zloc active-rules rules-config durations)]
+              (apply-rule zloc rule rules-config durations)
+              zloc)))
+        (z/root))))
 
 
-(defn- rules-transformer*
-  [rules-config rules]
-  (let [active (into []
-                     (filter
-                       (fn enabled?
-                         [[rule-key sub-key]]
-                         (let [rule-config (get rules-config rule-key)]
-                           (and (:enabled? rule-config)
-                                (or (nil? sub-key)
-                                    (get rule-config (keyword (str (name sub-key) "?"))))))))
-                     rules)]
-    (fn transformer
-      [zloc]
-      (reduce
-        (fn test-zloc
-          [_ [rule-key sub-key match? edit :as rule]]
-          ;; TODO: time match application
-          (let [rule-config (get rules-config rule-key)]
-            (when (match? zloc rule-config)
-              ;; TODO: wrap edit function?
-              (reduced #(edit % rule-config)))))
-        nil active))))
-
-
-(def ^:private rules-transformer (memoize rules-transformer*))
+(defn- apply-top-rules
+  "Edit top-level nodes in the form by applying the given rules. Returns the
+  updated form with attached metadata."
+  [form rules rules-config durations]
+  (let [active-rules (into []
+                           (filter (partial rule-enabled? rules-config))
+                           rules)]
+    (if-let [start (z/down (z/edn* form {:track-position? true}))]
+      (-> start
+          (edit-scan
+            (fn check-rule
+              [zloc]
+              (if-let [rule (match-rules zloc active-rules rules-config durations)]
+                (apply-rule zloc rule rules-config durations)
+                zloc)))
+          (z/root))
+      form)))
 
 
 (defn reformat-form
-  "A better version of reformat-form?"
+  "Apply formatting rules to the given form."
   [form rules-config]
-  (let [wrap-edit (fn wrap-edit
-                    [f]
-                    (fn editor
-                      [zloc _]
-                      (f zloc)))
-        walk-rules [ws/remove-surrounding
-                    ws/insert-missing
-                    var/format-defs
-                    fn/format-functions
-                    type/format-protocols
-                    type/format-types
-                    type/format-reifies
-                    type/format-proxies]
-        top-rules [line/trim-consecutive
-                   line/insert-padding
-                   ns/format-namespaces]
-        indent-rules [indent/reindent-lines
-                      ws/remove-trailing]]
+  (let [durations (java.util.TreeMap.)]
     (-> form
-        (zl/transform (rules-transformer* rules-config walk-rules))
-        (zl/transform-top (rules-transformer* rules-config top-rules))
-        (zl/transform (rules-transformer* rules-config indent-rules)))))
+        (apply-walk-rules
+          [ws/remove-surrounding
+           ws/insert-missing
+           var/format-defs
+           fn/format-functions
+           type/format-protocols
+           type/format-types
+           type/format-reifies
+           type/format-proxies]
+          rules-config
+          durations)
+        (apply-top-rules
+          [line/trim-consecutive
+           line/insert-padding
+           ns/format-namespaces]
+          rules-config
+          durations)
+        (apply-walk-rules
+          [indent/reindent-lines
+           ws/remove-trailing]
+          rules-config
+          durations)
+        (vary-meta assoc ::durations (into {} durations)))))
 
 
 (defn reformat-string*
@@ -109,7 +172,7 @@
                       (reformat-form rules-config))]
     {:original form-string
      :formatted (n/string formatted)
-     :durations (::rule-elapsed (meta formatted))}))
+     :durations (::durations (meta formatted))}))
 
 
 (defn reformat-string

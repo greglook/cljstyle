@@ -266,7 +266,7 @@
              cause)))
 
 
-(defn- safe-edit
+(defn safe-edit
   "Wrap an editing function with error handling logic which will capture
   information about the surrounding form and the cause of the failure."
   [f zloc & args]
@@ -351,71 +351,3 @@
        [zl]
        (when (match? zl)
          edit)))))
-
-
-;; NEW LOGIC
-;; TODO: probably move these to format core
-
-(defn- record-elapsed!
-  "Update a duration map to record an increase in a rule duration."
-  [^java.util.Map durations rule-key sub-key elapsed]
-  (when (pos? elapsed)
-    (let [duration-key (keyword (name rule-key) (name (or sub-key "all")))
-          prev-dur (or (.get durations duration-key) 0)]
-      (.put durations duration-key (+ prev-dur elapsed)))))
-
-
-(defn- rule-enabled?
-  "True if the given sub-rule is enabled in the config."
-  [rules-config rule]
-  (let [[rule-key sub-key] rule
-        rule-config (get rules-config rule-key)]
-    (and (:enabled? rule-config)
-         (or (nil? sub-key)
-             (get rule-config (keyword (str (name sub-key) "?")))))))
-
-
-(defn- match-rules
-  "Check the given rules against this zipper location, returning the first rule
-  which matches, or nil if none match."
-  [zloc rules rules-config durations]
-  (reduce
-    (fn test-rule
-      [_ [rule-key sub-key match? _ :as rule]]
-      (let [start (System/nanoTime)
-            rule-config (get rules-config rule-key)
-            matches? (match? zloc rule-config)
-            elapsed (- (System/nanoTime) start)]
-        (record-elapsed! durations rule-key sub-key elapsed)
-        (when matches?
-          (reduced rule))))
-    nil
-    rules))
-
-
-(defn edit-walk-new
-  "Edit all nodes in `zloc` by applying the given rules. Returns the final
-  zipper location."
-  [zloc rules rules-config durations]
-  (let [active-rules (into []
-                           (filter (partial rule-enabled? rules-config))
-                           rules)]
-    (loop [zloc zloc]
-      (cond
-        (z/end? zloc)
-        zloc
-
-        (ignored-form? zloc)
-        (if-let [right (z/right* zloc)]
-          (recur right)
-          zloc)
-
-        :else
-        (if-let [[rule-key sub-key _ edit] (match-rules zloc rules rules-config durations)]
-          (let [start (System/nanoTime)
-                rule-config (get rules-config rule-key)
-                zloc' (safe-edit edit zloc rule-config)
-                elapsed (- (System/nanoTime) start)]
-            (record-elapsed! durations rule-key sub-key elapsed)
-            (recur (z/next* zloc')))
-          (recur (z/next* zloc)))))))
