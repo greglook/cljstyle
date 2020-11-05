@@ -3,7 +3,8 @@
   (:require
     [cljstyle.config :as config]
     [cljstyle.task.print :as p]
-    [clojure.java.io :as io])
+    [clojure.java.io :as io]
+    [clojure.stacktrace :as cst])
   (:import
     java.io.File
     (java.util.concurrent
@@ -28,24 +29,24 @@
 
 (defn- print-error
   "Print a processing error for human consumption."
-  [^Exception ex]
+  [ex]
   (cond
     (= :cljstyle/format-error (:type (ex-data ex)))
     (let [max-len 100]
-      (println (.getMessage ex))
+      (println (ex-message ex))
       (when-let [form (and (p/option :verbose)
                            (:form (ex-data ex)))]
         (if (< max-len (count form))
           (println (subs form 0 max-len) "...")
           (println form)))
-      (when-let [cause (and (p/option :verbose) (.getCause ex))]
-        (p/print-cause-trace cause)))
+      (when-let [cause (and (p/option :verbose) (ex-cause ex))]
+        (cst/print-cause-trace cause)))
 
     (p/option :verbose)
-    (p/print-cause-trace ex)
+    (cst/print-cause-trace ex)
 
     :else
-    (p/print-throwable ex)))
+    (cst/print-throwable ex)))
 
 
 (defn- report-result!
@@ -153,7 +154,7 @@
     (.shutdown pool)
     (when-not (.awaitTermination pool 5 TimeUnit/MINUTES)
       (.shutdownNow pool)
-      (throw (ex-info (format "Not all worker threads completed after timeout! There are still %d threads processing %d queued and %d submitted tasks.\n"
+      (throw (ex-info (format "Not all worker threads completed after timeout! There are still %d threads processing %d queued and %d submitted tasks."
                               (.getRunningThreadCount pool)
                               (.getQueuedTaskCount pool)
                               (.getQueuedSubmissionCount pool))

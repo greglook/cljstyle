@@ -5,6 +5,7 @@
     [cljstyle.config :as config]
     [cljstyle.task.core :as task]
     [cljstyle.task.print :as p]
+    [clojure.stacktrace :as cst]
     [clojure.tools.cli :as cli]))
 
 
@@ -104,7 +105,7 @@
         (binding [*out* *err*]
           (if (= ::config/invalid (:type (ex-data ex)))
             (println (ex-message ex))
-            (p/print-cause-trace ex))
+            (cst/print-cause-trace ex))
           (flush)
           (System/exit 4))))
     ;; Successful tool run if no other exit.
