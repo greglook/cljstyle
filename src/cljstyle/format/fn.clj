@@ -17,9 +17,11 @@
   "True if the node at this location is a function definition form inside a
   `letfn` binding."
   [zloc]
-  (and (z/list? zloc)
-       (z/vector? (z/up zloc))
-       (= 'letfn (zl/form-symbol (z/up zloc)))))
+  (let [zup (z/up zloc)]
+    (and (z/list? zloc)
+         (z/vector? zup)
+         (= 'letfn (zl/form-symbol zup))
+         (z/leftmost? (z/left zup)))))
 
 
 (defn- fn-form?
