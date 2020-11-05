@@ -6,7 +6,27 @@
     [clojure.spec.alpha :as s]
     [clojure.test :as test]
     [rewrite-clj.node :as n]
-    [rewrite-clj.parser :as parser]))
+    [rewrite-clj.parser :as parser]
+    [rewrite-clj.zip :as z]))
+
+
+(defn apply-formatter
+  "Apply a form-formatting function to a string, returning the updated string."
+  [f s & args]
+  (->
+    (parser/parse-string-all s)
+    (as-> form
+      (apply f form args))
+    (n/string)))
+
+
+(defn apply-rule
+  "Apply a formatting rule as a walk function."
+  [rule rule-config zloc]
+  (let [[_ _ match? edit] rule]
+    (if (match? zloc rule-config)
+      (zl/safe-edit edit zloc rule-config)
+      zloc)))
 
 
 (defmethod test/assert-expr 'reformatted?
@@ -14,7 +34,7 @@
   `(let [f# ~f
          config# ~config
          expected# ~out-str
-         actual# (-> ~in-str parser/parse-string-all (f# config#) n/string)]
+         actual# (apply-formatter f# ~in-str config#)]
      (test/do-report
        {:type (if (= expected# actual#) :pass :fail)
         :message ~msg
@@ -24,16 +44,15 @@
 
 (defmethod test/assert-expr 'rule-reformatted?
   [msg [_ rule config in-str out-str]]
-  `(let [[rule-key# sub-key# match?# edit#] ~rule
+  `(let [rule# ~rule
          config# ~config
          expected# ~out-str
-         ;; TODO: clean this up once standardized
-         actual# (-> ~in-str
-                     (parser/parse-string-all)
-                     (zl/transform
-                       #(match?# % config#)
-                       #(edit# % config#))
-                     (n/string))]
+         actual# (apply-formatter
+                   #(-> %
+                        (z/edn* {:track-position? true})
+                        (zl/edit-walk (partial apply-rule rule# config#))
+                        (z/root))
+                   ~in-str)]
      (test/do-report
        {:type (if (= expected# actual#) :pass :fail)
         :message ~msg

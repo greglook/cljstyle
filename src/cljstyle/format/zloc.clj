@@ -283,9 +283,9 @@
 
 
 (defn edit-walk
-  "Edit all nodes in `zloc` for which `transformer` returns an editing
-  function. Returns the final zipper location."
-  [zloc transformer]
+  "Visit all nodes in `zloc` by applying the given function. Returns the final
+  zipper location."
+  [zloc f]
   (loop [zloc zloc]
     (cond
       (z/end? zloc)
@@ -297,57 +297,17 @@
         zloc)
 
       :else
-      (recur (z/next* (safe-edit (transformer zloc) zloc))))))
+      (recur (z/next* (f zloc))))))
 
 
 (defn edit-scan
-  "Scan rightward from the given location, editing nodes for which
-  `transformer` returns an editing function. Returns the final zipper
-  location."
-  [zloc transformer]
+  "Scan rightward from the given location, editing nodes by applying the given
+  function. Returns the final zipper location."
+  [zloc f]
   (loop [zloc zloc]
-    (let [f (and (not (ignored-form? zloc))
-                 (transformer zloc))
-          zloc' (safe-edit f zloc)]
+    (let [zloc' (if-not (ignored-form? zloc)
+                  (f zloc)
+                  zloc)]
       (if-let [right (z/right* zloc')]
         (recur right)
         zloc'))))
-
-
-(defn transform
-  "Edit the form by parsing it as an EDN syntax tree and applying `transformer`
-  to successively to each location to determine whether to transform it. If
-  `transformer` returns a value, it is called on the zipper location to edit it.
-  Otherwise, the location is left as is and the traversal continues."
-  ([form transformer]
-   (-> form
-       (z/edn* {:track-position? true})
-       (edit-walk transformer)
-       (z/root)))
-  ([form match? edit]
-   (transform
-     form
-     (fn edit-matched
-       [zl]
-       (when (match? zl)
-         edit)))))
-
-
-(defn transform-top
-  "Edit the form by parsing it as an EDN syntax tree and applying `transformer`
-  to successively to each top-level location to determine whether to transform
-  it. If `transformer` returns a value, it is called on the zipper location to
-  edit it. Otherwise, the location is left as is and the traversal continues."
-  ([form transformer]
-   (if-let [start (z/down (z/edn* form {:track-position? true}))]
-     (-> start
-         (edit-scan transformer)
-         (z/root))
-     form))
-  ([form match? edit]
-   (transform-top
-     form
-     (fn edit-matched
-       [zl]
-       (when (match? zl)
-         edit)))))

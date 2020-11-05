@@ -15,37 +15,6 @@
     [rewrite-clj.zip :as z]))
 
 
-(defn- edit-walk
-  "Visit all nodes in `zloc` by applying the given function. Returns the final
-  zipper location."
-  [zloc f]
-  (loop [zloc zloc]
-    (cond
-      (z/end? zloc)
-      zloc
-
-      (zl/ignored-form? zloc)
-      (if-let [right (z/right* zloc)]
-        (recur right)
-        zloc)
-
-      :else
-      (recur (z/next* (f zloc))))))
-
-
-(defn- edit-scan
-  "Scan rightward from the given location, editing nodes by applying the given
-  function. Returns the final zipper location."
-  [zloc f]
-  (loop [zloc zloc]
-    (let [zloc' (if-not (zl/ignored-form? zloc)
-                  (f zloc)
-                  zloc)]
-      (if-let [right (z/right* zloc')]
-        (recur right)
-        zloc'))))
-
-
 (defn- record-elapsed!
   "Update a duration map to record an increase in a rule duration."
   [^java.util.Map durations rule-key sub-key elapsed]
@@ -104,7 +73,7 @@
                            rules)]
     (-> form
         (z/edn* {:track-position? true})
-        (edit-walk
+        (zl/edit-walk
           (fn check-rule
             [zloc]
             (if-let [rule (match-rules zloc active-rules rules-config durations)]
@@ -122,7 +91,7 @@
                            rules)]
     (if-let [start (z/down (z/edn* form {:track-position? true}))]
       (-> start
-          (edit-scan
+          (zl/edit-scan
             (fn check-rule
               [zloc]
               (if-let [rule (match-rules zloc active-rules rules-config durations)]
