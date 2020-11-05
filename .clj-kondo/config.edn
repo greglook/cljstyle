@@ -1,7 +1,7 @@
 {:linters {:unresolved-symbol
            {:exclude [(cljstyle.test-util/capture-io [stdout stderr])
                       (clojure.core/bound-fn [compute!])
-                      (clojure.test/is [reformatted? thrown-with-data? valid? invalid?])]}
+                      (clojure.test/is [reformatted? rule-reformatted? thrown-with-data? valid? invalid?])]}
 
            :consistent-alias
            {:level :warning

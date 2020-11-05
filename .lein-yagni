@@ -1,7 +1,5 @@
+cljstyle.format.core/reformat-string
+cljstyle.format.core/reformat-file
 cljstyle.format.zloc/zprn
-
-cljstyle.format.indent/inner-indent
-cljstyle.format.indent/block-indent
-cljstyle.format.indent/stair-indent
-
+cljstyle.format.indent/configure-indenter
 cljstyle.task.process/cljstyle.task.process.proxy$java.util.concurrent.RecursiveAction$ff19274a

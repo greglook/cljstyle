@@ -187,7 +187,7 @@
       (some-candidate zloc indenters))))
 
 
-(defn- custom-indenter
+(defn- configure-indenter
   "Construct a function which will return an indent amount for a given zipper
   location."
   [rule-config]
@@ -343,7 +343,7 @@
       zloc)))
 
 
-(let [memo-indenter (memoize custom-indenter)]
+(let [memo-indenter (memoize configure-indenter)]
   (defn- edit-line-indent
     [zloc rule-config]
     (indent-line (memo-indenter rule-config) (unindent-line zloc))))
