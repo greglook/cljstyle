@@ -111,7 +111,10 @@
   "General result reporting logic."
   [results]
   (let [counts (:counts results)
+        elapsed (:elapsed results)
         total-files (apply + (vals counts))
+        total-processed (count (:results results))
+        total-size (apply + (keep :size (vals (:results results))))
         diff-lines (apply + (keep :diff-lines (vals (:results results))))
         durations (->> (vals (:results results))
                        (keep :durations)
@@ -127,11 +130,17 @@
                 (assoc :durations durations))]
     (p/log (pr-str stats))
     (when (or (p/option :report) (p/option :verbose))
-      (printf "Checked %d files in %s\n"
+      (printf "Checked %d of %d files in %s (%.1f fps)\n"
+              total-processed
               total-files
-              (if-let [elapsed (:elapsed results)]
+              (if elapsed
                 (duration-str elapsed)
-                "some amount of time"))
+                "some amount of time")
+              (* 1e3 (/ total-processed elapsed)))
+      (printf "Checked %.1f KB of source files (%.1f KBps)\n"
+              (/ total-size 1024.0)
+              (* 1e3 (/ total-size 1024 elapsed)))
+      (newline)
       (doseq [[type-key file-count] (sort-by val (comp - compare) (:files stats))]
         (printf "%6d %s\n" file-count (name type-key)))
       (when (pos? diff-lines)

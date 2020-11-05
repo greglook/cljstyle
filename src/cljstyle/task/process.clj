@@ -103,11 +103,13 @@
 
             (config/source-file? config file)
             (try
-              (let [result (process! config path file)]
+              (let [result (assoc (process! config path file)
+                                  :size (.length file))]
                 (report! result))
               (catch Exception ex
                 (report!
                   {:type :process-error
+                   :size (.length file)
                    :warn (str "Error while processing file " path)
                    :error ex})))
 
