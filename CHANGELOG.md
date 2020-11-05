@@ -31,6 +31,11 @@ automatically update your config files.
 - Type formatting can be controlled for individual kinds of types to separately
   enable protocols, types, reifies, and proxies.
 
+### Fixed
+- Fixed a bug with inner-indent rule index limiting. This primarily affected
+  `letfn` forms when function formatting was disabled.
+  [#54](//github.com/greglook/cljstyle/issues/54)
+
 
 ## [0.13.0] - 2020-06-13
 

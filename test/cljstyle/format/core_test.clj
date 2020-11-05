@@ -260,7 +260,43 @@
   (is (reformatted?
         fmt/reformat-form default-rules
         "(letfn [(f [x]\nx)]\n(let [x (f 1)]\n(str x 2\n3 4)))"
-        "(letfn [(f\n          [x]\n          x)]\n  (let [x (f 1)]\n    (str x 2\n         3 4)))")))
+        "(letfn [(f\n          [x]\n          x)]\n  (let [x (f 1)]\n    (str x 2\n         3 4)))"))
+  (testing "issue #54"
+    (is (reformatted?
+          fmt/reformat-form (assoc-in default-rules [:functions :enabled?] false)
+          "(letfn [(foo []
+          ::foo)
+        (bar []
+          ::bar)
+        (baz []
+          ::baz)]
+  ::ret)"
+          "(letfn [(foo []
+          ::foo)
+        (bar []
+          ::bar)
+        (baz []
+          ::baz)]
+  ::ret)"))
+    (is (reformatted?
+          fmt/reformat-form default-rules
+          "(letfn [(foo []
+          ::foo)
+        (bar []
+          ::bar)
+        (baz []
+          ::baz)]
+  ::ret)"
+          "(letfn [(foo
+          []
+          ::foo)
+        (bar
+          []
+          ::bar)
+        (baz
+          []
+          ::baz)]
+  ::ret)"))))
 
 
 (deftest quoted-forms

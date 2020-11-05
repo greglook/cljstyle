@@ -104,7 +104,7 @@
   "Determine the index of the node in the children of its parent."
   [zloc]
   (->> (iterate z/left zloc)
-       (take-while identity)
+       (take-while some?)
        (count)
        (dec)))
 
@@ -230,7 +230,7 @@
   "True if the node at this location is a descendant of the `idx`-th child of
   the node `depth` higher in the tree."
   [zloc depth idx]
-  (and (pos? depth) (= idx (index-of (nth (iterate z/up zloc) (dec depth))))))
+  (and (pos? depth) (= idx (dec (index-of (zl/move-n zloc z/up depth))))))
 
 
 (defn- inner-indent
@@ -238,7 +238,7 @@
   based on the rule and previous margins. Returns nil if the rule does not
   apply."
   [zloc rule-key depth idx]
-  (let [top (nth (iterate z/up zloc) depth)]
+  (let [top (zl/move-n zloc z/up depth)]
     (when (and (indent-matches? rule-key (zl/form-symbol-full top))
                (or (nil? idx) (index-matches-top-argument? zloc depth idx)))
       (let [zup (z/up zloc)]
