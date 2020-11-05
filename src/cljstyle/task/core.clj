@@ -139,13 +139,14 @@
       (when-let [durations (->> durations
                                 (sort-by val (comp - compare))
                                 (map (fn [[rule-key duration]]
-                                       {"rule" (subs (str rule-key) 1)
+                                       {"rule" (namespace rule-key)
+                                        "subrule" (name rule-key)
                                         "elapsed" (duration-str (/ duration 1e6))
                                         "percent" (if (pos? total-duration)
                                                     (format "%.1f%%" (* 100.0 (/ duration total-duration)))
                                                     "--")}))
                                 (seq))]
-        (pp/print-table ["rule" "elapsed" "percent"] durations))
+        (pp/print-table ["rule" "subrule" "elapsed" "percent"] durations))
       (flush))
     (when-let [stats-file (p/option :stats)]
       (write-stats! stats-file stats))))
