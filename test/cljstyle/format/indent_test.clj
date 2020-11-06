@@ -174,12 +174,15 @@
           indent/reindent-lines {}
           "#foo.bar.Baz\n   {:a 123, :x true}"
           "#foo.bar.Baz\n{:a 123, :x true}"))
-    ;; FIXME
-    #_
     (is (rule-reformatted?
-          indent/reindent-lines {}
-          "(let [foo #foo.bar.Baz\n {:a 123, :x true}] \nfoo)"
-          "(let [foo #foo.bar.Baz\n          {:a 123, :x true}]\n  foo)"))))
+          indent/reindent-lines {:indents {'let [[:block 1]]}}
+          "(let [foo #foo.bar.Baz {:a 123, :x true}]\nfoo)"
+          "(let [foo #foo.bar.Baz {:a 123, :x true}]\n  foo)"))
+    (is (rule-reformatted?
+          indent/reindent-lines {:indents {'let [[:block 1]]}}
+          "(let [foo #foo.bar.Baz\n {:a 123, :x true}]\nfoo)"
+          "(let [foo #foo.bar.Baz\n          {:a 123, :x true}]\n  foo)")
+        "issue #24")))
 
 
 (deftest embedded-structures

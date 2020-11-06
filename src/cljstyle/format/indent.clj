@@ -203,7 +203,10 @@
           (zl/reader-conditional? (z/up up))
           (coll-indent zloc)
 
-          (contains? #{:meta :meta* :reader-macro} tag)
+          (= :reader-macro tag)
+          (margin up)
+
+          (contains? #{:meta :meta*} tag)
           (recur up)
 
           (contains? #{:list :fn} tag)

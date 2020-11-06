@@ -35,6 +35,9 @@ automatically update your config files.
 - Fixed a bug with inner-indent rule index limiting. This primarily affected
   `letfn` forms when function formatting was disabled.
   [#54](//github.com/greglook/cljstyle/issues/54)
+- Fixed margin calculation for reader macro forms, in particular affecting
+  record literals.
+  [#24](//github.com/greglook/cljstyle/issues/24)
 
 
 ## [0.13.0] - 2020-06-13
