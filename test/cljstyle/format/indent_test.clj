@@ -196,13 +196,13 @@
         "(let [foo\n      {:x 1\n       :y 2}]  (:x foo))"))
   (is (rule-reformatted?
         indent/reindent-lines {:indents {'do [[:block 0]]
-                                   'if [[:block 1]]}}
+                                         'if [[:block 1]]}}
         "(if foo\n(do bar\nbaz)\nquz)"
         "(if foo\n  (do bar\n      baz)\n  quz)"))
   (is (rule-reformatted?
         indent/reindent-lines {:indents {'do [[:block 0]]
-                                   'if [[:block 1]]}
-                         :list-indent 1}
+                                         'if [[:block 1]]}
+                               :list-indent 1}
         "(if foo\n(do bar\nbaz)\n(quz\n  foo\nbar))"
         "(if foo\n  (do bar\n      baz)\n  (quz\n   foo\n   bar))")))
 
