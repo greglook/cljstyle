@@ -2,7 +2,6 @@
   "Main entry for cljstyle tool."
   (:gen-class)
   (:require
-    [cljstyle.config :as config]
     [cljstyle.task.core :as task]
     [cljstyle.task.print :as p]
     [clojure.stacktrace :as cst]
@@ -95,7 +94,7 @@
       (catch Exception ex
         (binding [*out* *err*]
           (case (:type (ex-data ex))
-            ::config/invalid
+            :cljstyle.config/invalid
             (println (ex-message ex))
 
             :cljstyle.task.process/timeout
