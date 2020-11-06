@@ -140,7 +140,6 @@
       (printf "Checked %.1f KB of source files (%.1f KBps)\n"
               (/ total-size 1024.0)
               (* 1e3 (/ total-size 1024 elapsed)))
-      (newline)
       (doseq [[type-key file-count] (sort-by val (comp - compare) (:files stats))]
         (printf "%6d %s\n" file-count (name type-key)))
       (when (pos? diff-lines)

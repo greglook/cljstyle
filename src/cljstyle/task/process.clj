@@ -160,7 +160,7 @@
                               (.getRunningThreadCount pool)
                               (.getQueuedTaskCount pool)
                               (.getQueuedSubmissionCount pool))
-                      {})))
+                      {:type ::timeout})))
     (send results identity)
     (when-not (await-for 5000 results)
       (p/printerr "WARNING: results not fully reported after 5 second timeout"))

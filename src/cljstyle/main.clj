@@ -103,8 +103,14 @@
       (warn-legacy-config)
       (catch Exception ex
         (binding [*out* *err*]
-          (if (= ::config/invalid (:type (ex-data ex)))
+          (case (:type (ex-data ex))
+            ::config/invalid
             (println (ex-message ex))
+
+            :cljstyle.task.process/timeout
+            (println (ex-message ex))
+
+            ;; else
             (cst/print-cause-trace ex))
           (flush)
           (System/exit 4))))
