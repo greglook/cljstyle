@@ -50,7 +50,7 @@
     (apply config/merge-settings config/default-config configs)))
 
 
-(defn- walk-files!
+(defn- process-files!
   "Walk source files and apply the processing function to each."
   [f paths]
   (->>
@@ -59,7 +59,7 @@
            [^File root]
            (let [canonical (.getCanonicalFile root)]
              [(load-configs (.getPath root) canonical) root canonical])))
-    (process/walk-files! f)))
+    (process/walk-files! f (or (p/option :timeout) 300))))
 
 
 (defn- write-stats!
@@ -230,7 +230,7 @@
 (defn migrate-config
   "Implementation of the `migrate` command."
   [paths]
-  (walk-files! (constantly {:type :noop}) paths)
+  (process-files! (constantly {:type :noop}) paths)
   (run!
     (fn migrate
       [file]
@@ -264,7 +264,7 @@
 (defn find-sources
   "Implementation of the `find` command."
   [paths]
-  (let [results (walk-files! find-source paths)
+  (let [results (process-files! find-source paths)
         counts (:counts results)
         total (apply + (vals counts))]
     (p/logf "Searched %d files in %.2f ms"
@@ -310,7 +310,7 @@
 (defn check-sources
   "Implementation of the `check` command."
   [paths]
-  (let [results (walk-files! check-source paths)
+  (let [results (process-files! check-source paths)
         counts (:counts results)]
     (report-stats results)
     (when-not (empty? (:errors results))
@@ -355,7 +355,7 @@
 (defn fix-sources
   "Implementation of the `fix` command."
   [paths]
-  (let [results (walk-files! fix-source paths)
+  (let [results (process-files! fix-source paths)
         counts (:counts results)]
     (report-stats results)
     (when-not (empty? (:errors results))

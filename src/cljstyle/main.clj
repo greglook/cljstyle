@@ -11,7 +11,11 @@
 
 (def ^:private cli-options
   "Command-line tool options."
-  [[nil  "--report" "Print stats report at the end of a run."]
+  [[nil  "--timeout SEC" "Maximum time to allow the process to run for."
+    :default 300
+    :parse-fn #(Integer/parseInt %)
+    :validate [pos? "Must be a positive number"]]
+   [nil  "--report" "Print stats report at the end of a run."]
    [nil  "--stats FILE" "Write formatting stats to the named file. The extension controls the format and may be either 'edn' or 'tsv'."]
    [nil  "--no-color" "Don't output ANSI color codes."]
    ["-v" "--verbose" "Print detailed debugging output."]

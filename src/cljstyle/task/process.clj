@@ -139,8 +139,8 @@
 (defn walk-files!
   "Recursively process source files starting from the given `paths`. Blocks
   until all tasks complete and returns the result map, or throws an exception
-  if the wait times out."
-  [process! config+paths]
+  if the wait times out after `timeout` seconds."
+  [process! timeout config+paths]
   (let [start (System/nanoTime)
         pool (ForkJoinPool.)
         results (agent {})]
@@ -154,7 +154,7 @@
                (io/file path))))
       (run! #(.submit pool ^ForkJoinTask %)))
     (.shutdown pool)
-    (when-not (.awaitTermination pool 5 TimeUnit/MINUTES)
+    (when-not (.awaitTermination pool timeout TimeUnit/SECONDS)
       (.shutdownNow pool)
       (throw (ex-info (format "Not all worker threads completed after timeout! There are still %d threads processing %d queued and %d submitted tasks."
                               (.getRunningThreadCount pool)
