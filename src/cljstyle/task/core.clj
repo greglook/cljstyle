@@ -50,6 +50,19 @@
     (apply config/merge-settings config/default-config configs)))
 
 
+(defn- warn-legacy-config
+  "Warn about legacy config files, if any are observed."
+  []
+  (when-let [files (seq @config/legacy-files)]
+    (binding [*out* *err*]
+      (printf "WARNING: legacy configuration found in %d file%s:\n"
+              (count files)
+              (if (< 1 (count files)) "s" ""))
+      (run! (comp println str) files)
+      (println "Run the migrate command to update your configuration")
+      (flush))))
+
+
 (defn- process-files!
   "Walk source files and apply the processing function to each."
   [f paths]
@@ -314,6 +327,7 @@
   (let [results (process-files! check-source paths)
         counts (:counts results)]
     (report-stats results)
+    (warn-legacy-config)
     (when-not (empty? (:errors results))
       (p/printerrf "Failed to process %d files" (count (:errors results)))
       (exit! 3))
@@ -359,6 +373,7 @@
   (let [results (process-files! fix-source paths)
         counts (:counts results)]
     (report-stats results)
+    (warn-legacy-config)
     (when-not (empty? (:errors results))
       (p/printerrf "Failed to process %d files" (count (:errors results)))
       (exit! 3))

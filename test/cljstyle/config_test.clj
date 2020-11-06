@@ -182,7 +182,7 @@
                                 :path (.getAbsolutePath cfg-file)}
               (config/read-config cfg-file))))
       (testing "validity error"
-        (spit cfg-file "{:indentation? foo}")
+        (spit cfg-file "{:rules foo}")
         (is (thrown-with-data? {:type ::config/invalid
                                 :path (.getAbsolutePath cfg-file)}
               (config/read-config cfg-file))))

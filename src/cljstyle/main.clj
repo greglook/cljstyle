@@ -50,19 +50,6 @@
   (println summary))
 
 
-(defn- warn-legacy-config
-  "Warn about legacy config files, if any are observed."
-  []
-  (when-let [files (seq @config/legacy-files)]
-    (binding [*out* *err*]
-      (printf "WARNING: legacy configuration found in %d file%s:\n"
-              (count files)
-              (if (< 1 (count files)) "s" ""))
-      (run! (comp println str) files)
-      (println "Run the migrate command to update your configuration")
-      (flush))))
-
-
 (defn -main
   "Main entry point."
   [& raw-args]
@@ -105,7 +92,6 @@
           "version" (task/print-version args)
           (do (p/printerr "Unknown cljstyle command:" command)
               (System/exit 1))))
-      (warn-legacy-config)
       (catch Exception ex
         (binding [*out* *err*]
           (case (:type (ex-data ex))
