@@ -30,6 +30,12 @@ automatically update your config files.
   the value appended to instead of replacing the previous value.
 - Type formatting can be controlled for individual kinds of types to separately
   enable protocols, types, reifies, and proxies.
+- A new `--report-timing` option will enable detailed timing data for each
+  formatting rule in the report output.
+- The processing timeout can now be controlled with the `--timeout` option,
+  providing an execution limit in seconds.
+- When processing times out and the `--verbose` option is set, a dump of all
+  threads' stack traces will be printed.
 
 ### Fixed
 - Fixed a bug with inner-indent rule index limiting. This primarily affected

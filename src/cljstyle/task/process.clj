@@ -27,6 +27,22 @@
             (.getPath (io/file root path)))))))
 
 
+(defn- print-thread-dump
+  "Print the stack traces of all active threads."
+  []
+  (doseq [[^Thread thread stack-trace] (Thread/getAllStackTraces)]
+    (newline)
+    (printf "Thread #%d - %s (%s)\n"
+            (.getId thread)
+            (.getName thread)
+            (.getState thread))
+    (doseq [element stack-trace]
+      (print "    ")
+      (cst/print-trace-element element)
+      (newline)))
+  (flush))
+
+
 (defn- print-error
   "Print a processing error for human consumption."
   [ex]
@@ -139,9 +155,10 @@
 (defn walk-files!
   "Recursively process source files starting from the given `paths`. Blocks
   until all tasks complete and returns the result map, or throws an exception
-  if the wait times out after `timeout` seconds."
-  [process! timeout config+paths]
+  if the wait times out."
+  [process! config+paths]
   (let [start (System/nanoTime)
+        timeout (or (p/option :timeout) 300)
         pool (ForkJoinPool.)
         results (agent {})]
     (->>
@@ -155,14 +172,18 @@
       (run! #(.submit pool ^ForkJoinTask %)))
     (.shutdown pool)
     (when-not (.awaitTermination pool timeout TimeUnit/SECONDS)
+      (p/printerrf "Processing timed out after %d seconds! There are still %d threads running with %d queued and %d submitted tasks."
+                   timeout
+                   (.getRunningThreadCount pool)
+                   (.getQueuedTaskCount pool)
+                   (.getQueuedSubmissionCount pool))
+      (when (p/option :verbose)
+        (print-thread-dump))
       (.shutdownNow pool)
-      (throw (ex-info (format "Not all worker threads completed after timeout! There are still %d threads processing %d queued and %d submitted tasks."
-                              (.getRunningThreadCount pool)
-                              (.getQueuedTaskCount pool)
-                              (.getQueuedSubmissionCount pool))
+      (throw (ex-info "Processing timeout"
                       {:type ::timeout})))
     (send results identity)
     (when-not (await-for 5000 results)
-      (p/printerr "WARNING: results not fully reported after 5 second timeout"))
+      (p/printerr "WARNING: results not fully reported after 5 seconds"))
     (let [elapsed (/ (- (System/nanoTime) start) 1e6)]
       (assoc @results :elapsed elapsed))))

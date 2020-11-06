@@ -59,7 +59,7 @@
            [^File root]
            (let [canonical (.getCanonicalFile root)]
              [(load-configs (.getPath root) canonical) root canonical])))
-    (process/walk-files! f (or (p/option :timeout) 300))))
+    (process/walk-files! f)))
 
 
 (defn- write-stats!
