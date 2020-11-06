@@ -18,10 +18,18 @@ Legacy configuration will still work, but the tool now emits a warning when it
 loads files with the old style config. Use the new `migrate` command to
 automatically update your config files.
 
+In addition, formatting rules are now applied in many fewer passes over the
+syntax tree. This results in a significant speedup for most workloads, measured
+at about 2.3x the throughput of the previous version. Use the new
+`--report-timing` option to show a detailed table of which rules the processing
+time was spent in.
+
 ### Changed
 - Configuration files have a new structure which is rule-oriented.
 - Refactor blank line rules out of whitespace rules.
 - Protocol keyword attributes must start on a new line.
+- Formatting rules are now expressed via data structures which can be composed
+  into a single pass over the syntax forms.
 
 ### Added
 - All commands now warn when reading legacy configuration files.
