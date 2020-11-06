@@ -144,17 +144,18 @@
         (printf "%6d %s\n" file-count (name type-key)))
       (when (pos? diff-lines)
         (printf "Resulting diff has %d lines\n" diff-lines))
-      (when-let [durations (->> durations
-                                (sort-by val (comp - compare))
-                                (map (fn [[rule-key duration]]
-                                       {"rule" (namespace rule-key)
-                                        "subrule" (name rule-key)
-                                        "elapsed" (duration-str (/ duration 1e6))
-                                        "percent" (if (pos? total-duration)
-                                                    (format "%.1f%%" (* 100.0 (/ duration total-duration)))
-                                                    "--")}))
-                                (seq))]
-        (pp/print-table ["rule" "subrule" "elapsed" "percent"] durations))
+      (when (p/option :report-timing)
+        (when-let [durations (->> durations
+                                  (sort-by val (comp - compare))
+                                  (map (fn [[rule-key duration]]
+                                         {"rule" (namespace rule-key)
+                                          "subrule" (name rule-key)
+                                          "elapsed" (duration-str (/ duration 1e6))
+                                          "percent" (if (pos? total-duration)
+                                                      (format "%.1f%%" (* 100.0 (/ duration total-duration)))
+                                                      "--")}))
+                                  (seq))]
+          (pp/print-table ["rule" "subrule" "elapsed" "percent"] durations)))
       (flush))
     (when-let [stats-file (p/option :stats)]
       (write-stats! stats-file stats))))
