@@ -98,7 +98,18 @@
   (is (reformatted?
         fmt/reformat-form default-rules
         "#:abc\n{:d 1}"
-        "#:abc\n{:d 1}")))
+        "#:abc\n{:d 1}"))
+  ;; FIXME: https://github.com/greglook/cljstyle/issues/13
+  #_
+  (is (reformatted?
+        fmt/reformat-form default-rules
+        "#::foo\n{ :x #::bar {} }  "
+        "#::foo\n{:x #::bar {}}"))
+  #_
+  (is (reformatted?
+        fmt/reformat-form default-rules
+        "#::foo\n{ :x #::bar {} }  "
+        "#::foo{:x #::bar {}}")))
 
 
 (deftest comment-handling

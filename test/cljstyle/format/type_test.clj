@@ -204,7 +204,23 @@ IFoo
 
   (toString
 [this]
-\"...\"))"))))
+\"...\"))")))
+  (testing "edge cases"
+    (is (rule-reformatted?
+          type/format-types {}
+          "(defrecord MyComp [x y]
+component/Lifecycle
+                            (start [this] this)
+                (stop [this] this))"
+          "(defrecord MyComp
+[x y]
+
+component/Lifecycle
+
+(start [this] this)
+
+
+(stop [this] this))"))))
 
 
 (deftest reify-forms
