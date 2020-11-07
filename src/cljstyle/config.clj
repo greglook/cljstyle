@@ -237,9 +237,19 @@
 
 ;; ## Defaults
 
+(defn- read-file
+  "Read the given data source as a Clojure data structure."
+  [source]
+  ;; NOTE: this can't be `clojure.edn/read-string` because we need to support
+  ;; patterns and metadata, which are not part of the EDN standard. Reader
+  ;; evaluation is disabled here as a security precaution.
+  (binding [*read-eval* false]
+    (read-string (slurp source))))
+
+
 (def default-indents
   "Default indentation rules included with the library."
-  (read-string (slurp (io/resource "cljstyle/indents.clj"))))
+  (read-file (io/resource "cljstyle/indents.clj")))
 
 
 (def legacy-config
@@ -495,9 +505,7 @@
   checking for syntax errors."
   [^File file]
   (try
-    ;; NOTE: this can't be `clojure.edn/read-string` because we need to support
-    ;; patterns and metadata, which are not part of the EDN standard.
-    (read-string (slurp file))
+    (read-file file)
     (catch Exception ex
       (let [path (.getAbsolutePath file)]
         (throw (ex-info (str "Error loading configuration from file: "

@@ -46,6 +46,7 @@ time was spent in.
   threads' stack traces will be printed.
 
 ### Fixed
+- Safely read configuration files to avoid read-time eval attacks.
 - Fixed a bug with inner-indent rule index limiting. This primarily affected
   `letfn` forms when function formatting was disabled.
   [#54](//github.com/greglook/cljstyle/issues/54)
