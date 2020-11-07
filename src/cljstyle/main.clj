@@ -19,12 +19,13 @@
     :default 300
     :parse-fn #(Integer/parseInt %)
     :validate [pos? "Must be a positive number"]]
-   [nil  "--report" "Print stats report at the end of a run."]
+   [nil  "--timeout-trace" "Dump thread stack traces when the tool times out."]
+   [nil  "--stats FILE"    "Write formatting stats to the named file. The extension controls the format and may be either 'edn' or 'tsv'."]
+   [nil  "--report"        "Print stats report at the end of a run."]
    [nil  "--report-timing" "Print detailed rule timings at the end of a run."]
-   [nil  "--stats FILE" "Write formatting stats to the named file. The extension controls the format and may be either 'edn' or 'tsv'."]
-   [nil  "--no-color" "Don't output ANSI color codes."]
-   ["-v" "--verbose" "Print detailed debugging output."]
-   ["-h" "--help" "Show help and usage information."]])
+   [nil  "--no-color"      "Don't output ANSI color codes."]
+   ["-v" "--verbose"       "Print detailed debugging output."]
+   ["-h" "--help"          "Show help and usage information."]])
 
 
 (defn- print-general-usage

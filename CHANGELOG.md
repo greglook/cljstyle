@@ -46,8 +46,8 @@ time was spent in.
   formatting rule in the report output.
 - The processing timeout can now be controlled with the `--timeout` option,
   providing an execution limit in seconds.
-- When processing times out and the `--verbose` option is set, a dump of all
-  threads' stack traces will be printed.
+- The `--timeout-trace` option will print a dump of all threads' stack traces
+  when processing times out.
 
 ### Fixed
 - Safely read configuration files to avoid read-time eval attacks.

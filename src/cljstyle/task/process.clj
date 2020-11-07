@@ -172,18 +172,18 @@
       (run! #(.submit pool ^ForkJoinTask %)))
     (.shutdown pool)
     (when-not (.awaitTermination pool timeout TimeUnit/SECONDS)
-      (u/printerrf "Processing timed out after %d seconds! There are still %d threads running with %d queued and %d submitted tasks."
+      (u/printerrf "ERROR: Processing timed out after %d seconds! There are still %d threads running with %d queued and %d submitted tasks."
                    timeout
                    (.getRunningThreadCount pool)
                    (.getQueuedTaskCount pool)
                    (.getQueuedSubmissionCount pool))
-      (when (u/option :verbose)
+      (when (or (u/option :timeout-trace)
+                (u/option :verbose))
         (print-thread-dump))
       (.shutdownNow pool)
-      (throw (ex-info "Processing timeout"
-                      {:type ::timeout})))
+      (throw (ex-info "Timed out" {:type ::timeout})))
     (send results identity)
     (when-not (await-for 5000 results)
-      (u/printerr "WARNING: results not fully reported after 5 seconds"))
+      (u/printerr "WARNING: Results not fully reported after 5 seconds"))
     (let [elapsed (/ (- (System/nanoTime) start) 1e6)]
       (assoc @results :elapsed elapsed))))
