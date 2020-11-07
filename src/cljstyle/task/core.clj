@@ -252,8 +252,7 @@
       (let [old-config (config/read-config* file)
             new-config (config/translate-legacy old-config)]
         (spit file (with-out-str (pp/pprint new-config)))))
-    @config/legacy-files)
-  (swap! config/legacy-files empty))
+    @config/legacy-files))
 
 
 

@@ -31,6 +31,9 @@ time was spent in.
 - Protocol keyword attributes must start on a new line.
 - Formatting rules are now expressed via data structures which can be composed
   into a single pass over the syntax forms.
+- The `--exclude` option has been renamed to `--ignore` and uses standard regex
+  syntax instead of globs. This provides better consistency with the `:ignore`
+  configuration for `:files`.
 
 ### Added
 - All commands now warn when reading legacy configuration files.

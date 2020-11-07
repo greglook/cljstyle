@@ -10,7 +10,12 @@
 
 (def ^:private cli-options
   "Command-line tool options."
-  [[nil  "--timeout SEC" "Maximum time to allow the process to run for."
+  [[nil  "--ignore PATTERN" "Ignore files matching the given pattern. May be set multiple times."
+    :default #{}
+    :default-desc ""
+    :parse-fn re-pattern
+    :assoc-fn (fn [m k v] (update m k conj v))]
+   [nil  "--timeout SEC" "Maximum time to allow the process to run for."
     :default 300
     :parse-fn #(Integer/parseInt %)
     :validate [pos? "Must be a positive number"]]
@@ -19,16 +24,7 @@
    [nil  "--stats FILE" "Write formatting stats to the named file. The extension controls the format and may be either 'edn' or 'tsv'."]
    [nil  "--no-color" "Don't output ANSI color codes."]
    ["-v" "--verbose" "Print detailed debugging output."]
-   ["-h" "--help" "Show help and usage information."]
-   {:id :excludes
-    :long-opt "--exclude"
-    :required "GLOB"
-    :desc "A file glob to exclude from styling. May be set multiple times."
-    :default #{}
-    :default-desc ""
-    :assoc-fn (fn assoc-excludes
-                [options current-id parsed]
-                (update options current-id conj parsed))}])
+   ["-h" "--help" "Show help and usage information."]])
 
 
 (defn- print-general-usage

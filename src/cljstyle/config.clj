@@ -10,8 +10,7 @@
     [clojure.spec.alpha :as s]
     [clojure.string :as str])
   (:import
-    java.io.File
-    java.nio.file.FileSystems))
+    java.io.File))
 
 
 ;; ## Specs
@@ -466,25 +465,22 @@
 
 (defn ignored?
   "True if the file should be ignored."
-  [config exclude-globs ^File file]
+  [config ignores ^File file]
   (let [filename (.getName file)
         filepath (.toPath file)
         canonical-path (.getCanonicalPath file)]
-    (letfn [(test-rule
+    (->>
+      (get-in config [:files :ignore])
+      (into (set ignores))
+      (some (fn test-ignore
               [rule]
               (cond
                 (string? rule)
                 (= rule filename)
 
                 (pattern? rule)
-                (re-seq rule canonical-path)))
-            (test-glob
-              [glob]
-              (-> (FileSystems/getDefault)
-                  (.getPathMatcher (str "glob:" glob))
-                  (.matches filepath)))]
-      (boolean (or (some test-rule (get-in config [:files :ignore]))
-                   (some test-glob exclude-globs))))))
+                (re-seq rule canonical-path))))
+      (boolean))))
 
 
 
