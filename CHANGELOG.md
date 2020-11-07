@@ -12,11 +12,12 @@ This release significantly changes the way that `cljstyle` is configured.
 Instead of a single flat map of options, configuration has been split up into
 rule-specific and file-specific nested maps. This helps make the options more
 understandable, less repetitive, and will support more nuanced configuration
-options.
+options in the future.
 
 Legacy configuration will still work, but the tool now emits a warning when it
 loads files with the old style config. Use the new `migrate` command to
-automatically update your config files.
+automatically update your config files. Eventually, the legacy format will be
+deprecated.
 
 In addition, formatting rules are now applied in many fewer passes over the
 syntax tree. This results in a significant speedup for most workloads, measured
@@ -47,6 +48,8 @@ time was spent in.
 
 ### Fixed
 - Safely read configuration files to avoid read-time eval attacks.
+- Remove duplicated exception printing code now that reflections are fixed in
+  `clojure.stacktrace`.
 - Fixed a bug with inner-indent rule index limiting. This primarily affected
   `letfn` forms when function formatting was disabled.
   [#54](//github.com/greglook/cljstyle/issues/54)

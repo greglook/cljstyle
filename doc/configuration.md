@@ -152,20 +152,13 @@ if it is not present. There is no configuration for this rule beyond the
 
 ### `:vars`
 
-This rule corrects formatting of var definition forms like `def`.
-
-* `:line-breaks?`
-
-  Whether to enforce line breaks in var definitions.
+This rule corrects formatting of var definition forms like `def`. There is no
+configuration for this rule beyond the `:enabled?` state.
 
 ### `:functions`
 
 This rule corrects the formatting of function forms like `fn`, `defn`, and
-`letfn`.
-
-* `:line-breaks?`
-
-  Whether to enforce line breaks in function definitions.
+`letfn`. There is no configuration for this rule beyond the `:enabled?` state.
 
 ### `:types`
 
