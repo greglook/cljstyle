@@ -1,7 +1,7 @@
 (ns cljstyle.task-test
   (:require
     [cljstyle.task.core :as task]
-    [cljstyle.task.print :as p]
+    [cljstyle.task.util :as u]
     [cljstyle.test-util :refer [with-files capture-io]]
     [clojure.java.io :as io]
     [clojure.string :as str]
@@ -100,7 +100,7 @@
           (is (str/ends-with? stderr "Failed to process 1 files\n")))
         (testing "verbose"
           (capture-io
-            (p/with-options {:verbose true}
+            (u/with-options {:verbose true}
               (is (thrown-with-data? {:code 3}
                     (task/check-sources [(str test-dir)]))))
             (is (str/includes? stdout "1 correct"))
@@ -117,7 +117,7 @@
         (testing "tsv"
           (let [stats-file (io/file test-dir "stats.tsv")]
             (capture-io
-              (p/with-options {:stats (str stats-file)}
+              (u/with-options {:stats (str stats-file)}
                 (is (map? (task/check-sources [(str test-dir)]))))
               (is (str/blank? stdout))
               (is (str/blank? stderr))
@@ -125,7 +125,7 @@
         (testing "edn"
           (let [stats-file (io/file test-dir "stats.edn")]
             (capture-io
-              (p/with-options {:stats (str stats-file)}
+              (u/with-options {:stats (str stats-file)}
                 (is (map? (task/check-sources [(str test-dir)]))))
               (is (str/blank? stdout))
               (is (str/blank? stderr))

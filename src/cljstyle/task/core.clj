@@ -4,8 +4,8 @@
     [cljstyle.config :as config]
     [cljstyle.format.core :as format]
     [cljstyle.task.diff :as diff]
-    [cljstyle.task.print :as p]
     [cljstyle.task.process :as process]
+    [cljstyle.task.util :as u]
     [clojure.java.io :as io]
     [clojure.pprint :as pp]
     [clojure.string :as str])
@@ -41,11 +41,11 @@
   [label ^File file]
   (let [configs (config/find-up file 25)]
     (if (seq configs)
-      (p/logf "Using cljstyle configuration from %d sources for %s:\n%s"
+      (u/logf "Using cljstyle configuration from %d sources for %s:\n%s"
               (count configs)
               label
               (str/join "\n" (mapcat config/source-paths configs)))
-      (p/logf "Using default cljstyle configuration for %s"
+      (u/logf "Using default cljstyle configuration for %s"
               label))
     (apply config/merge-settings config/default-config configs)))
 
@@ -93,7 +93,7 @@
            (spit file-name))
 
       ;; else
-      (p/printerrf "Unknown stats file extension '%s' - ignoring!" ext))))
+      (u/printerrf "Unknown stats file extension '%s' - ignoring!" ext))))
 
 
 (defn- duration-str
@@ -141,8 +141,8 @@
 
                 (seq durations)
                 (assoc :durations durations))]
-    (p/log (pr-str stats))
-    (when (or (p/option :report) (p/option :verbose))
+    (u/log (pr-str stats))
+    (when (or (u/option :report) (u/option :verbose))
       (printf "Checked %d of %d files in %s (%.1f fps)\n"
               total-processed
               total-files
@@ -157,7 +157,7 @@
         (printf "%6d %s\n" file-count (name type-key)))
       (when (pos? diff-lines)
         (printf "Resulting diff has %d lines\n" diff-lines))
-      (when (p/option :report-timing)
+      (when (u/option :report-timing)
         (when-let [durations (->> durations
                                   (sort-by val (comp - compare))
                                   (map (fn [[rule-key duration]]
@@ -170,7 +170,7 @@
                                   (seq))]
           (pp/print-table ["rule" "subrule" "elapsed" "percent"] durations)))
       (flush))
-    (when-let [stats-file (p/option :stats)]
+    (when-let [stats-file (u/option :stats)]
       (write-stats! stats-file stats))))
 
 
@@ -280,10 +280,10 @@
   (let [results (process-files! find-source paths)
         counts (:counts results)
         total (apply + (vals counts))]
-    (p/logf "Searched %d files in %.2f ms"
+    (u/logf "Searched %d files in %.2f ms"
             total
             (:elapsed results -1.0))
-    (p/log (pr-str counts))
+    (u/log (pr-str counts))
     results))
 
 
@@ -314,7 +314,7 @@
         {:type :incorrect
          :debug (str "Source file " path " is formatted incorrectly")
          :info (cond-> diff
-                 (not (p/option :no-color))
+                 (not (u/option :no-color))
                  (diff/colorize))
          :diff-lines (diff/count-changes diff)
          :durations durations}))))
@@ -328,12 +328,12 @@
     (report-stats results)
     (warn-legacy-config)
     (when-not (empty? (:errors results))
-      (p/printerrf "Failed to process %d files" (count (:errors results)))
+      (u/printerrf "Failed to process %d files" (count (:errors results)))
       (exit! 3))
     (when-not (zero? (:incorrect counts 0))
-      (p/printerrf "%d files formatted incorrectly" (:incorrect counts))
+      (u/printerrf "%d files formatted incorrectly" (:incorrect counts))
       (exit! 2))
-    (p/logf "All %d files formatted correctly" (:correct counts))
+    (u/logf "All %d files formatted correctly" (:correct counts))
     results))
 
 
@@ -374,11 +374,11 @@
     (report-stats results)
     (warn-legacy-config)
     (when-not (empty? (:errors results))
-      (p/printerrf "Failed to process %d files" (count (:errors results)))
+      (u/printerrf "Failed to process %d files" (count (:errors results)))
       (exit! 3))
     (if (zero? (:fixed counts 0))
-      (p/logf "All %d files formatted correctly" (:correct counts))
-      (p/printerrf "Corrected formatting of %d files" (:fixed counts)))
+      (u/logf "All %d files formatted correctly" (:correct counts))
+      (u/printerrf "Corrected formatting of %d files" (:fixed counts)))
     results))
 
 

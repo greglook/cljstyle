@@ -3,7 +3,7 @@
   (:gen-class)
   (:require
     [cljstyle.task.core :as task]
-    [cljstyle.task.print :as p]
+    [cljstyle.task.util :as u]
     [clojure.stacktrace :as cst]
     [clojure.tools.cli :as cli]))
 
@@ -76,7 +76,7 @@
       (System/exit 1))
     ;; Execute requested command.
     (try
-      (p/with-options options
+      (u/with-options options
         (case command
           "find"    (task/find-sources args)
           "check"   (task/check-sources args)
@@ -85,7 +85,7 @@
           "config"  (task/show-config args)
           "migrate" (task/migrate-config args)
           "version" (task/print-version args)
-          (do (p/printerr "Unknown cljstyle command:" command)
+          (do (u/printerr "Unknown cljstyle command:" command)
               (System/exit 1))))
       (catch Exception ex
         (binding [*out* *err*]

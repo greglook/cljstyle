@@ -1,7 +1,7 @@
 (ns cljstyle.task.diff
   "Diff-handling code for cljstyle fixes."
   (:require
-    [cljstyle.task.print :as p]
+    [cljstyle.task.util :as u]
     [clojure.java.io :as io]
     [clojure.string :as str])
   (:import
@@ -72,6 +72,6 @@
   "Apply ANSI color coding to the supplied diff text."
   [diff-text]
   (-> diff-text
-      (str/replace #"(?m)^(@@.*@@)$"       (p/colorize "$1" :cyan))
-      (str/replace #"(?m)^(\+(?!\+\+).*)$" (p/colorize "$1" :green))
-      (str/replace #"(?m)^(-(?!--).*)$"    (p/colorize "$1" :red))))
+      (str/replace #"(?m)^(@@.*@@)$"       (u/colorize "$1" :cyan))
+      (str/replace #"(?m)^(\+(?!\+\+).*)$" (u/colorize "$1" :green))
+      (str/replace #"(?m)^(-(?!--).*)$"    (u/colorize "$1" :red))))

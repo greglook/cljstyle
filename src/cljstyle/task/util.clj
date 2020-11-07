@@ -1,4 +1,4 @@
-(ns cljstyle.task.print
+(ns cljstyle.task.util
   "Common utilities for output and option sharing."
   (:require
     [clojure.string :as str]))

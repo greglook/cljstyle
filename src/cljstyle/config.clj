@@ -467,7 +467,6 @@
   "True if the file should be ignored."
   [config ignores ^File file]
   (let [filename (.getName file)
-        filepath (.toPath file)
         canonical-path (.getCanonicalPath file)]
     (->>
       (get-in config [:files :ignore])

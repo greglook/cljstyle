@@ -2,7 +2,7 @@
   "Code for discovering and processing source files."
   (:require
     [cljstyle.config :as config]
-    [cljstyle.task.print :as p]
+    [cljstyle.task.util :as u]
     [clojure.java.io :as io]
     [clojure.stacktrace :as cst])
   (:import
@@ -50,15 +50,15 @@
     (= :cljstyle/format-error (:type (ex-data ex)))
     (let [max-len 100]
       (println (ex-message ex))
-      (when-let [form (and (p/option :verbose)
+      (when-let [form (and (u/option :verbose)
                            (:form (ex-data ex)))]
         (if (< max-len (count form))
           (println (subs form 0 max-len) "...")
           (println form)))
-      (when-let [cause (and (p/option :verbose) (ex-cause ex))]
+      (when-let [cause (and (u/option :verbose) (ex-cause ex))]
         (cst/print-cause-trace cause)))
 
-    (p/option :verbose)
+    (u/option :verbose)
     (cst/print-cause-trace ex)
 
     :else
@@ -70,13 +70,13 @@
   [results result]
   ;; Side effects.
   (when-let [message (:debug result)]
-    (when (p/option :verbose)
-      (p/printerr message)))
+    (when (u/option :verbose)
+      (u/printerr message)))
   (when-let [message (:info result)]
     (println message)
     (flush))
   (when-let [message (:warn result)]
-    (p/printerr message))
+    (u/printerr message))
   (when-let [ex (:error result)]
     (binding [*out* *err*]
       (print-error ex)
@@ -112,7 +112,7 @@
         (bound-fn compute!
           []
           (cond
-            (config/ignored? config (p/option :ignore) file)
+            (config/ignored? config (u/option :ignore) file)
             (report!
               {:type :ignored
                :debug (str "Ignoring file " path)})
@@ -158,7 +158,7 @@
   if the wait times out."
   [process! config+paths]
   (let [start (System/nanoTime)
-        timeout (or (p/option :timeout) 300)
+        timeout (or (u/option :timeout) 300)
         pool (ForkJoinPool.)
         results (agent {})]
     (->>
@@ -172,18 +172,18 @@
       (run! #(.submit pool ^ForkJoinTask %)))
     (.shutdown pool)
     (when-not (.awaitTermination pool timeout TimeUnit/SECONDS)
-      (p/printerrf "Processing timed out after %d seconds! There are still %d threads running with %d queued and %d submitted tasks."
+      (u/printerrf "Processing timed out after %d seconds! There are still %d threads running with %d queued and %d submitted tasks."
                    timeout
                    (.getRunningThreadCount pool)
                    (.getQueuedTaskCount pool)
                    (.getQueuedSubmissionCount pool))
-      (when (p/option :verbose)
+      (when (u/option :verbose)
         (print-thread-dump))
       (.shutdownNow pool)
       (throw (ex-info "Processing timeout"
                       {:type ::timeout})))
     (send results identity)
     (when-not (await-for 5000 results)
-      (p/printerr "WARNING: results not fully reported after 5 seconds"))
+      (u/printerr "WARNING: results not fully reported after 5 seconds"))
     (let [elapsed (/ (- (System/nanoTime) start) 1e6)]
       (assoc @results :elapsed elapsed))))
