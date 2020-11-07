@@ -8,7 +8,7 @@ settings to use:
 
 ```clojure
 ;; cljstyle configuration
-{:files {:ignored #{"checkouts" "target"}}
+{:files {:ignore #{"checkouts" "target"}}
  :rules {:blank-lines {:max-consecutive 3}}}
 ```
 
@@ -62,7 +62,7 @@ settings under the `:files` key:
 
   Pattern to match against filenames to determine which files to check.
 
-* `:ignored`
+* `:ignore`
 
   Set of strings or patterns of files to ignore. Strings are matched against
   file and directory names exactly; patterns are matched against the entire

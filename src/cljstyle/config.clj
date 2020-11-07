@@ -39,7 +39,7 @@
 ;; Files and directories will be _ignored_ if their name exact-matches a string
 ;; or their full path fuzzy-matches a pattern in this set. Ignored files will
 ;; not be processed and ignored directories will not be recursed into.
-(s/def :cljstyle.config.files/ignored
+(s/def :cljstyle.config.files/ignore
   (s/coll-of (s/or :exact string?
                    :fuzzy pattern?)
              :kind set?))
@@ -48,7 +48,7 @@
 (s/def ::files
   (s/keys :opt-un [:cljstyle.config.files/extensions
                    :cljstyle.config.files/pattern
-                   :cljstyle.config.files/ignored]))
+                   :cljstyle.config.files/ignore]))
 
 
 ;; ### Rules Configuration
@@ -272,7 +272,7 @@
 
     ;; Files will be ignored if their name matches one of the given strings
     ;; or patterns.
-    :ignored #{".git" ".hg"}}
+    :ignore #{".git" ".hg"}}
 
    :rules
    {:indentation
@@ -340,7 +340,7 @@
 
       ;; File matching
       (translate :file-pattern [:files :pattern])
-      (translate :file-ignore  [:files :ignored])
+      (translate :file-ignore  [:files :ignore])
 
       ;; Indentation rule
       (translate :indentation?     [:rules :indentation :enabled?])
@@ -473,7 +473,7 @@
               (-> (FileSystems/getDefault)
                   (.getPathMatcher (str "glob:" glob))
                   (.matches filepath)))]
-      (boolean (or (some test-rule (get-in config [:files :ignored]))
+      (boolean (or (some test-rule (get-in config [:files :ignore]))
                    (some test-glob exclude-globs))))))
 
 

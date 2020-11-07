@@ -108,7 +108,7 @@
             (is (str/includes? stderr "Error while processing file target/test-config/check/a/b/foo.clj"))
             (is (str/ends-with? stderr "Failed to process 1 files\n")))))
       (testing "ignored file"
-        (spit a-config (prn-str {:files {:ignored #{"foo.clj"}}}))
+        (spit a-config (prn-str {:files {:ignore #{"foo.clj"}}}))
         (capture-io
           (is (map? (task/check-sources [(str test-dir)])))
           (is (str/blank? stdout))

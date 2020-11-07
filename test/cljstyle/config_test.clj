@@ -34,12 +34,12 @@
     (is (valid? :cljstyle.config.rules.indentation/indents {'foo/bar [[:inner 0]]}))
     (is (valid? :cljstyle.config.rules.indentation/indents {#"foo" [[:inner 3]]})))
   (testing "file-ignore"
-    (is (invalid? :cljstyle.config.files/ignored 123))
-    (is (invalid? :cljstyle.config.files/ignored ["foo"]))
-    (is (invalid? :cljstyle.config.files/ignored #{123}))
-    (is (valid? :cljstyle.config.files/ignored #{}))
-    (is (valid? :cljstyle.config.files/ignored #{"foo" "bar"}))
-    (is (valid? :cljstyle.config.files/ignored #{#"bar/baz/qux"})))
+    (is (invalid? :cljstyle.config.files/ignore 123))
+    (is (invalid? :cljstyle.config.files/ignore ["foo"]))
+    (is (invalid? :cljstyle.config.files/ignore #{123}))
+    (is (valid? :cljstyle.config.files/ignore #{}))
+    (is (valid? :cljstyle.config.files/ignore #{"foo" "bar"}))
+    (is (valid? :cljstyle.config.files/ignore #{#"bar/baz/qux"})))
   (testing "config"
     (is (invalid? ::config/config nil))
     (is (invalid? ::config/config "foo"))
@@ -136,7 +136,7 @@
           (is (not (config/source-file? config test-dir)))
           (is (config/source-file? config foo-clj))))
       (testing "ignored?"
-        (let [config {:files {:ignored #{"foo" #"test-config/predicates/bar" :bad}}}]
+        (let [config {:files {:ignore #{"foo" #"test-config/predicates/bar" :bad}}}]
           (is (not (config/ignored? config #{} test-dir)))
           (is (not (config/ignored? config #{} foo-clj)))
           (is (config/ignored? config #{} (io/file test-dir "foo")))
