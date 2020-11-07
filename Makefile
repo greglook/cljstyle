@@ -20,6 +20,7 @@ endif
 
 release_jar := cljstyle-$(version).jar
 release_tgz := cljstyle_$(version)_$(platform).tar.gz
+release_zip := cljstyle_$(version)_$(platform).zip
 
 
 all: cljstyle
@@ -78,8 +79,12 @@ dist/$(release_tgz): cljstyle
 	@mkdir -p dist
 	tar -cvzf $@ $^
 
+dist/$(release_zip): cljstyle
+	@mkdir -p dist
+	zip $@ $^
+
 dist/$(release_jar): $(uberjar_path)
 	@mkdir -p dist
 	cp $< $@
 
-package: dist/$(release_jar) dist/$(release_tgz)
+package: dist/$(release_jar) dist/$(release_tgz) dist/$(release_zip)

@@ -63,16 +63,18 @@ case "$(uname -s)" in
     Darwin*)    platform=macos;;
 esac
 
-download_url="https://github.com/greglook/cljstyle/releases/download/$version/cljstyle_${version}_${platform}.tar.gz"
+# TODO: change this to the zip distribution after the next release
+archive_file="cljstyle_${version}_${platform}.tar.gz"
+download_url="https://github.com/greglook/cljstyle/releases/download/${version}/${archive_file}"
 
 mkdir -p "$download_dir"
 cd "$download_dir"
 echo -e "Downloading $download_url to $download_dir"
-rm -rf "cljstyle_${version}_${platform}.tar.gz"
+rm -rf "$archive_file"
 rm -rf "cljstyle"
-curl -o "cljstyle_${version}_${platform}.tar.gz" -sL "$download_url"
-tar -zxf "cljstyle_${version}_${platform}.tar.gz" --overwrite
-rm "cljstyle_${version}_${platform}.tar.gz"
+curl -o "$archive_file" -sL "$download_url"
+tar -zxf "$archive_file" --overwrite
+rm "$archive_file"
 
 if [ "$download_dir" != "$install_dir" ]
 then
