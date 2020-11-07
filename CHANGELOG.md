@@ -8,6 +8,11 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+...
+
+
+## [0.14.0] - 2020-11-07
+
 This release significantly changes the way that `cljstyle` is configured.
 Instead of a single flat map of options, configuration has been split up into
 rule-specific and file-specific nested maps. This helps make the options more
@@ -272,7 +277,8 @@ functionality.
 Legacy project release.
 
 
-[Unreleased]: https://github.com/greglook/cljstyle/compare/0.13.0...HEAD
+[Unreleased]: https://github.com/greglook/cljstyle/compare/0.14.0...HEAD
+[0.14.0]: https://github.com/greglook/cljstyle/compare/0.13.0...0.14.0
 [0.13.0]: https://github.com/greglook/cljstyle/compare/0.12.1...0.13.0
 [0.12.1]: https://github.com/greglook/cljstyle/compare/0.12.0...0.12.1
 [0.12.0]: https://github.com/greglook/cljstyle/compare/0.11.1...0.12.0
