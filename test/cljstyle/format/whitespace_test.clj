@@ -79,6 +79,10 @@
   (testing "with trailing whitespace"
     (is (rule-reformatted?
           ws/remove-trailing {}
+          "(foo bar) ; hello"
+          "(foo bar) ; hello"))
+    (is (rule-reformatted?
+          ws/remove-trailing {}
           "(foo bar) "
           "(foo bar)"))
     (is (rule-reformatted?
