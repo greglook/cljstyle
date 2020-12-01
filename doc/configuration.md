@@ -164,6 +164,10 @@ This rule corrects the formatting of function forms like `fn`, `defn`, and
 
 This rule corrects the formatting of type definitions.
 
+* `:enable?`
+
+  You can disable all the types rules with setting `:enable` to `false`.
+
 * `:types?`
 
   Whether to format type definition forms like `deftype` and `defrecord`.
@@ -183,6 +187,10 @@ This rule corrects the formatting of type definitions.
 ### `:namespaces`
 
 This rule corrects and standardizes the formatting of `ns` definitions.
+
+* `:enable?`
+
+  You can disable all the namespaces rules with setting `:enable` to `false`.
 
 * `:indent-size`
 
