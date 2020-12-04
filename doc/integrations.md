@@ -46,6 +46,16 @@ nnoremap <leader>cs :call cljstyle#fix()<cr>
 The [cljstyle-mode](https://github.com/jstokes/cljstyle-mode) project offers a
 `cljstyle` integration for Emacs users.
 
+#### Doom Emacs
+
+`cljstyle pipe` can be used with [Doom](https://github.com/hlissner/doom-emacs)'s
+[editor/format](https://github.com/hlissner/doom-emacs/blob/develop/modules/editor/format/README.org)
+module. Add the following to your Doom `config.el` to replace Doom's default
+Clojure formatter with `cljstyle`:
+
+```elisp
+(set-formatter! 'cljstyle "cljstyle pipe" :modes '(clojure-mode))
+```
 
 ### Leiningen
 
