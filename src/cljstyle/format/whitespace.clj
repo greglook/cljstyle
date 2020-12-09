@@ -3,7 +3,8 @@
   (:require
     [cljstyle.format.zloc :as zl]
     [rewrite-clj.node :as n]
-    [rewrite-clj.zip :as z]))
+    [rewrite-clj.zip :as z]
+    [rewrite-clj.zip.whitespace :as ws]))
 
 
 ;; ## Rule: Surrounding Whitespace
@@ -77,10 +78,15 @@
 
 ;; ## Rule: Trailing Whitespace
 
+(defn- rightmost?
+  [zloc]
+  (nil? (ws/skip z/right* ws/whitespace? (z/right* zloc))))
+
+
 (defn- final?
   "True if this location is the last top-level node."
   [zloc]
-  (and (z/rightmost? zloc) (zl/root? (z/up zloc))))
+  (and (rightmost? zloc) (zl/root? (z/up zloc))))
 
 
 (defn- trailing-whitespace?
