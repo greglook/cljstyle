@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+
+# install script inspired by scripts for clj-kondo cf. https://github.com/borkdude/clj-kondo/blob/master/script/install-clj-kondo
+# install latest version of cljstyle or upgrades existing one
+
+set -euo pipefail
+
+default_install_dir="/usr/local/bin"
+install_dir=$default_install_dir
+default_download_dir="/tmp"
+download_dir=$default_download_dir
+version=""
+
+print_help() {
+    echo "Installs latest version of cljstyle."
+    echo -e
+    echo "Usage:"
+    echo "install [--dir <dir>] [--download-dir <download-dir>] [--version <version>]"
+    echo -e
+    echo "Defaults:"
+    echo " * Installation directory: ${default_install_dir}"
+    echo " * Download directory: ${default_download_dir}"
+    echo " * Version: <Latest release on github>"
+    exit 1
+}
+
+while [[ $# -gt 0 ]]
+do
+    key="$1"
+    if [[ -z "${2:-}" ]]; then
+        print_help
+    fi
+
+    case $key in
+        --dir)
+            install_dir="$2"
+            shift
+            shift
+            ;;
+        --download-dir)
+            download_dir="$2"
+            shift
+            shift
+            ;;
+        --version|--release-version)
+            version="$2"
+            shift
+            shift
+            ;;
+        *)    # unknown option
+            print_help
+            shift
+            ;;
+    esac
+done
+
+if [[ "$version" == "" ]]; then
+  version="$(curl -s https://raw.githubusercontent.com/greglook/cljstyle/master/CLJSTYLE_RELEASED_VERSION)"
+fi
+
+case "$(uname -s)" in
+    Linux*)     platform=linux;;
+    Darwin*)    platform=macos;;
+esac
+
+download_url="https://github.com/greglook/cljstyle/releases/download/$version/cljstyle_${version}_${platform}.tar.gz"
+
+mkdir -p "$download_dir"
+cd "$download_dir"
+echo -e "Downloading $download_url to $download_dir"
+rm -rf "cljstyle_${version}_${platform}.tar.gz"
+rm -rf "cljstyle"
+curl -o "cljstyle_${version}_${platform}.tar.gz" -sL "$download_url"
+tar -zxf "cljstyle_${version}_${platform}.tar.gz" --overwrite
+rm "cljstyle_${version}_${platform}.tar.gz"
+
+if [ "$download_dir" != "$install_dir" ]
+then
+    mkdir -p "$install_dir"
+    cd "$install_dir"
+    if [ -f cljstyle ]; then
+        echo -e "Moving $install_dir/cljstyle to $install_dir/cljstyle.old"
+        mv -f "cljstyle" "cljstyle.old"
+    fi
+    mv -f "$download_dir/cljstyle" "$PWD/cljstyle"
+fi
+
+echo -e "Successfully installed cljstyle in $install_dir"
