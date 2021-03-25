@@ -464,8 +464,9 @@
         "(ns foo (:require [\"caz\" :as caz] [bar.core :as bar]))"
         "(ns foo
   (:require
-    [bar.core :as bar]
-    [\"caz\" :as caz]))")))
+    [\"caz\" :as caz]
+    [bar.core :as bar]))")
+      "sorts a require with a mixture of strings and symbol namespaces"))
 
 
 (deftest regressions
