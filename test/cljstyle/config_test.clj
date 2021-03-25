@@ -8,46 +8,46 @@
 
 (deftest setting-specs
   (testing "indenters"
-    (is (invalid? ::config/indenter nil))
-    (is (invalid? ::config/indenter ["foo"]))
-    (is (invalid? ::config/indenter [:block]))
-    (is (invalid? ::config/indenter [:abc 2]))
-    (is (valid? ::config/indenter [:inner 0]))
-    (is (valid? ::config/indenter [:inner 0 1]))
-    (is (valid? ::config/indenter [:block 2]))
-    (is (valid? ::config/indenter [:block 1 2])))
+    (is (invalid? :cljstyle.config.rules.indentation/indenter nil))
+    (is (invalid? :cljstyle.config.rules.indentation/indenter ["foo"]))
+    (is (invalid? :cljstyle.config.rules.indentation/indenter [:block]))
+    (is (invalid? :cljstyle.config.rules.indentation/indenter [:abc 2]))
+    (is (valid? :cljstyle.config.rules.indentation/indenter [:inner 0]))
+    (is (valid? :cljstyle.config.rules.indentation/indenter [:inner 0 1]))
+    (is (valid? :cljstyle.config.rules.indentation/indenter [:block 2]))
+    (is (valid? :cljstyle.config.rules.indentation/indenter [:block 1 2])))
   (testing "indent-rule"
-    (is (invalid? ::config/indent-rule "foo"))
-    (is (invalid? ::config/indent-rule #{[:inner 0]}))
-    (is (valid? ::config/indent-rule []))
-    (is (valid? ::config/indent-rule [[:block 1]]))
-    (is (valid? ::config/indent-rule [[:block 1] [:inner 2]])))
+    (is (invalid? :cljstyle.config.rules.indentation/indent-rule "foo"))
+    (is (invalid? :cljstyle.config.rules.indentation/indent-rule #{[:inner 0]}))
+    (is (valid? :cljstyle.config.rules.indentation/indent-rule []))
+    (is (valid? :cljstyle.config.rules.indentation/indent-rule [[:block 1]]))
+    (is (valid? :cljstyle.config.rules.indentation/indent-rule [[:block 1] [:inner 2]])))
   (testing "indents"
-    (is (invalid? ::config/indents nil))
-    (is (invalid? ::config/indents 123))
-    (is (invalid? ::config/indents #{}))
-    (is (invalid? ::config/indents {"foo" [[:block 1]]}))
-    (is (invalid? ::config/indents {123 "rule"}))
-    (is (invalid? ::config/indents {'foo nil}))
-    (is (valid? ::config/indents {}))
-    (is (valid? ::config/indents {'foo [[:block 1]]}))
-    (is (valid? ::config/indents {'foo/bar [[:inner 0]]}))
-    (is (valid? ::config/indents {#"foo" [[:inner 3]]})))
+    (is (invalid? :cljstyle.config.rules.indentation/indents nil))
+    (is (invalid? :cljstyle.config.rules.indentation/indents 123))
+    (is (invalid? :cljstyle.config.rules.indentation/indents #{}))
+    (is (invalid? :cljstyle.config.rules.indentation/indents {"foo" [[:block 1]]}))
+    (is (invalid? :cljstyle.config.rules.indentation/indents {123 "rule"}))
+    (is (invalid? :cljstyle.config.rules.indentation/indents {'foo nil}))
+    (is (valid? :cljstyle.config.rules.indentation/indents {}))
+    (is (valid? :cljstyle.config.rules.indentation/indents {'foo [[:block 1]]}))
+    (is (valid? :cljstyle.config.rules.indentation/indents {'foo/bar [[:inner 0]]}))
+    (is (valid? :cljstyle.config.rules.indentation/indents {#"foo" [[:inner 3]]})))
   (testing "file-ignore"
-    (is (invalid? ::config/file-ignore 123))
-    (is (invalid? ::config/file-ignore ["foo"]))
-    (is (invalid? ::config/file-ignore #{123}))
-    (is (valid? ::config/file-ignore #{}))
-    (is (valid? ::config/file-ignore #{"foo" "bar"}))
-    (is (valid? ::config/file-ignore #{#"bar/baz/qux"})))
-  (testing "settings"
-    (is (invalid? ::config/settings nil))
-    (is (invalid? ::config/settings "foo"))
-    (is (invalid? ::config/settings [123]))
-    (is (valid? ::config/settings {}))
-    (is (valid? ::config/settings {:indentation? true}))
-    (is (valid? ::config/settings {:something-else 123}))
-    (is (valid? ::config/settings config/default-config))))
+    (is (invalid? :cljstyle.config.files/ignore 123))
+    (is (invalid? :cljstyle.config.files/ignore ["foo"]))
+    (is (invalid? :cljstyle.config.files/ignore #{123}))
+    (is (valid? :cljstyle.config.files/ignore #{}))
+    (is (valid? :cljstyle.config.files/ignore #{"foo" "bar"}))
+    (is (valid? :cljstyle.config.files/ignore #{#"bar/baz/qux"})))
+  (testing "config"
+    (is (invalid? ::config/config nil))
+    (is (invalid? ::config/config "foo"))
+    (is (invalid? ::config/config [123]))
+    (is (valid? ::config/config {}))
+    (is (valid? ::config/config {:rules {:indentation {:enabled? true}}}))
+    (is (valid? ::config/config {:something-else 123}))
+    (is (valid? ::config/config config/default-config))))
 
 
 (deftest config-merging
@@ -85,10 +85,16 @@
              {:file-ignore ^:displace #{"abc"}}
              {:file-ignore #{"xyz"}}))))
   (testing "sequential"
+    (is (= {:key ["three"]}
+           (config/merge-settings
+             {:key ["one" "two"]}
+             {:key ["three"]}))
+        "should replace by default")
     (is (= {:key ["one" "two" "three"]}
            (config/merge-settings
              {:key ["one" "two"]}
-             {:key ["three"]}))))
+             {:key ^:concat ["three"]}))
+        "should append when :concat meta"))
   (testing "sets"
     (is (= {:key #{"one" "two" "three"}}
            (config/merge-settings
@@ -125,16 +131,17 @@
         (is (not (config/directory? foo-clj)))
         (is (config/directory? test-dir)))
       (testing "source-file?"
-        (let [config {:file-pattern #"\.clj[csx]?$"}]
+        (let [config {:files {:pattern #"\.clj[csx]?$"}}]
           (is (not (config/source-file? config nil)))
           (is (not (config/source-file? config test-dir)))
           (is (config/source-file? config foo-clj))))
       (testing "ignored?"
-        (let [config {:file-ignore #{"foo" #"test-config/predicates/bar" :bad}}]
-          (is (not (config/ignored? config test-dir)))
-          (is (not (config/ignored? config foo-clj)))
-          (is (config/ignored? config (io/file test-dir "foo")))
-          (is (config/ignored? config (io/file test-dir "bar")))))
+        (let [config {:files {:ignore #{"foo" #"test-config/predicates/bar" :bad}}}]
+          (is (not (config/ignored? config #{} test-dir)))
+          (is (not (config/ignored? config #{} foo-clj)))
+          (is (config/ignored? config #{} (io/file test-dir "foo")))
+          (is (config/ignored? config #{} (io/file test-dir "bar")))
+          (is (config/ignored? {} #{"bar"} (io/file test-dir "bar")))))
       (finally
         (when (.exists foo-clj)
           (.delete foo-clj))))))
@@ -164,8 +171,9 @@
           (is (not (config/directory? cfg-file)))
           (is (config/directory? test-dir))))
       (testing "basic reads"
-        (spit cfg-file "{:padding-lines 8}")
-        (is (= {:padding-lines 8} (config/read-config cfg-file)))
+        (spit cfg-file "{:rules {:blank-lines {:padding-lines 8}}}")
+        (is (= {:rules {:blank-lines {:padding-lines 8}}}
+               (config/read-config cfg-file)))
         (is (= [(.getAbsolutePath cfg-file)]
                (config/source-paths (config/read-config cfg-file)))))
       (testing "syntax error"
@@ -174,7 +182,7 @@
                                 :path (.getAbsolutePath cfg-file)}
               (config/read-config cfg-file))))
       (testing "validity error"
-        (spit cfg-file "{:indentation? foo}")
+        (spit cfg-file "{:rules foo}")
         (is (thrown-with-data? {:type ::config/invalid
                                 :path (.getAbsolutePath cfg-file)}
               (config/read-config cfg-file))))
@@ -196,29 +204,31 @@
 ;;             └── bar.clj
 (deftest config-hierarchy
   (with-files [test-dir "target/test-config/hierarchy"
-               a-config ["a/.cljstyle" (prn-str {:padding-lines 8})]
-               _abc-config ["a/b/c/.cljstyle" (prn-str {:padding-lines 4})]
-               abd-config ["a/b/d/.cljstyle" (prn-str {:file-ignore #{"f"}})]
+               a-config ["a/.cljstyle" (prn-str {:rules {:blank-lines {:padding-lines 8}}})]
+               _abc-config ["a/b/c/.cljstyle" (prn-str {:rules {:blank-lines {:padding-lines 4}}})]
+               abd-config ["a/b/d/.cljstyle" (prn-str {:files {:ignore #{"f"}}})]
                foo-clj ["a/b/c/foo.clj" "; foo"]
                bar-clj ["a/b/d/e/bar.clj" "; bar"]]
     (testing "read-config"
-      (is (= {:padding-lines 8} (config/read-config a-config)))
+      (is (= {:rules {:blank-lines {:padding-lines 8}}}
+             (config/read-config a-config)))
       (is (= [(.getAbsolutePath a-config)]
              (config/source-paths (config/read-config a-config)))))
     (testing "dir-config"
       (is (nil? (config/dir-config (io/file test-dir "x"))))
-      (is (= {:padding-lines 8} (config/dir-config (io/file test-dir "a")))))
+      (is (= {:rules {:blank-lines {:padding-lines 8}}}
+             (config/dir-config (io/file test-dir "a")))))
     (testing "find-up"
-      (is (= [{:padding-lines 8}
-              {:padding-lines 4}]
+      (is (= [{:rules {:blank-lines {:padding-lines 8}}}
+              {:rules {:blank-lines {:padding-lines 4}}}]
              (config/find-up foo-clj 3)))
       (is (= [[(.getAbsolutePath a-config)]
               [(.getAbsolutePath abd-config)]]
              (map config/source-paths (config/find-up bar-clj 4))))
       (is (< 2 (count (config/find-up foo-clj 100))))
       (let [abd-dir (io/file test-dir "a" "b" "d")]
-        (is (= [{:padding-lines 8}
-                {:file-ignore #{"f"}}]
+        (is (= [{:rules {:blank-lines {:padding-lines 8}}}
+                {:files {:ignore #{"f"}}}]
                (config/find-up abd-dir 3)))
         (is (= [[(.getAbsolutePath a-config)]
                 [(.getAbsolutePath abd-config)]]

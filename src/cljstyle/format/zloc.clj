@@ -190,47 +190,20 @@
 
 
 
-;; ## Movement
+;; ## Editing Utilities
+
+(defn move-n
+  "Repeatedly move in a direction `n` times."
+  [zloc move n]
+  (if (pos? n)
+    (recur (move zloc) move (dec n))
+    zloc))
+
 
 (defn skip-whitespace
   "Skip to the location of the next non-whitespace node."
   [zloc]
   (z/skip z/next* space? zloc))
-
-
-
-;; ## Editing
-
-(defn- format-error
-  "Construct an exception representing a formatting error caused by the function `f`."
-  [problem f zloc cause]
-  (let [fn-name (clojure.lang.Compiler/demunge (.getName (class f)))
-        [line col] (z/position zloc)
-        form (z/string zloc)]
-    (ex-info (format "Formatter %s at position %d:%d while calling %s"
-                     problem line col fn-name)
-             {:type :cljstyle/format-error
-              :fn fn-name
-              :line line
-              :column col
-              :form form}
-             cause)))
-
-
-(defn- edit-wrapper
-  "Wrap an editing function with error handling logic which will capture
-  information about the surrounding form and the cause of the failure."
-  [f]
-  (fn safe-edit
-    [zloc]
-    (try
-      (let [zloc' (f zloc)]
-        (when-not zloc'
-          (throw (format-error "returned nil" f zloc nil)))
-        zloc')
-      (catch Exception ex
-        (throw (format-error (str "threw " (.getSimpleName (class ex)))
-                             f zloc ex))))))
 
 
 (defn eat-whitespace
@@ -269,73 +242,72 @@
 (defn replace-with-blank-lines
   "Replace all whitespace at the location with `n` blank lines."
   [zloc n]
-  (z/insert-left
+  (z/insert-left*
     (eat-whitespace zloc)
     (n/newlines (inc n))))
 
 
-(defn subedit
-  "Apply the given function to the current sub-tree. The resulting zipper will
-  be located on the root of the modified sub-tree."
-  [zloc f]
-  (let [subzip (some-> zloc z/node (z/edn* {:track-position? true}))
-        zloc' (f subzip)]
-    (z/replace zloc (z/root zloc'))))
+
+;; ## Transformation Functions
+
+(defn- format-error
+  "Construct an exception representing a formatting error caused by the function `f`."
+  [problem f zloc cause]
+  (let [fn-name (clojure.lang.Compiler/demunge (.getName (class f)))
+        [line col] (z/position zloc)
+        form (z/string zloc)]
+    (ex-info (format "Formatter %s at position %d:%d while calling %s"
+                     problem line col fn-name)
+             {:type :cljstyle/format-error
+              :fn fn-name
+              :line line
+              :column col
+              :form form}
+             cause)))
 
 
-(defn- edit-walk*
-  "Edit all nodes in `zloc` matching the predicate by applying `f` to them.
-  Returns the original zipper location."
-  [match? f zloc]
-  (let [f (edit-wrapper f)]
-    (loop [zloc zloc]
-      (cond
-        (z/end? zloc)
-        zloc
-
-        (ignored-form? zloc)
-        (if-let [right (z/right* zloc)]
-          (recur right)
-          zloc)
-
-        (match? zloc)
-        (recur (z/next* (f zloc)))
-
-        :else
-        (recur (z/next* zloc))))))
+(defn safe-edit
+  "Wrap an editing function with error handling logic which will capture
+  information about the surrounding form and the cause of the failure."
+  [f zloc & args]
+  (if f
+    (try
+      (let [zloc' (apply f zloc args)]
+        (when-not zloc'
+          (throw (format-error "returned nil" f zloc nil)))
+        zloc')
+      (catch Exception ex
+        (throw (format-error (str "threw " (.getSimpleName (class ex)))
+                             f zloc ex))))
+    zloc))
 
 
 (defn edit-walk
-  "Walk the forms in a zipper, transforming any location matching `match?` with
-  `f`. Returns a zipper located at the original position, including the changes."
-  [zloc match? f]
-  (subedit zloc (partial edit-walk* match? f)))
+  "Visit all nodes in `zloc` by applying the given function. Returns the final
+  zipper location."
+  [zloc f]
+  (loop [zloc zloc]
+    (cond
+      (z/end? zloc)
+      zloc
+
+      (ignored-form? zloc)
+      (if-let [right (z/right* zloc)]
+        (recur right)
+        zloc)
+
+      :else
+      (recur (z/next* (f zloc))))))
 
 
-(defn edit-all
-  "Edit all nodes in `zloc` matching the predicate by applying `f` to them.
-  Returns the final zipper location."
-  [zloc match? f]
-  (let [f (edit-wrapper f)]
-    (loop [zloc zloc]
-      (cond
-        (z/end? zloc)
-        zloc
-
-        (ignored-form? zloc)
-        (if-let [right (z/right* zloc)]
-          (recur right)
-          zloc)
-
-        (match? zloc)
-        (recur (z/next* (f zloc)))
-
-        :else
-        (recur (z/next* zloc))))))
-
-
-(defn transform
-  "Transform this form by parsing it as an EDN syntax tree and applying `edit`
-  successively to each location in the zipper which `match?` returns true for."
-  [form match? edit]
-  (z/root (edit-all (z/edn* form {:track-position? true}) match? edit)))
+(defn edit-scan
+  "Scan rightward from the given location, editing nodes by applying the given
+  function. Returns the final zipper location."
+  [zloc f]
+  (loop [zloc zloc]
+    (let [zloc' (if-not (ignored-form? zloc)
+                  (f zloc)
+                  zloc)]
+      (if-let [right (z/right* zloc')]
+        (recur right)
+        zloc'))))

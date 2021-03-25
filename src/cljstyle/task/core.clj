@@ -4,10 +4,10 @@
     [cljstyle.config :as config]
     [cljstyle.format.core :as format]
     [cljstyle.task.diff :as diff]
-    [cljstyle.task.print :as p]
     [cljstyle.task.process :as process]
+    [cljstyle.task.util :as u]
     [clojure.java.io :as io]
-    [clojure.pprint :refer [pprint]]
+    [clojure.pprint :as pp]
     [clojure.string :as str])
   (:import
     java.io.File))
@@ -41,24 +41,37 @@
   [label ^File file]
   (let [configs (config/find-up file 25)]
     (if (seq configs)
-      (p/logf "Using cljstyle configuration from %d sources for %s:\n%s"
+      (u/logf "Using cljstyle configuration from %d sources for %s:\n%s"
               (count configs)
               label
               (str/join "\n" (mapcat config/source-paths configs)))
-      (p/logf "Using default cljstyle configuration for %s"
+      (u/logf "Using default cljstyle configuration for %s"
               label))
     (apply config/merge-settings config/default-config configs)))
 
 
-(defn- walk-files!
+(defn- warn-legacy-config
+  "Warn about legacy config files, if any are observed."
+  []
+  (when-let [files (seq @config/legacy-files)]
+    (binding [*out* *err*]
+      (printf "WARNING: legacy configuration found in %d file%s:\n"
+              (count files)
+              (if (< 1 (count files)) "s" ""))
+      (run! (comp println str) files)
+      (println "Run the migrate command to update your configuration")
+      (flush))))
+
+
+(defn- process-files!
   "Walk source files and apply the processing function to each."
   [f paths]
   (->>
     (search-roots paths)
-    (pmap (fn prep-root
-            [^File root]
-            (let [canonical (.getCanonicalFile root)]
-              [(load-configs (.getPath root) canonical) root canonical])))
+    (map (fn prep-root
+           [^File root]
+           (let [canonical (.getCanonicalFile root)]
+             [(load-configs (.getPath root) canonical) root canonical])))
     (process/walk-files! f)))
 
 
@@ -80,7 +93,7 @@
            (spit file-name))
 
       ;; else
-      (p/printerrf "Unknown stats file extension '%s' - ignoring!" ext))))
+      (u/printerrf "Unknown stats file extension '%s' - ignoring!" ext))))
 
 
 (defn- duration-str
@@ -111,26 +124,53 @@
   "General result reporting logic."
   [results]
   (let [counts (:counts results)
+        elapsed (:elapsed results)
         total-files (apply + (vals counts))
+        total-processed (count (:results results))
+        total-size (apply + (keep :size (vals (:results results))))
         diff-lines (apply + (keep :diff-lines (vals (:results results))))
+        durations (->> (vals (:results results))
+                       (keep :durations)
+                       (apply merge-with +))
+        total-duration (apply + (vals durations))
         stats (cond-> {:files counts
                        :total total-files
                        :elapsed (:elapsed results)}
                 (pos? diff-lines)
-                (assoc :diff-lines diff-lines))]
-    (p/log (pr-str stats))
-    (when (or (p/option :report) (p/option :verbose))
-      (printf "Checked %d files in %s\n"
+                (assoc :diff-lines diff-lines)
+
+                (seq durations)
+                (assoc :durations durations))]
+    (u/log (pr-str stats))
+    (when (or (u/option :report) (u/option :verbose))
+      (printf "Checked %d of %d files in %s (%.1f fps)\n"
+              total-processed
               total-files
-              (if-let [elapsed (:elapsed results)]
+              (if elapsed
                 (duration-str elapsed)
-                "some amount of time"))
+                "some amount of time")
+              (* 1e3 (/ total-processed elapsed)))
+      (printf "Checked %.1f KB of source files (%.1f KBps)\n"
+              (/ total-size 1024.0)
+              (* 1e3 (/ total-size 1024 elapsed)))
       (doseq [[type-key file-count] (sort-by val (comp - compare) (:files stats))]
         (printf "%6d %s\n" file-count (name type-key)))
       (when (pos? diff-lines)
         (printf "Resulting diff has %d lines\n" diff-lines))
+      (when (u/option :report-timing)
+        (when-let [durations (->> durations
+                                  (sort-by val (comp - compare))
+                                  (map (fn [[rule-key duration]]
+                                         {"rule" (namespace rule-key)
+                                          "subrule" (name rule-key)
+                                          "elapsed" (duration-str (/ duration 1e6))
+                                          "percent" (if (pos? total-duration)
+                                                      (format "%.1f%%" (* 100.0 (/ duration total-duration)))
+                                                      "--")}))
+                                  (seq))]
+          (pp/print-table ["rule" "subrule" "elapsed" "percent"] durations)))
       (flush))
-    (when-let [stats-file (p/option :stats)]
+    (when-let [stats-file (u/option :stats)]
       (write-stats! stats-file stats))))
 
 
@@ -184,8 +224,35 @@
       (exit! 1)))
   (let [^File file (first (search-roots paths))
         config (load-configs (.getPath file) file)]
-    (pprint config)
+    (pp/pprint config)
     config))
+
+
+
+;; ## Migrate Command
+
+(defn print-migrate-usage
+  "Print help for the migrate command."
+  []
+  (println "Usage: cljstyle [options] migrate [path]")
+  (newline)
+  (println "Update configuration files by migrating them to the latest format. Migrates")
+  (println "all legacy config files found in the given paths, or the working directory.")
+  (println "WARNING: this will strip any comments from the existing files!"))
+
+
+(defn migrate-config
+  "Implementation of the `migrate` command."
+  [paths]
+  (process-files! (constantly {:type :noop}) paths)
+  (run!
+    (fn migrate
+      [file]
+      (println "Migrating configuration" (str file))
+      (let [old-config (config/read-config* file)
+            new-config (config/translate-legacy old-config)]
+        (spit file (with-out-str (pp/pprint new-config)))))
+    @config/legacy-files))
 
 
 
@@ -210,13 +277,13 @@
 (defn find-sources
   "Implementation of the `find` command."
   [paths]
-  (let [results (walk-files! find-source paths)
+  (let [results (process-files! find-source paths)
         counts (:counts results)
         total (apply + (vals counts))]
-    (p/logf "Searched %d files in %.2f ms"
+    (u/logf "Searched %d files in %.2f ms"
             total
             (:elapsed results -1.0))
-    (p/log (pr-str counts))
+    (u/log (pr-str counts))
     results))
 
 
@@ -236,32 +303,37 @@
   "Check a single source file and produce a result."
   [config path ^File file]
   (let [original (slurp file)
-        revised (format/reformat-file original config)]
-    (if (= original revised)
+        result (format/reformat-file* original (:rules config))
+        formatted (:formatted result)
+        durations (:durations result)]
+    (if (= original formatted)
       {:type :correct
-       :debug (str "Source file " path " is formatted correctly")}
-      (let [diff (diff/unified-diff path original revised)]
+       :debug (str "Source file " path " is formatted correctly")
+       :durations durations}
+      (let [diff (diff/unified-diff path original formatted)]
         {:type :incorrect
          :debug (str "Source file " path " is formatted incorrectly")
          :info (cond-> diff
-                 (not (p/option :no-color))
+                 (not (u/option :no-color))
                  (diff/colorize))
-         :diff-lines (diff/count-changes diff)}))))
+         :diff-lines (diff/count-changes diff)
+         :durations durations}))))
 
 
 (defn check-sources
   "Implementation of the `check` command."
   [paths]
-  (let [results (walk-files! check-source paths)
+  (let [results (process-files! check-source paths)
         counts (:counts results)]
     (report-stats results)
+    (warn-legacy-config)
     (when-not (empty? (:errors results))
-      (p/printerrf "Failed to process %d files" (count (:errors results)))
+      (u/printerrf "Failed to process %d files" (count (:errors results)))
       (exit! 3))
     (when-not (zero? (:incorrect counts 0))
-      (p/printerrf "%d files formatted incorrectly" (:incorrect counts))
+      (u/printerrf "%d files formatted incorrectly" (:incorrect counts))
       (exit! 2))
-    (p/logf "All %d files formatted correctly" (:correct counts))
+    (u/logf "All %d files formatted correctly" (:correct counts))
     results))
 
 
@@ -280,28 +352,33 @@
   "Fix a single source file and produce a result."
   [config path ^File file]
   (let [original (slurp file)
-        revised (format/reformat-file original config)]
-    (if (= original revised)
+        result (format/reformat-file* original (:rules config))
+        formatted (:formatted result)
+        durations (:durations result)]
+    (if (= original formatted)
       {:type :correct
-       :debug (str "Source file " path " is formatted correctly")}
+       :debug (str "Source file " path " is formatted correctly")
+       :durations durations}
       (do
-        (spit file revised)
+        (spit file formatted)
         {:type :fixed
-         :info (str "Reformatting source file " path)}))))
+         :info (str "Reformatting source file " path)
+         :durations durations}))))
 
 
 (defn fix-sources
   "Implementation of the `fix` command."
   [paths]
-  (let [results (walk-files! fix-source paths)
+  (let [results (process-files! fix-source paths)
         counts (:counts results)]
     (report-stats results)
+    (warn-legacy-config)
     (when-not (empty? (:errors results))
-      (p/printerrf "Failed to process %d files" (count (:errors results)))
+      (u/printerrf "Failed to process %d files" (count (:errors results)))
       (exit! 3))
     (if (zero? (:fixed counts 0))
-      (p/logf "All %d files formatted correctly" (:correct counts))
-      (p/printerrf "Corrected formatting of %d files" (:fixed counts)))
+      (u/logf "All %d files formatted correctly" (:correct counts))
+      (u/printerrf "Corrected formatting of %d files" (:fixed counts)))
     results))
 
 
@@ -320,6 +397,7 @@
   "Implementation of the `pipe` command."
   []
   (let [cwd (System/getProperty "user.dir")
-        config (load-configs cwd (io/file cwd))]
-    (print (format/reformat-file (slurp *in*) config))
+        config (load-configs cwd (io/file cwd))
+        formatted (format/reformat-file (slurp *in*) (:rules config))]
+    (print formatted)
     (flush)))

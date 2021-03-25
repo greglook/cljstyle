@@ -11,6 +11,78 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ...
 
 
+## [0.14.0] - 2020-11-07
+
+This release significantly changes the way that `cljstyle` is configured.
+Instead of a single flat map of options, configuration has been split up into
+rule-specific and file-specific nested maps. This helps make the options more
+understandable, less repetitive, and will support more nuanced configuration
+options in the future.
+
+Legacy configuration will still work, but the tool now emits a warning when it
+loads files with the old style config. Use the new `migrate` command to
+automatically update your config files. Eventually, the legacy format will be
+deprecated.
+
+In addition, formatting rules are now applied in many fewer passes over the
+syntax tree. This results in a significant speedup for most workloads, measured
+at about 2.3x the throughput of the previous version. Use the new
+`--report-timing` option to show a detailed table of which rules the processing
+time was spent in.
+
+### Changed
+- Configuration files have a new structure which is rule-oriented.
+- Refactor blank line rules out of whitespace rules.
+- Protocol keyword attributes must start on a new line.
+- Formatting rules are now expressed via data structures which can be composed
+  into a single pass over the syntax forms.
+- The `--exclude` option has been renamed to `--ignore` and uses standard regex
+  syntax instead of globs. This provides better consistency with the `:ignore`
+  configuration for `:files`.
+
+### Added
+- All commands now warn when reading legacy configuration files.
+- The `migrate` command will rewrite configuration files to use the new syntax.
+- Configuration merging now supports `^:concat` on sequential values to have
+  the value appended to instead of replacing the previous value.
+- Type formatting can be controlled for individual kinds of types to separately
+  enable protocols, types, reifies, and proxies.
+- A new `--report-timing` option will enable detailed timing data for each
+  formatting rule in the report output.
+- The processing timeout can now be controlled with the `--timeout` option,
+  providing an execution limit in seconds.
+- The `--timeout-trace` option will print a dump of all threads' stack traces
+  when processing times out.
+
+### Fixed
+- Safely read configuration files to avoid read-time eval attacks.
+- Remove duplicated exception printing code now that reflections are fixed in
+  `clojure.stacktrace`.
+- Fixed a bug with inner-indent rule index limiting. This primarily affected
+  `letfn` forms when function formatting was disabled.
+  [#54](//github.com/greglook/cljstyle/issues/54)
+- Fixed margin calculation for reader macro forms, in particular affecting
+  record literals.
+  [#24](//github.com/greglook/cljstyle/issues/24)
+
+
+## [0.13.0] - 2020-06-13
+
+### Added
+- Added support for setting `--exclude` CLI options that allow you to specify
+  directories/files to ignore at runtime.
+  [#44](https://github.com/greglook/cljstyle/pull/44)
+- Automatically download Graal SDK for builds.
+
+### Fixed
+- Namespace reformatting logic handles "attr-map" forms correctly now.
+  [#50](//github.com/greglook/cljstyle/issues/50)
+  [#51](https://github.com/greglook/cljstyle/pull/51)
+- Files failing because of a missing EOF newline will correctly show a diff in
+  the `check` output.
+  [#48](https://github.com/greglook/cljstyle/issues/48)
+
+
 ## [0.12.1] - 2020-02-22
 
 ### Added
@@ -205,7 +277,9 @@ functionality.
 Legacy project release.
 
 
-[Unreleased]: https://github.com/greglook/cljstyle/compare/0.12.1...HEAD
+[Unreleased]: https://github.com/greglook/cljstyle/compare/0.14.0...HEAD
+[0.14.0]: https://github.com/greglook/cljstyle/compare/0.13.0...0.14.0
+[0.13.0]: https://github.com/greglook/cljstyle/compare/0.12.1...0.13.0
 [0.12.1]: https://github.com/greglook/cljstyle/compare/0.12.0...0.12.1
 [0.12.0]: https://github.com/greglook/cljstyle/compare/0.11.1...0.12.0
 [0.11.1]: https://github.com/greglook/cljstyle/compare/0.11.0...0.11.1

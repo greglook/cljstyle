@@ -10,6 +10,7 @@ _cljstyle() {
         "--no-color[disable color output]" \
         "--verbose[verbose logging output]" \
         "--help[show usage information]" \
+        "--exclude=[exclude globs]:File globs to exclude:_files" \
         "1:command:((find\\:'Find files which would be processed'
                      check\\:'Check source files and print a diff for errors'
                      fix\\:'Edit source files to fix formatting errors'

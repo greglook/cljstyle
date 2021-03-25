@@ -2,19 +2,30 @@
   "Main entry for cljstyle tool."
   (:gen-class)
   (:require
-    [cljstyle.config :as config]
     [cljstyle.task.core :as task]
-    [cljstyle.task.print :as p]
+    [cljstyle.task.util :as u]
+    [clojure.stacktrace :as cst]
     [clojure.tools.cli :as cli]))
 
 
 (def ^:private cli-options
   "Command-line tool options."
-  [[nil  "--report" "Print stats report at the end of a run."]
-   [nil  "--stats FILE" "Write formatting stats to the named file. The extension controls the format and may be either 'edn' or 'tsv'."]
-   [nil  "--no-color" "Don't output ANSI color codes."]
-   ["-v" "--verbose" "Print detailed debugging output."]
-   ["-h" "--help" "Show help and usage information."]])
+  [[nil  "--ignore PATTERN" "Ignore files matching the given pattern. May be set multiple times."
+    :default #{}
+    :default-desc ""
+    :parse-fn re-pattern
+    :assoc-fn (fn [m k v] (update m k conj v))]
+   [nil  "--timeout SEC" "Maximum time to allow the process to run for."
+    :default 300
+    :parse-fn #(Integer/parseInt %)
+    :validate [pos? "Must be a positive number"]]
+   [nil  "--timeout-trace" "Dump thread stack traces when the tool times out."]
+   [nil  "--stats FILE"    "Write formatting stats to the named file. The extension controls the format and may be either 'edn' or 'tsv'."]
+   [nil  "--report"        "Print stats report at the end of a run."]
+   [nil  "--report-timing" "Print detailed rule timings at the end of a run."]
+   [nil  "--no-color"      "Don't output ANSI color codes."]
+   ["-v" "--verbose"       "Print detailed debugging output."]
+   ["-h" "--help"          "Show help and usage information."]])
 
 
 (defn- print-general-usage
@@ -28,6 +39,7 @@
   (println "    fix       Edit source files to fix formatting errors.")
   (println "    pipe      Fixes formatting errors from stdin and pipes the results to stdout.")
   (println "    config    Show config used for a given path.")
+  (println "    migrate   Migrate legacy configuration files.")
   (println "    version   Print program version information.")
   (newline)
   (println "Options:")
@@ -49,11 +61,12 @@
     ;; Show help for general usage or a command.
     (when (:help options)
       (case command
-        "find"   (task/print-find-usage)
-        "check"  (task/print-check-usage)
-        "fix"    (task/print-fix-usage)
-        "pipe"   (task/print-pipe-usage)
-        "config" (task/print-config-usage)
+        "find"    (task/print-find-usage)
+        "check"   (task/print-check-usage)
+        "fix"     (task/print-fix-usage)
+        "pipe"    (task/print-pipe-usage)
+        "config"  (task/print-config-usage)
+        "migrate" (task/print-migrate-usage)
         (print-general-usage (parsed :summary)))
       (flush)
       (System/exit 0))
@@ -64,21 +77,28 @@
       (System/exit 1))
     ;; Execute requested command.
     (try
-      (p/with-options options
+      (u/with-options options
         (case command
           "find"    (task/find-sources args)
           "check"   (task/check-sources args)
           "fix"     (task/fix-sources args)
           "pipe"    (task/pipe)
           "config"  (task/show-config args)
+          "migrate" (task/migrate-config args)
           "version" (task/print-version args)
-          (do (p/printerr "Unknown cljstyle command:" command)
+          (do (u/printerr "Unknown cljstyle command:" command)
               (System/exit 1))))
       (catch Exception ex
         (binding [*out* *err*]
-          (if (= ::config/invalid (:type (ex-data ex)))
-            (println (.getMessage ex))
-            (p/print-cause-trace ex))
+          (case (:type (ex-data ex))
+            :cljstyle.config/invalid
+            (println (ex-message ex))
+
+            :cljstyle.task.process/timeout
+            (println (ex-message ex))
+
+            ;; else
+            (cst/print-cause-trace ex))
           (flush)
           (System/exit 4))))
     ;; Successful tool run if no other exit.
