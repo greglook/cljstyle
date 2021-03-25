@@ -56,14 +56,26 @@ binary.
 
 ## Installation
 
+### Manual install
 Binary releases are available on the [GitHub project](https://github.com/greglook/cljstyle/releases).
 The native binaries are self-contained, so to install them simply place them on
 your path.
 
-Releases are also published to Clojars. To use the latest version, add the
-following dependency to your project:
+### Installation script (macOS and Linux)
 
-[![Clojars Project](http://clojars.org/mvxcvi/cljstyle/latest-version.svg)](http://clojars.org/mvxcvi/cljstyle)
+This installation script works for linux and MacOS and can be used for quickly installing or upgrading to the newest cljstyle without a package manager. It will install to /usr/local/bin by default.
+
+To download and execute the script:
+
+```
+curl -sLO https://raw.githubusercontent.com/greglook/cljstyle/master/script/install-cljstyle
+chmod +x install-cljstyle
+./install-cljstyle
+```
+
+To install to a different directory, append the option --dir <dir> to the above command. To download to a different directory, append the option --download-dir <dir>. To install a specific version, use --version <x.y.z>.
+
+To upgrade, just run the script again.
 
 ### macOS via Homebrew
 
@@ -72,6 +84,13 @@ following dependency to your project:
 ```bash
 brew install --cask cljstyle
 ```
+
+### Clojars
+Releases are also published to Clojars. To use the latest version, add the
+following dependency to your project:
+
+[![Clojars Project](http://clojars.org/mvxcvi/cljstyle/latest-version.svg)](http://clojars.org/mvxcvi/cljstyle)
+
 
 ## Usage
 

@@ -45,6 +45,7 @@ set-version:
 	    -e 's|CLJSTYLE_VERSION: .*|CLJSTYLE_VERSION: $(new-version)|' \
 	    -e 's|cljstyle.git", :tag ".*"}|cljstyle.git", :tag "$(new-version)"}|' \
 	    doc/integrations.md
+	@echo "$(new-version)" > CLJSTYLE_RELEASED_VERSION
 
 $(uberjar_path): project.clj $(shell find resources -type f) $(shell find src -type f)
 	lein uberjar
