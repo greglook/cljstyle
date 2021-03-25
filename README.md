@@ -70,7 +70,7 @@ following dependency to your project:
 `cljstyle` can be installed on macOS via a [Homebrew Cask](https://github.com/Homebrew/homebrew-cask):
 
 ```bash
-brew cask install cljstyle
+brew install --cask cljstyle
 ```
 
 ## Usage
