@@ -120,6 +120,7 @@
 (defn ignored-form?
   "True if the node at this location is an ignored form."
   [zloc]
+  ;; TODO: option for ignoring comments and discards?
   (or (ignore-meta? zloc)
       (comment-form? zloc)
       (discard-macro? zloc)))
@@ -197,6 +198,18 @@
   (if (pos? n)
     (recur (move zloc) move (dec n))
     zloc))
+
+
+(defn skip-next
+  "Like `z/next*`, but skips the current location instead of visiting and
+  descending into it."
+  [zloc]
+  (or (z/right* zloc)
+      (loop [p zloc]
+        (if-let [zup (z/up* p)]
+          (or (z/right* zup)
+              (recur zup))
+          (assoc p :end? true)))))
 
 
 (defn skip-whitespace
@@ -291,9 +304,7 @@
       zloc
 
       (ignored-form? zloc)
-      (if-let [right (z/right* zloc)]
-        (recur right)
-        zloc)
+      (recur (skip-next zloc))
 
       :else
       (recur (z/next* (f zloc))))))

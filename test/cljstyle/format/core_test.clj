@@ -342,3 +342,31 @@
      ~(str \"foo bar \" x)
      [a# b#]
      ~y))")))
+
+
+(deftest discard-forms
+  (is (reformatted?
+        fmt/reformat-form default-rules
+        "(defn fuga
+  [x]
+  (+ 1 2)
+)
+
+(let [p 1]
+  #_(+ 1 2))
+
+(defn hoge [x]
+     (+ 1 2)
+)"
+        "(defn fuga
+  [x]
+  (+ 1 2))
+
+
+(let [p 1]
+  #_(+ 1 2))
+
+
+(defn hoge
+  [x]
+  (+ 1 2))")))

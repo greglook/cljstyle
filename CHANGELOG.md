@@ -19,6 +19,10 @@ This project adheres to [Semantic Versioning](http://semver.org/).
   [#13](//github.com/greglook/cljstyle/issues/13)
   [#43](//github.com/greglook/cljstyle/issues/43)
   [#52](//github.com/greglook/cljstyle/issues/52)
+- If a discard reader macro was the last subform, it would inadvertently cause
+  early termination of the styling walk. The code correctly walks back up the
+  zipper now.
+  [#55](//github.com/greglook/cljstyle/issues/55)
 
 
 ## [0.14.0] - 2020-11-07
