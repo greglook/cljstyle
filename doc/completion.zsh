@@ -5,7 +5,10 @@
 
 _cljstyle() {
     _arguments \
+        "--timeout=[seconds]:File processing timeout" \
+        "--timeout-trace[dump thread traces on timeout]" \
         "--report[print stats report]" \
+        "--report-timing[print detailed rule timing]" \
         "--stats=[statistics file]:Write formatting stats to this file:_files" \
         "--no-color[disable color output]" \
         "--verbose[verbose logging output]" \

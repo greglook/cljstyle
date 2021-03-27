@@ -5,7 +5,7 @@
     [cljstyle.format.core :as fmt]
     [cljstyle.format.zloc :as zl]
     [cljstyle.task.core :as task]
-    [cljstyle.task.print :refer [with-options]]
+    [cljstyle.task.util :refer [with-options]]
     [clojure.java.io :as io]
     [clojure.repl :refer :all]
     [clojure.stacktrace :refer [print-cause-trace]]
