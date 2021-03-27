@@ -2,7 +2,7 @@ cljstyle
 ========
 
 [![CircleCI](https://circleci.com/gh/greglook/cljstyle.svg?style=shield&circle-token=9576040ebe39e81406823481c98dc55a39d03c4d)](https://circleci.com/gh/greglook/cljstyle)
-[![codecov](https://codecov.io/gh/greglook/cljstyle/branch/master/graph/badge.svg)](https://codecov.io/gh/greglook/cljstyle)
+[![codecov](https://codecov.io/gh/greglook/cljstyle/branch/main/graph/badge.svg)](https://codecov.io/gh/greglook/cljstyle)
 
 `cljstyle` is a tool for formatting Clojure code. It can take something messy
 like this:
@@ -68,7 +68,7 @@ This installation script works for linux and MacOS and can be used for quickly i
 To download and execute the script:
 
 ```
-curl -sLO https://raw.githubusercontent.com/greglook/cljstyle/master/script/install-cljstyle
+curl -sLO https://raw.githubusercontent.com/greglook/cljstyle/main/script/install-cljstyle
 chmod +x install-cljstyle
 ./install-cljstyle
 ```
