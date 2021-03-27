@@ -8,7 +8,17 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
-...
+### Added
+- Releases will now contain a `.zip` file in addition to the `.tar.gz` archive.
+  Eventually, this will become the primary archive format for releases.
+
+### Fixed
+- Upgraded `rewrite-clj` v0 to v1. This solves a number of parsing-related
+  issues with the old version. In particular, auto-resolved namespaced maps
+  work as expected now.
+  [#13](//github.com/greglook/cljstyle/issues/13)
+  [#43](//github.com/greglook/cljstyle/issues/43)
+  [#52](//github.com/greglook/cljstyle/issues/52)
 
 
 ## [0.14.0] - 2020-11-07
@@ -77,10 +87,10 @@ time was spent in.
 ### Fixed
 - Namespace reformatting logic handles "attr-map" forms correctly now.
   [#50](//github.com/greglook/cljstyle/issues/50)
-  [#51](https://github.com/greglook/cljstyle/pull/51)
+  [#51](//github.com/greglook/cljstyle/pull/51)
 - Files failing because of a missing EOF newline will correctly show a diff in
   the `check` output.
-  [#48](https://github.com/greglook/cljstyle/issues/48)
+  [#48](//github.com/greglook/cljstyle/issues/48)
 
 
 ## [0.12.1] - 2020-02-22

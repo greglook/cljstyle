@@ -96,7 +96,7 @@
           (is (thrown-with-data? {:code 3}
                 (task/check-sources [(str test-dir)])))
           (is (str/blank? stdout))
-          (is (str/starts-with? stderr "Error while processing file target/test-config/check/a/b/foo.clj\njava.lang.Exception: Unexpected EOF"))
+          (is (str/starts-with? stderr "Error while processing file target/test-config/check/a/b/foo.clj\nclojure.lang.ExceptionInfo: Unexpected EOF"))
           (is (str/ends-with? stderr "Failed to process 1 files\n")))
         (testing "verbose"
           (capture-io

@@ -6,8 +6,7 @@
     [rewrite-clj.node :as n]
     [rewrite-clj.zip :as z])
   (:import
-    rewrite_clj.node.keyword.KeywordNode
-    rewrite_clj.node.string.StringNode))
+    rewrite_clj.node.stringz.StringNode))
 
 
 (defn zprn
@@ -31,7 +30,7 @@
 (defn keyword?
   "True if the node at this location is a keyword."
   [zloc]
-  (instance? KeywordNode (z/node zloc)))
+  (n/keyword-node? (z/node zloc)))
 
 
 (defn token?

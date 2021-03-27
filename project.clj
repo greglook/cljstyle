@@ -8,14 +8,14 @@
   {"kaocha" ["with-profile" "+kaocha" "run" "-m" "kaocha.runner"]}
 
   :plugins
-  [[lein-cloverage "1.1.0"]]
+  [[lein-cloverage "1.2.2"]]
 
   :dependencies
-  [[org.clojure/clojure "1.10.2-alpha1"]
-   [org.clojure/tools.cli "1.0.194"]
-   [org.clojure/tools.reader "1.3.3"]
+  [[org.clojure/clojure "1.10.3"]
+   [org.clojure/tools.cli "1.0.206"]
+   [org.clojure/tools.reader "1.3.5"]
    [com.googlecode.java-diff-utils/diffutils "1.3.0"]
-   [rewrite-clj "0.6.1"]]
+   [rewrite-clj "1.0.594-alpha"]]
 
   :main cljstyle.main
 
@@ -30,16 +30,17 @@
   {:repl
    {:source-paths ["dev"]
     :repl-options {:init-ns cljstyle.repl}
-    :jvm-opts ["-XX:+UnlockDiagnosticVMOptions"
+    :jvm-opts ["-XX:-OmitStackTraceInFastThrow"
+               "-XX:+UnlockDiagnosticVMOptions"
                "-XX:+DebugNonSafepoints"]
     :dependencies
-    [[com.clojure-goes-fast/clj-async-profiler "0.4.1"]
-     [org.clojure/tools.namespace "1.0.0"]]}
+    [[com.clojure-goes-fast/clj-async-profiler "0.5.0"]
+     [org.clojure/tools.namespace "1.1.0"]]}
 
    :kaocha
    {:dependencies
     [[org.clojure/test.check "1.1.0"]
-     [lambdaisland/kaocha "1.0.700"]]}
+     [lambdaisland/kaocha "1.0.829"]]}
 
    :uberjar
    {:target-path "target/uberjar"

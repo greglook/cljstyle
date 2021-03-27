@@ -42,6 +42,10 @@
         "foo:bar"))
   (is (reformatted?
         fmt/reformat-form {}
+        "[##-Inf 0.0 ##Inf]"
+        "[##-Inf 0.0 ##Inf]"))
+  (is (reformatted?
+        fmt/reformat-form {}
         "#_(foo\nbar)"
         "#_(foo\nbar)"))
   (is (reformatted?
@@ -63,53 +67,66 @@
 
 
 (deftest namespaced-maps
-  (is (reformatted?
-        fmt/reformat-form {:whitespace {:insert-missing? false}}
-        "#:a{:one 1\n    :two 2}"
-        "#:a{:one 1\n    :two 2}"))
-  (is (reformatted?
-        fmt/reformat-form {:whitespace {:insert-missing? false}}
-        "#:a {:one 1\n     :two 2}"
-        "#:a {:one 1\n     :two 2}"))
-  (is (reformatted?
-        fmt/reformat-form default-rules
-        "#:a{:one 1\n    :two 2}"
-        "#:a{:one 1\n    :two 2}"))
-  (is (reformatted?
-        fmt/reformat-form default-rules
-        "#:a {:one 1\n     :two 2}"
-        "#:a {:one 1\n     :two 2}"))
-  (is (reformatted?
-        fmt/reformat-form default-rules
-        "(let [foo #:a{:one 1}] (:a/one foo))"
-        "(let [foo #:a{:one 1}] (:a/one foo))"))
-  (is (reformatted?
-        fmt/reformat-form default-rules
-        "(let [foo #:a {:one 1}] (:a/one foo))"
-        "(let [foo #:a {:one 1}] (:a/one foo))"))
-  (is (reformatted?
-        fmt/reformat-form default-rules
-        "(let [foo #:abc\n{:d 1}] (:d foo))"
-        "(let [foo #:abc\n          {:d 1}] (:d foo))"))
-  (is (reformatted?
-        fmt/reformat-form default-rules
-        "#:abc\n {:d 1}"
-        "#:abc\n{:d 1}"))
-  (is (reformatted?
-        fmt/reformat-form default-rules
-        "#:abc\n{:d 1}"
-        "#:abc\n{:d 1}"))
-  ;; FIXME: https://github.com/greglook/cljstyle/issues/13
-  #_
-  (is (reformatted?
-        fmt/reformat-form default-rules
-        "#::foo\n{ :x #::bar {} }  "
-        "#::foo\n{:x #::bar {}}"))
-  #_
-  (is (reformatted?
-        fmt/reformat-form default-rules
-        "#::foo\n{ :x #::bar {} }  "
-        "#::foo{:x #::bar {}}")))
+  (testing "single namespace"
+    (is (reformatted?
+          fmt/reformat-form {:whitespace {:insert-missing? false}}
+          "#:a{:one 1\n    :two 2}"
+          "#:a{:one 1\n    :two 2}"))
+    (is (reformatted?
+          fmt/reformat-form {:whitespace {:insert-missing? false}}
+          "#:a {:one 1\n     :two 2}"
+          "#:a {:one 1\n     :two 2}"))
+    (is (reformatted?
+          fmt/reformat-form default-rules
+          "#:a{:one 1\n    :two 2}"
+          "#:a{:one 1\n    :two 2}"))
+    (is (reformatted?
+          fmt/reformat-form default-rules
+          "#:a {:one 1\n     :two 2}"
+          "#:a {:one 1\n     :two 2}")))
+  (testing "let binding"
+    (is (reformatted?
+          fmt/reformat-form default-rules
+          "(let [foo #:a{:one 1}] (:a/one foo))"
+          "(let [foo #:a{:one 1}] (:a/one foo))"))
+    (is (reformatted?
+          fmt/reformat-form default-rules
+          "(let [foo #:a {:one 1}] (:a/one foo))"
+          "(let [foo #:a {:one 1}] (:a/one foo))"))
+    (is (reformatted?
+          fmt/reformat-form default-rules
+          "(let [foo #:abc\n{:d 1}] (:d foo))"
+          "(let [foo #:abc\n          {:d 1}] (:d foo))")))
+  (testing "multiline"
+    (is (reformatted?
+          fmt/reformat-form default-rules
+          "#:abc\n {:d 1}"
+          "#:abc\n{:d 1}"))
+    (is (reformatted?
+          fmt/reformat-form default-rules
+          "#:abc\n{:d 1}"
+          "#:abc\n{:d 1}")))
+  (testing "auto-resolved"
+    (is (reformatted?
+          fmt/reformat-form default-rules
+          "#::{ :x 123 }  "
+          "#::{:x 123}"))
+    (is (reformatted?
+          fmt/reformat-form default-rules
+          "#::{ :x 123 \n :y true}  "
+          "#::{:x 123\n    :y true}"))
+    (is (reformatted?
+          fmt/reformat-form default-rules
+          "#:foo{ :x #::bar{} }  "
+          "#:foo{:x #::bar{}}"))
+    (is (reformatted?
+          fmt/reformat-form default-rules
+          "#::foo\n{ :x #::bar {} }  "
+          "#::foo\n{:x #::bar {}}"))
+    (is (reformatted?
+          fmt/reformat-form default-rules
+          "#::foo{ :x #::bar{} }  "
+          "#::foo{:x #::bar{}}"))))
 
 
 (deftest comment-handling
