@@ -370,3 +370,26 @@
 (defn hoge
   [x]
   (+ 1 2))")))
+
+
+(deftest shebang-lines
+  (is (= "#!/usr/local/bin/bb
+
+(println \"scripts are cool\")\n"
+         (fmt/reformat-file
+           "#!/usr/local/bin/bb
+
+(println \"scripts are cool\")\n"
+           default-rules)))
+  (is (= "#!/usr/local/bin/clj
+
+
+(defn foo
+  [x]
+  (println \"hello, \" x))\n"
+         (fmt/reformat-file
+           "#!/usr/local/bin/clj
+
+
+(defn foo [x] (println \"hello, \" x))"
+           default-rules))))

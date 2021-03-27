@@ -11,6 +11,9 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 - Releases will now contain a `.zip` file in addition to the `.tar.gz` archive.
   Eventually, this will become the primary archive format for releases.
+- If the first two characters of a file are `#!`, the formatter will ignore the
+  first line of text and only style the rest of the file contents.
+  [#70](//github.com/greglook/cljstyle/issues/70)
 
 ### Fixed
 - Upgraded `rewrite-clj` v0 to v1. This solves a number of parsing-related

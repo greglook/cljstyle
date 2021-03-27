@@ -151,13 +151,30 @@
   (:formatted (reformat-string* form-string rules-config)))
 
 
+(defn- split-shebang
+  "Separate out a shebang line if it the first text present in the string.
+  Returns a vector with two entries, the potential shebang (or nil, if not
+  present) and the rest of the text as the second element.."
+  [text]
+  (if (str/starts-with? text "#!")
+    (if-let [break-pos (str/index-of text \newline)]
+      [(subs text 0 (inc break-pos))
+       (subs text (inc break-pos))]
+      [text ""])
+    [nil text]))
+
+
 (defn reformat-file*
   "Like `reformat-string*` but applies to an entire file. Will add a final
   newline if configured to do so. Returns a map with the revised text and other
   information."
   [file-text rules-config]
-  (let [result (reformat-string* file-text rules-config)]
+  (let [[shebang text] (split-shebang file-text)
+        result (reformat-string* text rules-config)]
     (cond-> result
+      shebang
+      (update :formatted (partial str shebang))
+
       (and (get-in rules-config [:eof-newline :enabled?])
            (not (str/ends-with? (:formatted result) "\n")))
       (update :formatted str "\n"))))
