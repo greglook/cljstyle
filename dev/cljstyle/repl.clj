@@ -4,8 +4,12 @@
     [cljstyle.config :as config]
     [cljstyle.format.core :as fmt]
     [cljstyle.format.zloc :as zl]
-    [cljstyle.task.core :as task]
+    [cljstyle.task.check :as check]
+    [cljstyle.task.find :as find]
+    [cljstyle.task.fix :as fix]
+    [cljstyle.task.pipe :as pipe]
     [cljstyle.task.util :refer [with-options]]
+    [cljstyle.task.version :as version]
     [clojure.java.io :as io]
     [clojure.repl :refer :all]
     [clojure.stacktrace :refer [print-cause-trace]]
@@ -17,7 +21,7 @@
 
 
 ;; Prevent tasks from exiting the REPL.
-(intern 'cljstyle.task.core '*suppress-exit* true)
+(intern 'cljstyle.task.util '*suppress-exit* true)
 
 
 (defn zfind
@@ -86,6 +90,6 @@
        (try
          (binding [*out* null-writer
                    *err* null-writer]
-           (task/check-sources [~path]))
+           (check/task [~path]))
          (catch Exception _#
            nil)))))

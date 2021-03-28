@@ -1,8 +1,7 @@
 (ns cljstyle.task.util-test
   (:require
     [cljstyle.task.util :as u]
-    [clojure.string :as str]
-    [clojure.test :refer [deftest testing is]]))
+    [clojure.test :refer [deftest is]]))
 
 
 (deftest duration-formatting
@@ -25,7 +24,7 @@
            "elapsed" "1.00 ms"
            "percent" "100.0%"}]
          (#'u/durations-table
-           {:foo/bar 1000000})))
+          {:foo/bar 1000000})))
   (is (= [{"rule" "foo"
            "subrule" "baz"
            "elapsed" "4.00 ms"
@@ -35,5 +34,5 @@
            "elapsed" "1.00 ms"
            "percent" "20.0%"}]
          (#'u/durations-table
-           {:foo/bar 1000000
-            :foo/baz 4000000}))))
+          {:foo/bar 1000000
+           :foo/baz 4000000}))))
