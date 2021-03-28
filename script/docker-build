@@ -1,0 +1,91 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+trap cleanup SIGINT SIGTERM ERR EXIT
+
+GRAAL_STATIC='false'
+CLJSTYLE_OUTPUT=''
+DOCKER_CONTAINER_ID=''
+
+usage() {
+  cat <<EOF
+Usage: $(basename "${BASH_SOURCE[0]}") [-h] [-v] [-s] -o output-path
+
+Build cljstyle inside a linux docker container. Places the compiled binary at
+the provided output path.
+
+Available options:
+
+-h, --help      Print this help and exit
+-v, --verbose   Print script debug info
+-s, --static    Build a statically-compiled executable
+-o, --output    Path to place compiled executable
+EOF
+  exit
+}
+
+msg() {
+  echo >&2 -e "${1-}"
+}
+
+die() {
+  local msg=$1
+  local code=${2-1}
+  msg "$msg"
+  exit "$code"
+}
+
+cleanup() {
+  trap - SIGINT SIGTERM ERR EXIT
+
+  if [[ -n $DOCKER_CONTAINER_ID ]]; then
+    msg "Removing temporary container"
+    docker rm $DOCKER_CONTAINER_ID
+  fi
+}
+
+parse_params() {
+  while :; do
+    case "${1-}" in
+    -h | --help) usage ;;
+    -v | --verbose) set -x ;;
+    -s | --static) GRAAL_STATIC='true' ;;
+    -o | --output)
+      CLJSTYLE_OUTPUT="${2-}"
+      shift
+      ;;
+    -?*) die "Unknown option: $1" ;;
+    *) break ;;
+    esac
+    shift
+  done
+
+  CMD_ARGS=("$@")
+
+  # check required params and arguments
+  [[ -z "${CLJSTYLE_OUTPUT-}" ]] && die "Missing required parameter: --output"
+
+  return 0
+}
+
+
+### Script Execution ###
+
+parse_params "$@"
+
+mkdir -p $(dirname $CLJSTYLE_OUTPUT)
+
+if [[ $GRAAL_STATIC = true ]]; then
+  DOCKER_IMAGE_NAME=cljstyle-static-builder
+else
+  DOCKER_IMAGE_NAME=cljstyle-builder
+fi
+
+msg "Building docker image $DOCKER_IMAGE_NAME"
+docker build --build-arg GRAAL_STATIC=$GRAAL_STATIC -t $DOCKER_IMAGE_NAME .
+
+DOCKER_CONTAINER_ID=$(docker create $DOCKER_IMAGE_NAME)
+docker cp "${DOCKER_CONTAINER_ID}:/opt/cljstyle/cljstyle" "$CLJSTYLE_OUTPUT"
+
+msg "Wrote executable to $CLJSTYLE_OUTPUT"
+ls -lh $CLJSTYLE_OUTPUT

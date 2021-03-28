@@ -1,0 +1,14 @@
+.circleci/
+.clj-kondo/
+.git/
+.gitignore
+doc/
+test/
+target/
+CHANGELOG.md
+LICENSE.txt
+VERSION.txt
+README.md
+deps.edn
+Dockerfile
+tests.edn
