@@ -15,18 +15,11 @@
 
 ;; ## Utilities
 
-(defn- search-roots
-  "Convert the list of paths into a collection of search roots. If the path
-  list is empty, uses the local directory as a single root."
-  [paths]
-  (mapv io/file (or (seq paths) ["."])))
-
-
 (defn- process-files!
   "Walk source files and apply the processing function to each."
   [f paths]
   (->>
-    (search-roots paths)
+    (u/search-roots paths)
     (map (fn prep-root
            [^File root]
            (let [canonical (.getCanonicalFile root)]
@@ -131,32 +124,6 @@
       (flush))
     (when-let [stats-file (u/option :stats)]
       (write-stats! stats-file stats))))
-
-
-
-;; ## Config Command
-
-(defn print-config-usage
-  "Print help for the config command."
-  []
-  (println "Usage: cljstyle [options] config [path]")
-  (newline)
-  (println "Show the merged configuration which would be used to format the file or")
-  (println "directory at the given path. Uses the current directory if one is not given."))
-
-
-(defn show-config
-  "Implementation of the `config` command."
-  [paths]
-  (when (< 1 (count paths))
-    (binding [*out* *err*]
-      (println "cljstyle config command takes at most one argument")
-      (flush)
-      (u/exit! 1)))
-  (let [^File file (first (search-roots paths))
-        config (u/load-configs (.getPath file) file)]
-    (pp/pprint config)
-    config))
 
 
 

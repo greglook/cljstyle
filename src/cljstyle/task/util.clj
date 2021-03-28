@@ -2,6 +2,7 @@
   "Common utilities for output and option sharing."
   (:require
     [cljstyle.config :as config]
+    [clojure.java.io :as io]
     [clojure.string :as str]))
 
 
@@ -107,6 +108,13 @@
 
 
 ;; ## Configuration
+
+(defn search-roots
+  "Convert the list of paths into a collection of search roots. If the path
+  list is empty, uses the local directory as a single root."
+  [paths]
+  (mapv io/file (or (seq paths) ["."])))
+
 
 (defn load-configs
   "Load parent configuration files. Returns a merged configuration map."

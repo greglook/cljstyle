@@ -2,6 +2,7 @@
   "Main entry for cljstyle tool."
   (:gen-class)
   (:require
+    [cljstyle.task.config :as config]
     [cljstyle.task.core :as task]
     [cljstyle.task.pipe :as pipe]
     [cljstyle.task.util :as u]
@@ -67,7 +68,7 @@
         "check"   (task/print-check-usage)
         "fix"     (task/print-fix-usage)
         "pipe"    (pipe/print-usage)
-        "config"  (task/print-config-usage)
+        "config"  (config/print-usage)
         "migrate" (task/print-migrate-usage)
         "version" (version/print-usage)
         (print-general-usage (parsed :summary)))
@@ -86,7 +87,7 @@
           "check"   (task/check-sources args)
           "fix"     (task/fix-sources args)
           "pipe"    (pipe/task args)
-          "config"  (task/show-config args)
+          "config"  (config/task args)
           "migrate" (task/migrate-config args)
           "version" (version/task args)
           (do (u/printerr "Unknown cljstyle command:" command)

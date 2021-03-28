@@ -11,26 +11,6 @@
 (use-fixtures :once u/wrap-suppressed-exit)
 
 
-(deftest config-command
-  (testing "help"
-    (capture-io
-      (is (nil? (task/print-config-usage)))
-      (is (str/starts-with? stdout "Usage: cljstyle [options] config "))
-      (is (str/blank? stderr))))
-  (testing "bad args"
-    (capture-io
-      (is (thrown-with-data? {:code 1}
-            (task/show-config ["path1" "arg2"])))
-      (is (str/blank? stdout))
-      (is (= "cljstyle config command takes at most one argument\n" stderr))))
-  (testing "task execution"
-    (capture-io
-      (is (map? (task/show-config [])))
-      (is (str/starts-with? stdout "{:"))
-      (is (str/ends-with? stdout "}\n"))
-      (is (str/blank? stderr)))))
-
-
 (deftest find-command
   (testing "help"
     (capture-io
