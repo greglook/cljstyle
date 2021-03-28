@@ -187,3 +187,15 @@
       (u/printerr "WARNING: Results not fully reported after 5 seconds"))
     (let [elapsed (/ (- (System/nanoTime) start) 1e6)]
       (assoc @results :elapsed elapsed))))
+
+
+(defn process-files!
+  "Walk source files and apply the processing function to each."
+  [f paths]
+  (->>
+    (u/search-roots paths)
+    (map (fn prep-root
+           [^File root]
+           (let [canonical (.getCanonicalFile root)]
+             [(u/load-configs (.getPath root) canonical) root canonical])))
+    (walk-files! f)))

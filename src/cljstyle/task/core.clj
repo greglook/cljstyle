@@ -15,18 +15,6 @@
 
 ;; ## Utilities
 
-(defn- process-files!
-  "Walk source files and apply the processing function to each."
-  [f paths]
-  (->>
-    (u/search-roots paths)
-    (map (fn prep-root
-           [^File root]
-           (let [canonical (.getCanonicalFile root)]
-             [(u/load-configs (.getPath root) canonical) root canonical])))
-    (process/walk-files! f)))
-
-
 (defn- write-stats!
   "Write stats output to the named file."
   [file-name stats]
@@ -127,33 +115,6 @@
 
 
 
-;; ## Migrate Command
-
-(defn print-migrate-usage
-  "Print help for the migrate command."
-  []
-  (println "Usage: cljstyle [options] migrate [path]")
-  (newline)
-  (println "Update configuration files by migrating them to the latest format. Migrates")
-  (println "all legacy config files found in the given paths, or the working directory.")
-  (println "WARNING: this will strip any comments from the existing files!"))
-
-
-(defn migrate-config
-  "Implementation of the `migrate` command."
-  [paths]
-  (process-files! (constantly {:type :noop}) paths)
-  (run!
-    (fn migrate
-      [file]
-      (println "Migrating configuration" (str file))
-      (let [old-config (config/read-config* file)
-            new-config (config/translate-legacy old-config)]
-        (spit file (with-out-str (pp/pprint new-config)))))
-    @config/legacy-files))
-
-
-
 ;; ## Find Command
 
 (defn print-find-usage
@@ -175,7 +136,7 @@
 (defn find-sources
   "Implementation of the `find` command."
   [paths]
-  (let [results (process-files! find-source paths)
+  (let [results (process/process-files! find-source paths)
         counts (:counts results)
         total (apply + (vals counts))]
     (u/logf "Searched %d files in %.2f ms"
@@ -221,7 +182,7 @@
 (defn check-sources
   "Implementation of the `check` command."
   [paths]
-  (let [results (process-files! check-source paths)
+  (let [results (process/process-files! check-source paths)
         counts (:counts results)]
     (report-stats results)
     (u/warn-legacy-config)
@@ -267,7 +228,7 @@
 (defn fix-sources
   "Implementation of the `fix` command."
   [paths]
-  (let [results (process-files! fix-source paths)
+  (let [results (process/process-files! fix-source paths)
         counts (:counts results)]
     (report-stats results)
     (u/warn-legacy-config)

@@ -4,6 +4,7 @@
   (:require
     [cljstyle.task.config :as config]
     [cljstyle.task.core :as task]
+    [cljstyle.task.migrate :as migrate]
     [cljstyle.task.pipe :as pipe]
     [cljstyle.task.util :as u]
     [cljstyle.task.version :as version]
@@ -69,7 +70,7 @@
         "fix"     (task/print-fix-usage)
         "pipe"    (pipe/print-usage)
         "config"  (config/print-usage)
-        "migrate" (task/print-migrate-usage)
+        "migrate" (migrate/print-usage)
         "version" (version/print-usage)
         (print-general-usage (parsed :summary)))
       (flush)
@@ -88,7 +89,7 @@
           "fix"     (task/fix-sources args)
           "pipe"    (pipe/task args)
           "config"  (config/task args)
-          "migrate" (task/migrate-config args)
+          "migrate" (migrate/task args)
           "version" (version/task args)
           (do (u/printerr "Unknown cljstyle command:" command)
               (System/exit 1))))
