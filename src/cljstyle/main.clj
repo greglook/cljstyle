@@ -2,9 +2,10 @@
   "Main entry for cljstyle tool."
   (:gen-class)
   (:require
+    [cljstyle.task.check :as check]
     [cljstyle.task.config :as config]
-    [cljstyle.task.core :as task]
     [cljstyle.task.find :as find]
+    [cljstyle.task.fix :as fix]
     [cljstyle.task.migrate :as migrate]
     [cljstyle.task.pipe :as pipe]
     [cljstyle.task.util :as u]
@@ -67,8 +68,8 @@
     (when (:help options)
       (case command
         "find"    (find/print-usage)
-        "check"   (task/print-check-usage)
-        "fix"     (task/print-fix-usage)
+        "check"   (check/print-usage)
+        "fix"     (fix/print-usage)
         "pipe"    (pipe/print-usage)
         "config"  (config/print-usage)
         "migrate" (migrate/print-usage)
@@ -86,8 +87,8 @@
       (u/with-options options
         (case command
           "find"    (find/task args)
-          "check"   (task/check-sources args)
-          "fix"     (task/fix-sources args)
+          "check"   (check/task args)
+          "fix"     (fix/task args)
           "pipe"    (pipe/task args)
           "config"  (config/task args)
           "migrate" (migrate/task args)
