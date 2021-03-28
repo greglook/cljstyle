@@ -14,6 +14,10 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - If the first two characters of a file are `#!`, the formatter will ignore the
   first line of text and only style the rest of the file contents.
   [#70](//github.com/greglook/cljstyle/issues/70)
+- The namespace formatting rule supports a new configuration flag
+  `:break-libs?` which controls whether requires and imports will start on a
+  new line.
+  [#35](//github.com/greglook/cljstyle/issues/35)
 
 ### Changed
 - Javascript node libraries required with string names will always sort before

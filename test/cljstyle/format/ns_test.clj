@@ -485,6 +485,34 @@
       "sorts a require with a mixture of strings and symbol namespaces"))
 
 
+(deftest lib-breaks
+  (is (rule-reformatted?
+        ns/format-namespaces {:break-libs? false}
+        "(ns foo (:require [clojure.string :as str]))"
+        "(ns foo
+  (:require [clojure.string :as str]))"))
+  (is (rule-reformatted?
+        ns/format-namespaces {:break-libs? false}
+        "(ns foo (:require [clojure.string :as str] [clojure.set :as set] [foo.bar :as bar]))"
+        "(ns foo
+  (:require [clojure.set :as set]
+            [clojure.string :as str]
+            [foo.bar :as bar]))"))
+  (is (rule-reformatted?
+        ns/format-namespaces {:break-libs? false}
+        "(ns foo (:import java.io.File))"
+        "(ns foo
+  (:import java.io.File))"))
+  (is (rule-reformatted?
+        ns/format-namespaces {:break-libs? false}
+        "(ns foo (:import java.io.File java.io.OutputStream java.time.Instant))"
+        "(ns foo
+  (:import (java.io
+             File
+             OutputStream)
+           java.time.Instant))")))
+
+
 (deftest regressions
   (testing "discard macro"
     (is (rule-reformatted?

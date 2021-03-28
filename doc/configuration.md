@@ -188,6 +188,11 @@ This rule corrects and standardizes the formatting of `ns` definitions.
 
   Number of spaces to indent in ns forms.
 
+* `:break-libs?`
+
+  Whether to break required and imported libs onto a new line following the
+  list keyword.
+
 * `:import-break-width`
 
   Threshold for breaking a single class import into a package import group. If

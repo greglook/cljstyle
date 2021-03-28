@@ -185,12 +185,23 @@
 (defn- render-block
   "Render a namespace group as a multi-line block."
   [rule-config base-indent kw elements]
-  (->> elements
-       (mapcat (partial vector
-                        (n/newlines 1)
-                        (n/spaces (+ base-indent (:indent-size rule-config indent-size)))))
-       (list* (n/keyword-node kw))
-       (n/list-node)))
+  (if (:break-libs? rule-config true)
+    ;; Elements each broken onto new line after list keyword.
+    (->> elements
+         (mapcat (partial vector
+                          (n/newlines 1)
+                          (n/spaces (+ base-indent (:indent-size rule-config indent-size)))))
+         (list* (n/keyword-node kw))
+         (n/list-node))
+    ;; Elements start on same line as list keyword.
+    (->> (rest elements)
+         (mapcat (partial vector
+                          (n/newlines 1)
+                          (n/spaces (+ base-indent (count (str kw)) 2))))
+         (list* (n/keyword-node kw)
+                (n/spaces 1)
+                (first elements))
+         (n/list-node))))
 
 
 
@@ -359,7 +370,12 @@
          (mapcat expand-comments)
          (mapcat (partial list
                           (n/newlines 1)
-                          (n/spaces (+ base-indent (* 2 (:indent-size rule-config indent-size))))))
+                          (n/spaces
+                            (+ base-indent
+                               (:indent-size rule-config indent-size)
+                               (if (:break-libs? rule-config true)
+                                 (:indent-size rule-config indent-size)
+                                 (+ 2 (count ":import")))))))
          (cons (n/token-node package)))
     (n/list-node)
     (with-meta (meta package))

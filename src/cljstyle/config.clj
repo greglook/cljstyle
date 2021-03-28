@@ -202,6 +202,16 @@
 
 ;; #### Rule: Namespaces
 
+;; How many spaces to use to indent namespace forms.
+(s/def :cljstyle.config.rules.namespaces/indent-size
+  nat-int?)
+
+
+;; Whether to break require and import libspecs onto a new line.
+(s/def :cljstyle.config.rules.namespaces/break-libs?
+  boolean?)
+
+
 ;; If an import in a namespace is longer than this, break it into a singleton
 ;; group instead.
 (s/def :cljstyle.config.rules.namespaces/import-break-width
@@ -210,6 +220,8 @@
 
 (s/def :cljstyle.config.rules/namespaces
   (s/keys :opt-un [:cljstyle.config.rules.global/enabled?
+                   :cljstyle.config.rules.namespaces/indent-size
+                   :cljstyle.config.rules.namespaces/break-libs?
                    :cljstyle.config.rules.namespaces/import-break-width]))
 
 
@@ -321,6 +333,7 @@
     :namespaces
     {:enabled? true
      :indent-size 2
+     :break-libs? true
      :import-break-width 60}}})
 
 
