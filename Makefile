@@ -8,7 +8,7 @@ uberjar_path := target/uberjar/cljstyle.jar
 
 # Graal settings
 GRAAL_ROOT ?= /tmp/graal
-graal_version := 20.2.0
+graal_version := 21.0.0
 graal_archive := graalvm-ce-java11-$(platform)-amd64-$(graal_version).tar.gz
 graal_home := $(GRAAL_ROOT)/graalvm-ce-java11-$(graal_version)
 
@@ -64,15 +64,26 @@ $(graal_home)/bin/native-image: $(graal_home)
 graal: $(graal_home)/bin/native-image
 
 cljstyle: $(uberjar_path) $(graal_home)/bin/native-image
+	@#--static
 	$(graal_home)/bin/native-image \
-	    --no-fallback \
-	    --allow-incomplete-classpath \
-	    --report-unsupported-elements-at-runtime \
+	    -H:Name=cljstyle \
+	    -H:+ReportExceptionStackTraces \
 	    --initialize-at-build-time \
-	    -J-Xms3G -J-Xmx3G \
+	    --no-fallback \
+	    --no-server \
+	    --report-unsupported-elements-at-runtime \
+	    --native-image-info \
 	    -J-Dclojure.compiler.direct-linking=true \
 	    -J-Dclojure.spec.skip-macros=true \
-	    --no-server \
+	    -J-Xms3G -J-Xmx3G \
+	    -H:ServiceLoaderFeatureExcludeServices=javax.sound.sampled.spi.AudioFileReader \
+	    -H:ServiceLoaderFeatureExcludeServices=javax.sound.midi.spi.MidiFileReader \
+	    -H:ServiceLoaderFeatureExcludeServices=javax.sound.sampled.spi.MixerProvider \
+	    -H:ServiceLoaderFeatureExcludeServices=javax.sound.sampled.spi.FormatConversionProvider \
+	    -H:ServiceLoaderFeatureExcludeServices=javax.sound.sampled.spi.AudioFileWriter \
+	    -H:ServiceLoaderFeatureExcludeServices=javax.sound.midi.spi.MidiDeviceProvider \
+	    -H:ServiceLoaderFeatureExcludeServices=javax.sound.midi.spi.SoundbankReader \
+	    -H:ServiceLoaderFeatureExcludeServices=javax.sound.midi.spi.MidiFileWriter \
 	    -jar $<
 
 dist/$(release_tgz): cljstyle
