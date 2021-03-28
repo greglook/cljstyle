@@ -1,0 +1,99 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+
+GRAAL_XMX=${GRAAL_XMX:-"4500m"}
+GRAAL_STATIC=${GRAAL_STATIC:-}
+CLJSTYLE_JAR="target/uberjar/cljstyle.jar"
+CLJSTYLE_OUTPUT="cljstyle"
+
+usage() {
+  cat <<EOF
+Usage: $(basename "${BASH_SOURCE[0]}") [-h] [-v] [-s] [-j uberjar-path] [-o output-path]
+
+Compile a cljstyle uberjar into a native-image for the current platform.
+
+Available options:
+
+-h, --help      Print this help and exit
+-v, --verbose   Print script debug info
+-s, --static    Build a statically-compiled executable
+-j, --jar       Path to the uberjar
+-o, --output    Path to place compiled executable
+EOF
+  exit
+}
+
+msg() {
+  echo >&2 -e "${1-}"
+}
+
+die() {
+  local msg=$1
+  local code=${2-1}
+  msg "$msg"
+  exit "$code"
+}
+
+parse_params() {
+  while :; do
+    case "${1-}" in
+    -h | --help) usage ;;
+    -v | --verbose) set -x ;;
+    -s | --static) GRAAL_STATIC='true' ;;
+    -j | --jar)
+      CLJSTYLE_JAR="${2-}"
+      shift
+      ;;
+    -o | --output)
+      CLJSTYLE_OUTPUT="${2-}"
+      shift
+      ;;
+    -?*) die "Unknown option: $1" ;;
+    *) break ;;
+    esac
+    shift
+  done
+
+  CMD_ARGS=("$@")
+  [[ ${#CMD_ARGS[@]} -ne 0 ]] && die "Unexpected script arguments: $CMD_ARGS"
+
+  return 0
+}
+
+
+### Script Execution ###
+
+parse_params "$@"
+
+NATIVE_IMAGE_CMD="$GRAAL_HOME/bin/native-image"
+
+[[ -f "$CLJSTYLE_JAR" ]] || die "No uberjar file at $CLJSTYLE_JAR"
+[[ -n "$GRAAL_HOME" ]] || die "GRAAL_HOME is not set"
+[[ -x $NATIVE_IMAGE_CMD ]] || die "native-image tool not available at $NATIVE_IMAGE_CMD"
+
+export JAVA_HOME=$GRAAL_HOME
+export PATH=$GRAAL_HOME/bin:$PATH
+
+mkdir -p $(dirname $CLJSTYLE_OUTPUT)
+
+args=(
+    "-jar" "$CLJSTYLE_JAR"
+    "--native-image-info"
+    "--initialize-at-build-time"
+    "--report-unsupported-elements-at-runtime"
+    "--no-fallback"
+    "--no-server"
+    "-H:Name=cljstyle"
+    "-H:Log=registerResource:"
+    "-H:+ReportExceptionStackTraces"
+    "-J-Dclojure.spec.skip-macros=true"
+    "-J-Dclojure.compiler.direct-linking=true"
+    "-J-Xmx$GRAAL_XMX"
+)
+
+if [[ $GRAAL_STATIC = true ]]; then
+    args+=("--static")
+fi
+
+"$NATIVE_IMAGE_CMD" "${args[@]}"

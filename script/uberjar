@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+trap cleanup SIGINT SIGTERM ERR EXIT
+
+cleanup() {
+  trap - SIGINT SIGTERM ERR EXIT
+
+  for dump_file in /tmp/clojure-*.edn; do
+      >&2 echo
+      >&2 echo "Clojure error details from $dump_file"
+      >&2 cat $dump_file
+  done
+}
+
+# Build the uberjar.
+lein uberjar
