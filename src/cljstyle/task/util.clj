@@ -1,7 +1,33 @@
 (ns cljstyle.task.util
   "Common utilities for output and option sharing."
   (:require
+    [cljstyle.config :as config]
     [clojure.string :as str]))
+
+
+;; ## Exit Handling
+
+(def ^:dynamic *suppress-exit*
+  "Bind this to prevent tasks from exiting the system process."
+  false)
+
+
+(defn wrap-suppressed-exit
+  "Execute the provided function while inside a block binding
+  `*suppressed-exit*` to true. Useful as a test fixture."
+  [f]
+  (binding [*suppress-exit* true]
+    (f)))
+
+
+(defn exit!
+  "Exit a task with a status code."
+  [code]
+  (if *suppress-exit*
+    (throw (ex-info (str "Task exited with code " code)
+                    {:code code}))
+    (System/exit code)))
+
 
 
 ;; ## Options
@@ -77,3 +103,33 @@
   (when (option :verbose)
     (apply printerrf message fmt-args))
   nil)
+
+
+
+;; ## Configuration
+
+(defn load-configs
+  "Load parent configuration files. Returns a merged configuration map."
+  [label file]
+  (let [configs (config/find-up file 25)]
+    (if (seq configs)
+      (logf "Using cljstyle configuration from %d sources for %s:\n%s"
+            (count configs)
+            label
+            (str/join "\n" (mapcat config/source-paths configs)))
+      (logf "Using default cljstyle configuration for %s"
+            label))
+    (apply config/merge-settings config/default-config configs)))
+
+
+(defn warn-legacy-config
+  "Warn about legacy config files, if any are observed."
+  []
+  (when-let [files (seq @config/legacy-files)]
+    (binding [*out* *err*]
+      (printf "WARNING: legacy configuration found in %d file%s:\n"
+              (count files)
+              (if (< 1 (count files)) "s" ""))
+      (run! (comp println str) files)
+      (println "Run the migrate command to update your configuration")
+      (flush))))

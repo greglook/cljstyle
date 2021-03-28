@@ -3,7 +3,9 @@
   (:gen-class)
   (:require
     [cljstyle.task.core :as task]
+    [cljstyle.task.pipe :as pipe]
     [cljstyle.task.util :as u]
+    [cljstyle.task.version :as version]
     [clojure.stacktrace :as cst]
     [clojure.tools.cli :as cli]))
 
@@ -64,9 +66,10 @@
         "find"    (task/print-find-usage)
         "check"   (task/print-check-usage)
         "fix"     (task/print-fix-usage)
-        "pipe"    (task/print-pipe-usage)
+        "pipe"    (pipe/print-usage)
         "config"  (task/print-config-usage)
         "migrate" (task/print-migrate-usage)
+        "version" (version/print-usage)
         (print-general-usage (parsed :summary)))
       (flush)
       (System/exit 0))
@@ -82,10 +85,10 @@
           "find"    (task/find-sources args)
           "check"   (task/check-sources args)
           "fix"     (task/fix-sources args)
-          "pipe"    (task/pipe)
+          "pipe"    (pipe/task args)
           "config"  (task/show-config args)
           "migrate" (task/migrate-config args)
-          "version" (task/print-version args)
+          "version" (version/task args)
           (do (u/printerr "Unknown cljstyle command:" command)
               (System/exit 1))))
       (catch Exception ex

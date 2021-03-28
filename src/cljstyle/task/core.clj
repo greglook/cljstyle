@@ -15,52 +15,11 @@
 
 ;; ## Utilities
 
-(def ^:dynamic *suppress-exit*
-  "Bind this to prevent tasks from exiting the system process."
-  false)
-
-
-(defn- exit!
-  "Exit a task with a status code."
-  [code]
-  (if *suppress-exit*
-    (throw (ex-info (str "Task exited with code " code)
-                    {:code code}))
-    (System/exit code)))
-
-
 (defn- search-roots
   "Convert the list of paths into a collection of search roots. If the path
   list is empty, uses the local directory as a single root."
   [paths]
   (mapv io/file (or (seq paths) ["."])))
-
-
-(defn- load-configs
-  "Load parent configuration files. Returns a merged configuration map."
-  [label ^File file]
-  (let [configs (config/find-up file 25)]
-    (if (seq configs)
-      (u/logf "Using cljstyle configuration from %d sources for %s:\n%s"
-              (count configs)
-              label
-              (str/join "\n" (mapcat config/source-paths configs)))
-      (u/logf "Using default cljstyle configuration for %s"
-              label))
-    (apply config/merge-settings config/default-config configs)))
-
-
-(defn- warn-legacy-config
-  "Warn about legacy config files, if any are observed."
-  []
-  (when-let [files (seq @config/legacy-files)]
-    (binding [*out* *err*]
-      (printf "WARNING: legacy configuration found in %d file%s:\n"
-              (count files)
-              (if (< 1 (count files)) "s" ""))
-      (run! (comp println str) files)
-      (println "Run the migrate command to update your configuration")
-      (flush))))
 
 
 (defn- process-files!
@@ -71,7 +30,7 @@
     (map (fn prep-root
            [^File root]
            (let [canonical (.getCanonicalFile root)]
-             [(load-configs (.getPath root) canonical) root canonical])))
+             [(u/load-configs (.getPath root) canonical) root canonical])))
     (process/walk-files! f)))
 
 
@@ -175,36 +134,6 @@
 
 
 
-;; ## Version Command
-
-(def version
-  "Project version string."
-  (if-let [props-file (io/resource "META-INF/maven/mvxcvi/cljstyle/pom.properties")]
-    (with-open [props-reader (io/reader props-file)]
-      (let [props (doto (java.util.Properties.)
-                    (.load props-reader))
-            {:strs [groupId artifactId version revision]} props]
-        (format "%s/%s %s (%s)"
-                groupId artifactId version
-                (if revision
-                  (str/trim-newline revision)
-                  "HEAD"))))
-    "HEAD"))
-
-
-(defn print-version
-  "Implementation of the `version` command."
-  [args]
-  (when (seq args)
-    (binding [*out* *err*]
-      (println "cljstyle version command takes no arguments")
-      (flush)
-      (exit! 1)))
-  (println version)
-  (flush))
-
-
-
 ;; ## Config Command
 
 (defn print-config-usage
@@ -223,9 +152,9 @@
     (binding [*out* *err*]
       (println "cljstyle config command takes at most one argument")
       (flush)
-      (exit! 1)))
+      (u/exit! 1)))
   (let [^File file (first (search-roots paths))
-        config (load-configs (.getPath file) file)]
+        config (u/load-configs (.getPath file) file)]
     (pp/pprint config)
     config))
 
@@ -328,13 +257,13 @@
   (let [results (process-files! check-source paths)
         counts (:counts results)]
     (report-stats results)
-    (warn-legacy-config)
+    (u/warn-legacy-config)
     (when-not (empty? (:errors results))
       (u/printerrf "Failed to process %d files" (count (:errors results)))
-      (exit! 3))
+      (u/exit! 3))
     (when-not (zero? (:incorrect counts 0))
       (u/printerrf "%d files formatted incorrectly" (:incorrect counts))
-      (exit! 2))
+      (u/exit! 2))
     (u/logf "All %d files formatted correctly" (:correct counts))
     results))
 
@@ -374,32 +303,11 @@
   (let [results (process-files! fix-source paths)
         counts (:counts results)]
     (report-stats results)
-    (warn-legacy-config)
+    (u/warn-legacy-config)
     (when-not (empty? (:errors results))
       (u/printerrf "Failed to process %d files" (count (:errors results)))
-      (exit! 3))
+      (u/exit! 3))
     (if (zero? (:fixed counts 0))
       (u/logf "All %d files formatted correctly" (:correct counts))
       (u/printerrf "Corrected formatting of %d files" (:fixed counts)))
     results))
-
-
-
-;; ## Pipe Command
-
-(defn print-pipe-usage
-  "Print help for the `pipe` command."
-  []
-  (println "Usage: cljstyle [options] pipe")
-  (newline)
-  (println "Reads from stdin and fixes formatting errors piping the results to stdout."))
-
-
-(defn pipe
-  "Implementation of the `pipe` command."
-  []
-  (let [cwd (System/getProperty "user.dir")
-        config (load-configs cwd (io/file cwd))
-        formatted (format/reformat-file (slurp *in*) (:rules config))]
-    (print formatted)
-    (flush)))

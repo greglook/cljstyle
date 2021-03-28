@@ -8,22 +8,7 @@
     [clojure.test :refer [use-fixtures deftest testing is]]))
 
 
-(use-fixtures :once #(binding [task/*suppress-exit* true] (%)))
-
-
-(deftest version-command
-  (is (string? task/version))
-  (testing "bad args"
-    (capture-io
-      (is (thrown-with-data? {:code 1}
-            (task/print-version ["arg1"])))
-      (is (str/blank? stdout))
-      (is (= "cljstyle version command takes no arguments\n" stderr))))
-  (testing "task execution"
-    (capture-io
-      (is (nil? (task/print-version [])))
-      (is (= (str task/version "\n") stdout))
-      (is (str/blank? stderr)))))
+(use-fixtures :once u/wrap-suppressed-exit)
 
 
 (deftest config-command
@@ -162,18 +147,3 @@
                 (task/fix-sources [(str test-dir)])))
           (is (str/blank? stdout))
           (is (str/starts-with? stderr "Error while processing file target/test-config/fix/a/b/foo.clj")))))))
-
-
-(deftest pipe-command
-  (testing "help"
-    (capture-io
-      (is (nil? (task/print-pipe-usage)))
-      (is (str/starts-with? stdout "Usage: cljstyle [options] pipe"))
-      (is (str/blank? stderr))))
-  (testing "task execution"
-    (let [stdin (java.io.StringReader. "(if (= :foo x) \n     123  \n456   )")]
-      (binding [*in* stdin]
-        (capture-io
-          (is (nil? (task/pipe)))
-          (is (= "(if (= :foo x)\n  123\n  456)\n" stdout))
-          (is (str/blank? stderr)))))))
