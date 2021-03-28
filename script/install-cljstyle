@@ -55,7 +55,7 @@ do
 done
 
 if [[ "$version" == "" ]]; then
-  version="$(curl -s https://raw.githubusercontent.com/greglook/cljstyle/main/CLJSTYLE_RELEASED_VERSION)"
+  version="$(curl -s https://raw.githubusercontent.com/greglook/cljstyle/main/VERSION.txt)"
 fi
 
 case "$(uname -s)" in
