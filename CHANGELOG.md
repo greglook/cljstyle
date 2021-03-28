@@ -26,6 +26,9 @@ This project adheres to [Semantic Versioning](http://semver.org/).
   early termination of the styling walk. The code correctly walks back up the
   zipper now.
   [#55](//github.com/greglook/cljstyle/issues/55)
+- The ns reformatting rule preserves comments on `:import` and `:require` forms
+  at the top level of the `ns` form.
+  [#56](//github.com/greglook/cljstyle/issues/56)
 
 
 ## [0.14.0] - 2020-11-07

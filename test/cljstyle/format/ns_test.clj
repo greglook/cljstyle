@@ -76,6 +76,17 @@
   (is (rule-reformatted?
         ns/format-namespaces {}
         "(ns foo.bar
+      ;; about require
+    ;; also about require
+  (:require [clojure.string :as str]))"
+        "(ns foo.bar
+  ;; about require
+  ;; also about require
+  (:require
+    [clojure.string :as str]))"))
+  (is (rule-reformatted?
+        ns/format-namespaces {}
+        "(ns foo.bar
   \"Functions for working with bars.\"
   (:refer-clojure :exclude [keys])
   (:require [clojure.string :as str]
@@ -175,6 +186,15 @@
       InputStream
       OutputStream)
     java.time.Instant))"))
+  (is (rule-reformatted?
+        ns/format-namespaces {}
+        "(ns foo.bar
+      ;; about import
+  (:import java.io.File))"
+        "(ns foo.bar
+  ;; about import
+  (:import
+    java.io.File))"))
   (is (rule-reformatted?
         ns/format-namespaces {:indent-size 1}
         "(ns foo.bar (:import java.io.IOException
@@ -451,11 +471,7 @@
   (:require
     [a.b.d :as d]
     [#?(:clj clj-time.core :cljs cljs-time.core) :as time]
-    [p.q.r :as r]))")))
-  ;; TODO: more test cases
-  ;; - inside import?
-  ;; - complex combos
-  ,,,)
+    [p.q.r :as r]))"))))
 
 
 (deftest shadow-cljs-requires

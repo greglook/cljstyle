@@ -120,29 +120,45 @@
                    (cond-> {:ns ns-sym}
                      (seq ns-meta)
                      (assoc :meta ns-meta)))
-         zloc (-> zloc z/down z/right z/right)]
+         comments []
+         zloc (-> zloc z/down z/right z/right*)]
+    ;(prn (z/string zloc))
     (if zloc
       (cond
+        (z/whitespace? zloc)
+        (recur ns-data
+               comments
+               (z/right* zloc))
+
+        (zl/comment? zloc)
+        (recur ns-data
+               (conj comments (z/node zloc))
+               (z/right* zloc))
+
         (zl/string? zloc)
         (recur (assoc ns-data :doc (z/node zloc))
-               (z/right zloc))
+               comments
+               (z/right* zloc))
 
         (z/list? zloc)
-        (let [[header & elements] (n/children (parse-list-with-comments (z/node zloc)))]
-          (recur (update ns-data
-                         (keyword (n/sexpr header))
-                         (fnil into [])
-                         elements)
-                 (z/right zloc)))
+        (let [[header & elements] (n/children (parse-list-with-comments (z/node zloc)))
+              data-key (keyword (n/sexpr header))]
+          (recur (-> ns-data
+                     (update data-key (fnil into []) elements)
+                     (update data-key vary-meta update ::comments (fnil into []) comments))
+                 []
+                 (z/right* zloc)))
 
         (zl/reader-conditional? zloc)
         (let [branches (reader-branches zloc)]
           (recur (update ns-data :reader-conditionals (fnil conj []) branches)
-                 (z/right zloc)))
+                 comments
+                 (z/right* zloc)))
 
         (z/map? zloc)
         (recur (assoc ns-data :attr-map (z/node zloc))
-               (z/right zloc))
+               comments
+               (z/right* zloc))
 
         :else
         (throw (ex-info (str "Unknown ns node form " (z/tag zloc))
@@ -468,16 +484,24 @@
   "Render a `:require` form."
   [rule-config kw elements]
   (when (seq elements)
-    [(n/spaces indent-size)
-     (render-requires* rule-config indent-size kw elements)]))
+    (concat
+      (mapcat
+        #(vector (n/spaces indent-size) %)
+        (::comments (meta elements)))
+      [(n/spaces indent-size)
+       (render-requires* rule-config indent-size kw elements)])))
 
 
 (defn- render-imports
   "Render an `:import` form."
   [rule-config elements]
   (when (seq elements)
-    [(n/spaces indent-size)
-     (render-imports* rule-config indent-size elements)]))
+    (concat
+      (mapcat
+        #(vector (n/spaces indent-size) %)
+        (::comments (meta elements)))
+      [(n/spaces indent-size)
+       (render-imports* rule-config indent-size elements)])))
 
 
 (defn- render-reader-branch
