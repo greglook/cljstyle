@@ -4,6 +4,7 @@
   (:require
     [cljstyle.task.config :as config]
     [cljstyle.task.core :as task]
+    [cljstyle.task.find :as find]
     [cljstyle.task.migrate :as migrate]
     [cljstyle.task.pipe :as pipe]
     [cljstyle.task.util :as u]
@@ -65,7 +66,7 @@
     ;; Show help for general usage or a command.
     (when (:help options)
       (case command
-        "find"    (task/print-find-usage)
+        "find"    (find/print-usage)
         "check"   (task/print-check-usage)
         "fix"     (task/print-fix-usage)
         "pipe"    (pipe/print-usage)
@@ -84,7 +85,7 @@
     (try
       (u/with-options options
         (case command
-          "find"    (task/find-sources args)
+          "find"    (find/task args)
           "check"   (task/check-sources args)
           "fix"     (task/fix-sources args)
           "pipe"    (pipe/task args)
