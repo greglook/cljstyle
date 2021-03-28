@@ -8,9 +8,11 @@ cleanup() {
   trap - SIGINT SIGTERM ERR EXIT
 
   for dump_file in /tmp/clojure-*.edn; do
+    if [[ -f $dump_file ]]; then
       >&2 echo
       >&2 echo "Clojure error details from $dump_file"
       >&2 cat $dump_file
+    fi
   done
 }
 

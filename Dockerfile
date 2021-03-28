@@ -26,11 +26,11 @@ COPY . .
 RUN ./script/uberjar
 
 # Build native-image
-ARG GRAAL_XMX="3g"
+ARG GRAAL_XMX="4500m"
 ARG GRAAL_STATIC="false"
 ENV GRAAL_XMX="$GRAAL_XMX"
 ENV GRAAL_STATIC="$GRAAL_STATIC"
-RUN ./script/compile target/uberjar/cljstyle.jar
+RUN ./script/compile
 
 # Install tool
 RUN mkdir -p /usr/local/bin && cp cljstyle /usr/local/bin/cljstyle
