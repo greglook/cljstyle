@@ -1,6 +1,6 @@
 # Build file for cljstyle
 
-.PHONY: all clean lint check set-version graal package
+.PHONY: all clean lint check uberjar set-version graal package
 
 version := $(shell grep defproject project.clj | cut -d ' ' -f 3 | tr -d \")
 platform := $(shell uname -s | tr '[:upper:]' '[:lower:]')
@@ -8,22 +8,21 @@ uberjar_path := target/uberjar/cljstyle.jar
 
 # Graal settings
 GRAAL_ROOT ?= /tmp/graal
-graal_version := 21.0.0
-graal_archive := graalvm-ce-java11-$(platform)-amd64-$(graal_version).tar.gz
-graal_home := $(GRAAL_ROOT)/graalvm-ce-java11-$(graal_version)
+GRAAL_VERSION ?= 21.0.0
+GRAAL_HOME ?= $(GRAAL_ROOT)/graalvm-ce-java11-$(GRAAL_VERSION)
+graal_archive := graalvm-ce-java11-$(platform)-amd64-$(GRAAL_VERSION).tar.gz
 
 # Rewrite darwin as a more recognizable OS
 ifeq ($(platform),darwin)
 platform := macos
-graal_home := $(graal_home)/Contents/Home
+GRAAL_HOME := $(GRAAL_HOME)/Contents/Home
 endif
-
-release_jar := cljstyle-$(version).jar
-release_tgz := cljstyle_$(version)_$(platform).tar.gz
-release_zip := cljstyle_$(version)_$(platform).zip
 
 
 all: cljstyle
+
+
+### Utilities ###
 
 clean:
 	rm -rf dist cljstyle target
@@ -46,56 +45,86 @@ set-version:
 	    -e 's|CLJSTYLE_VERSION: .*|CLJSTYLE_VERSION: $(new-version)|' \
 	    -e 's|cljstyle.git", :tag ".*"}|cljstyle.git", :tag "$(new-version)"}|' \
 	    doc/integrations.md
-	@echo "$(new-version)" > CLJSTYLE_RELEASED_VERSION
+	@echo "$(new-version)" > VERSION.txt
 
-$(uberjar_path): project.clj $(shell find resources -type f) $(shell find src -type f)
-	lein uberjar
+
+### GraalVM Install ###
 
 $(GRAAL_ROOT)/fetch/$(graal_archive):
 	@mkdir -p $(GRAAL_ROOT)/fetch
-	curl --location --output $@ https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-$(graal_version)/$(graal_archive)
+	curl --location --output $@ https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-$(GRAAL_VERSION)/$(graal_archive)
 
-$(graal_home): $(GRAAL_ROOT)/fetch/$(graal_archive)
+$(GRAAL_HOME): $(GRAAL_ROOT)/fetch/$(graal_archive)
 	tar -xz -C $(GRAAL_ROOT) -f $<
 
-$(graal_home)/bin/native-image: $(graal_home)
-	$(graal_home)/bin/gu install native-image
+$(GRAAL_HOME)/bin/native-image: $(GRAAL_HOME)
+	$(GRAAL_HOME)/bin/gu install native-image
 
-graal: $(graal_home)/bin/native-image
+graal: $(GRAAL_HOME)/bin/native-image
 
-cljstyle: $(uberjar_path) $(graal_home)/bin/native-image
-	@#--static
-	$(graal_home)/bin/native-image \
-	    -H:Name=cljstyle \
-	    -H:+ReportExceptionStackTraces \
-	    --initialize-at-build-time \
-	    --no-fallback \
-	    --no-server \
-	    --report-unsupported-elements-at-runtime \
-	    --native-image-info \
-	    -J-Dclojure.compiler.direct-linking=true \
-	    -J-Dclojure.spec.skip-macros=true \
-	    -J-Xms3G -J-Xmx3G \
-	    -H:ServiceLoaderFeatureExcludeServices=javax.sound.sampled.spi.AudioFileReader \
-	    -H:ServiceLoaderFeatureExcludeServices=javax.sound.midi.spi.MidiFileReader \
-	    -H:ServiceLoaderFeatureExcludeServices=javax.sound.sampled.spi.MixerProvider \
-	    -H:ServiceLoaderFeatureExcludeServices=javax.sound.sampled.spi.FormatConversionProvider \
-	    -H:ServiceLoaderFeatureExcludeServices=javax.sound.sampled.spi.AudioFileWriter \
-	    -H:ServiceLoaderFeatureExcludeServices=javax.sound.midi.spi.MidiDeviceProvider \
-	    -H:ServiceLoaderFeatureExcludeServices=javax.sound.midi.spi.SoundbankReader \
-	    -H:ServiceLoaderFeatureExcludeServices=javax.sound.midi.spi.MidiFileWriter \
-	    -jar $<
 
-dist/$(release_tgz): cljstyle
-	@mkdir -p dist
-	tar -cvzf $@ $^
+### Local Build ###
 
-dist/$(release_zip): cljstyle
-	@mkdir -p dist
-	zip $@ $^
+SRC := project.clj $(shell find resources -type f) $(shell find src -type f)
 
+$(uberjar_path): $(SRC)
+	script/uberjar
+
+uberjar: $(uberjar_path)
+
+cljstyle: $(uberjar_path) $(GRAAL_HOME)/bin/native-image
+	GRAAL_HOME=$(GRAAL_HOME) script/compile
+
+
+
+#### Distribution Packaging ###
+
+release_jar := cljstyle-$(version).jar
+release_macos_tgz := cljstyle_$(version)_macos.tar.gz
+release_macos_zip := cljstyle_$(version)_macos.zip
+release_linux_tgz := cljstyle_$(version)_linux.tar.gz
+release_linux_zip := cljstyle_$(version)_linux.zip
+release_linux_static_zip := cljstyle_$(version)_linux_static.zip
+
+# Uberjar
 dist/$(release_jar): $(uberjar_path)
 	@mkdir -p dist
 	cp $< $@
 
-package: dist/$(release_jar) dist/$(release_tgz) dist/$(release_zip)
+# Mac OS X
+ifeq ($(platform),macos)
+dist/$(release_macos_tgz): cljstyle
+	@mkdir -p dist
+	tar -cvzf $@ $^
+
+dist/$(release_macos_zip): cljstyle
+	@mkdir -p dist
+	zip $@ $^
+endif
+
+# Linux
+target/package/linux/cljstyle: Dockerfile $(SRC)
+	script/docker-build --output $@
+
+dist/$(release_linux_tgz): target/package/linux/cljstyle
+	@mkdir -p dist
+	tar -cvzf $@ $^
+
+dist/$(release_linux_zip): target/package/linux/cljstyle
+	@mkdir -p dist
+	zip $@ $^
+
+# Linux (static)
+target/package/linux-static/cljstyle: Dockerfile $(SRC)
+	script/docker-build --static --output $@
+
+dist/$(release_linux_static_zip): target/package/linux-static/cljstyle
+	@mkdir -p dist
+	zip $@ $^
+
+# Metapackage
+ifeq ($(platform),macos)
+package: dist/$(release_jar) dist/$(release_macos_tgz) dist/$(release_macos_zip) dist/$(release_linux_tgz) dist/$(release_linux_zip) dist/$(release_linux_static_zip)
+else
+package: dist/$(release_jar) dist/$(release_linux_tgz) dist/$(release_linux_zip) dist/$(release_linux_static_zip)
+endif
