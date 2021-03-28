@@ -15,6 +15,11 @@ This project adheres to [Semantic Versioning](http://semver.org/).
   first line of text and only style the rest of the file contents.
   [#70](//github.com/greglook/cljstyle/issues/70)
 
+### Changed
+- Javascript node libraries required with string names will always sort before
+  symbol namespace requires, matching other tooling convention.
+  [#45](//github.com/greglook/cljstyle/pull/45)
+
 ### Fixed
 - Upgraded `rewrite-clj` v0 to v1. This solves a number of parsing-related
   issues with the old version. In particular, auto-resolved namespaced maps
