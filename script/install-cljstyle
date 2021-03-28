@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# vim: ft=bash
 
 # install script inspired by scripts for clj-kondo cf. https://github.com/borkdude/clj-kondo/blob/master/script/install-clj-kondo
 # install latest version of cljstyle or upgrades existing one
