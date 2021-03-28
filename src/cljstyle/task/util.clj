@@ -14,14 +14,6 @@
   false)
 
 
-(defn wrap-suppressed-exit
-  "Execute the provided function while inside a block binding
-  `*suppressed-exit*` to true. Useful as a test fixture."
-  [f]
-  (binding [*suppress-exit* true]
-    (f)))
-
-
 (defn exit!
   "Exit a task with a status code."
   [code]

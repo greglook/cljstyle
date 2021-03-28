@@ -1,15 +1,14 @@
 (ns cljstyle.task.pipe-test
   (:require
     [cljstyle.task.pipe :as pipe]
-    [cljstyle.task.util :as u]
-    [cljstyle.test-util :refer [capture-io]]
+    [cljstyle.test-util :refer [suppress-task-exit capture-io]]
     [clojure.string :as str]
     [clojure.test :refer [use-fixtures deftest testing is]])
   (:import
     java.io.StringReader))
 
 
-(use-fixtures :once u/wrap-suppressed-exit)
+(use-fixtures :once suppress-task-exit)
 
 
 (deftest pipe-usage

@@ -2,13 +2,13 @@
   (:require
     [cljstyle.task.check :as check]
     [cljstyle.task.util :as u]
-    [cljstyle.test-util :refer [with-files capture-io]]
+    [cljstyle.test-util :refer [suppress-task-exit with-files capture-io]]
     [clojure.java.io :as io]
     [clojure.string :as str]
     [clojure.test :refer [use-fixtures deftest testing is]]))
 
 
-(use-fixtures :once u/wrap-suppressed-exit)
+(use-fixtures :once suppress-task-exit)
 
 
 (deftest check-usage

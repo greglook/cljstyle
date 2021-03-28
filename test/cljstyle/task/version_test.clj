@@ -1,13 +1,12 @@
 (ns cljstyle.task.version-test
   (:require
     [cljstyle.task.version :as version]
-    [cljstyle.task.util :as u]
-    [cljstyle.test-util :refer [capture-io]]
+    [cljstyle.test-util :refer [suppress-task-exit capture-io]]
     [clojure.string :as str]
     [clojure.test :refer [use-fixtures deftest testing is]]))
 
 
-(use-fixtures :once u/wrap-suppressed-exit)
+(use-fixtures :once suppress-task-exit)
 
 
 (deftest version-string

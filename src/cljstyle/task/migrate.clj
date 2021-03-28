@@ -3,7 +3,6 @@
   (:require
     [cljstyle.config :as config]
     [cljstyle.task.process :as process]
-    [cljstyle.task.util :as u]
     [clojure.pprint :as pp]))
 
 

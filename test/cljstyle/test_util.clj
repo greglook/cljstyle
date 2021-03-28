@@ -2,12 +2,21 @@
   "Unit testing utilities."
   (:require
     [cljstyle.format.zloc :as zl]
+    [cljstyle.task.util :as u]
     [clojure.java.io :as io]
     [clojure.spec.alpha :as s]
     [clojure.test :as test]
     [rewrite-clj.node :as n]
     [rewrite-clj.parser :as parser]
     [rewrite-clj.zip :as z]))
+
+
+(defn suppress-task-exit
+  "Execute the provided function while inside a block binding
+  `*suppressed-exit*` to true. Useful as a test fixture."
+  [f]
+  (binding [u/*suppress-exit* true]
+    (f)))
 
 
 (defn apply-formatter
