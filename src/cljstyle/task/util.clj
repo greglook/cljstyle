@@ -184,6 +184,23 @@
       (format "%d:%02d" minutes seconds))))
 
 
+(defn- durations-table
+  "Returns a sequence of row maps suitable for rendering a table of duration
+  results."
+  [durations]
+  (let [total (apply + (vals durations))]
+    (->> durations
+         (sort-by val (comp - compare))
+         (mapv (fn duration-row
+                 [[rule-key duration]]
+                 {"rule" (namespace rule-key)
+                  "subrule" (name rule-key)
+                  "elapsed" (duration-str (/ duration 1e6))
+                  "percent" (if (pos? total)
+                              (format "%.1f%%" (* 100.0 (/ duration total)))
+                              "--")})))))
+
+
 (defn report-stats
   "General result reporting logic."
   [results]
@@ -196,7 +213,6 @@
         durations (->> (vals (:results results))
                        (keep :durations)
                        (apply merge-with +))
-        total-duration (apply + (vals durations))
         stats (cond-> {:files counts
                        :total total-files
                        :elapsed (:elapsed results)}
@@ -221,18 +237,10 @@
         (printf "%6d %s\n" file-count (name type-key)))
       (when (pos? diff-lines)
         (printf "Resulting diff has %d lines\n" diff-lines))
-      (when (option :report-timing)
-        (when-let [durations (->> durations
-                                  (sort-by val (comp - compare))
-                                  (map (fn [[rule-key duration]]
-                                         {"rule" (namespace rule-key)
-                                          "subrule" (name rule-key)
-                                          "elapsed" (duration-str (/ duration 1e6))
-                                          "percent" (if (pos? total-duration)
-                                                      (format "%.1f%%" (* 100.0 (/ duration total-duration)))
-                                                      "--")}))
-                                  (seq))]
-          (pp/print-table ["rule" "subrule" "elapsed" "percent"] durations)))
+      (when (and (option :report-timing) (seq durations))
+        (pp/print-table
+          ["rule" "subrule" "elapsed" "percent"]
+          (durations-table durations)))
       (flush))
     (when-let [stats-file (option :stats)]
       (write-stats! stats-file stats))))
