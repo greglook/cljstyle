@@ -35,6 +35,13 @@
               (check/task [(str test-dir)])))
         (is (not (str/blank? stdout)))
         (is (= "1 files formatted incorrectly\n" stderr))))
+    (testing "when missing trailing newline"
+      (spit foo-clj "(def abc true)")
+      (capture-io
+        (is (thrown-with-data? {:code 2}
+              (check/task [(str test-dir)])))
+        (is (str/ends-with? stdout "\\ No newline at end of file\n"))
+        (is (= "1 files formatted incorrectly\n" stderr))))
     (testing "when error"
       (spit foo-clj "(def abc ...")
       (capture-io

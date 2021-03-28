@@ -16,6 +16,7 @@
     (is (str/blank? stderr))))
 
 
+#_
 (deftest migrate-command
   ;; TODO: write tests
   ,,,)
