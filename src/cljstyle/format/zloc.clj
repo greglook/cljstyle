@@ -9,11 +9,17 @@
     rewrite_clj.node.stringz.StringNode))
 
 
+(defn zstr
+  "Return the string representation of the nodes at the given location."
+  [zloc]
+  (str (n/string (z/node zloc))))
+
+
 (defn zprn
   "Print a zipper location for debugging purposes. Returns the
   location unchanged."
   [zloc tag]
-  (prn tag (:left zloc) (:node zloc) (:right zloc))
+  (prn tag (map first (:left zloc)) (:node zloc) (:right zloc))
   (flush)
   zloc)
 

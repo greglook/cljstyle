@@ -36,7 +36,7 @@
 (defn- line-break-next?
   "True if the next non-whitespace node after this location is a linebreak."
   [zloc]
-  (-> zloc z/next* zl/skip-whitespace line-break?))
+  (-> zloc z/next* zl/skip-whitespace z/linebreak?))
 
 
 (defn- indentation?
@@ -45,15 +45,20 @@
   [zloc]
   (and zloc
        (zl/space? zloc)
-       (line-break? (z/prev* zloc))
-       (not (comment-next? zloc))))
+       (let [prev (z/prev* zloc)]
+         (or (z/linebreak? prev)
+             (and (zl/comment? prev)
+                  (str/ends-with? (zl/zstr prev) "\n"))))))
 
 
 (defn- should-indent?
   "True if indentation should exist after the current location."
   [zloc _]
-  (or (and (line-break? zloc) (not (line-break-next? zloc)))
-      (and (zl/comment? zloc) (not (comment-next? zloc)))))
+  (or (and (z/linebreak? zloc)
+           (not (line-break-next? zloc)))
+      (and (zl/comment? zloc)
+           (or (z/rightmost? zloc)
+               (not (line-break-next? zloc))))))
 
 
 
@@ -66,7 +71,7 @@
   (loop [zloc     zloc
          worklist '()]
     (if-let [p (z/left* zloc)]
-      (let [s (str (n/string (z/node p)))
+      (let [s (zl/zstr p)
             new-worklist (cons s worklist)]
         (if-not (str/includes? s "\n")
           (recur p new-worklist)
@@ -75,7 +80,8 @@
         ;; if a namespaced map's body is on a newline, don't add the
         ;; start-element to the list of indentation
         (if (and (= :namespaced-map (z/tag p))
-                 (line-break-next? (z/next p)))
+                 (or (line-break-next? (z/next p))
+                     (comment-next? (z/next p))))
           (recur p worklist)
           ;; newline cannot be introduced by start-element
           (recur p (cons (start-element (z/tag p)) worklist)))
@@ -125,7 +131,7 @@
        (if (= :fn (-> zloc z/up z/tag))
          1
          0))
-    (if (> (index-of zloc) 1)
+    (if (< 1 (index-of zloc))
       (-> zloc z/leftmost* (zl/move-n z/right item-count) margin)
       (coll-indent zloc))))
 

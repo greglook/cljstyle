@@ -230,11 +230,25 @@
 
 
 (deftest comment-indentation
-  (is (rule-reformatted?
-        indent/reindent-lines {:indents {'defn [[:inner 0]]}}
-        "(defn f\n[a;a\n  b ; b\n]\n #{a\nb;\n})"
-        "(defn f\n  [a;a\n   b ; b\n   ]\n  #{a\n    b;\n    })"))
-  (is (rule-reformatted?
-        indent/reindent-lines {}
-        "(foo [1\n2;\n]\n[3\n4;\n])"
-        "(foo [1\n      2;\n      ]\n     [3\n      4;\n      ])")))
+  (testing "basic cases"
+    (is (rule-reformatted?
+          indent/reindent-lines {:indents {'do [[:block 0]]}}
+          "(do\n;; too early\n  x\n        ;; too late\n)"
+          "(do\n  ;; too early\n  x\n  ;; too late\n  )"))
+    (is (rule-reformatted?
+          indent/reindent-lines {:indents {'do [[:block 0]]}}
+          "(do abc\n;; too early\n   x\n        ;; too late\ny)"
+          "(do abc\n    ;; too early\n    x\n    ;; too late\n    y)"))
+    (is (rule-reformatted?
+          indent/reindent-lines {:indents {'defn [[:inner 0]]}}
+          "(defn f\n[a\n; one\n     b]\n        ;; two\n#{a b})"
+          "(defn f\n  [a\n   ; one\n   b]\n  ;; two\n  #{a b})")))
+  (testing "comment preceding a closing delimiter"
+    (is (rule-reformatted?
+          indent/reindent-lines {:indents {'defn [[:inner 0]]}}
+          "(defn f\n[a;a\n  b ; b\n]\n #{a\nb;\n})"
+          "(defn f\n  [a;a\n   b ; b\n   ]\n  #{a\n    b;\n    })"))
+    (is (rule-reformatted?
+          indent/reindent-lines {}
+          "(foo [1\n2;\n]\n[3\n4;\n])"
+          "(foo [1\n      2;\n      ]\n     [3\n      4;\n      ])"))))

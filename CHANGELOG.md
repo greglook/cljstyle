@@ -8,17 +8,6 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
-### Added
-- Releases will now contain a `.zip` file in addition to the `.tar.gz` archive.
-  Eventually, this will become the primary archive format for releases.
-- If the first two characters of a file are `#!`, the formatter will ignore the
-  first line of text and only style the rest of the file contents.
-  [#70](//github.com/greglook/cljstyle/issues/70)
-- The namespace formatting rule supports a new configuration flag
-  `:break-libs?` which controls whether requires and imports will start on a
-  new line.
-  [#35](//github.com/greglook/cljstyle/issues/35)
-
 ### Changed
 - Javascript node libraries required with string names will always sort before
   symbol namespace requires, matching other tooling convention.
@@ -29,8 +18,9 @@ This project adheres to [Semantic Versioning](http://semver.org/).
   issues with the old version. In particular, auto-resolved namespaced maps
   work as expected now.
   [#13](//github.com/greglook/cljstyle/issues/13)
-  [#43](//github.com/greglook/cljstyle/issues/43)
   [#52](//github.com/greglook/cljstyle/issues/52)
+- Infinity reader forms `##Inf` and `##-Inf` are supported.
+  [#43](//github.com/greglook/cljstyle/issues/43)
 - If a discard reader macro was the last subform, it would inadvertently cause
   early termination of the styling walk. The code correctly walks back up the
   zipper now.
@@ -38,6 +28,19 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - The ns reformatting rule preserves comments on `:import` and `:require` forms
   at the top level of the `ns` form.
   [#56](//github.com/greglook/cljstyle/issues/56)
+- Comments are now subject to indentation rules.
+  [#30](//github.com/greglook/cljstyle/issues/30)
+
+### Added
+- Releases will now contain a `.zip` file in addition to the `.tar.gz` archive.
+  Eventually, this will become the primary archive format for releases.
+- If the first two characters of a file are `#!`, the formatter will ignore the
+  first line of text and only style the rest of the file contents.
+  [#70](//github.com/greglook/cljstyle/issues/70)
+- The namespace formatting rule supports a new configuration flag
+  `:break-libs?` which controls whether requires and imports will start on a
+  new line.
+  [#35](//github.com/greglook/cljstyle/issues/35)
 
 
 ## [0.14.0] - 2020-11-07
