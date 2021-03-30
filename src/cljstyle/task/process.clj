@@ -113,18 +113,23 @@
   "Report task results in a shared map and take any associated side-effects."
   [results result]
   ;; Side effects.
-  (when-let [message (:debug result)]
-    (when (u/option :verbose)
-      (u/printerr message)))
-  (when-let [message (:info result)]
-    (println message)
-    (flush))
-  (when-let [message (:warn result)]
-    (u/printerr message))
-  (when-let [ex (:error result)]
-    (binding [*out* *err*]
-      (print-error ex)
-      (flush)))
+  (let [elapsed (:elapsed result)
+        elapsed-str (when elapsed
+                      (str " (" (u/duration-str elapsed) ")"))]
+    (when-let [message (:debug result)]
+      (when (u/option :verbose)
+        (u/printerr (str message elapsed-str))))
+    (when-let [message (:info result)]
+      (println message)
+      (flush))
+    (when-let [message (:warn result)]
+      (u/printerr message))
+    (when (and elapsed (<= 5000 elapsed))
+      (u/printerr "Slow processing of file" (:path result) elapsed-str))
+    (when-let [ex (:error result)]
+      (binding [*out* *err*]
+        (print-error ex)
+        (flush))))
   ;; Update results map.
   (let [result-type (:type result)
         ignored-type? #{:unrelated :ignored}

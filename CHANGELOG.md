@@ -48,7 +48,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
   Prefixes are configurable.
   [#30](//github.com/greglook/cljstyle/issues/30)
 - When file processing times out, cljstyle will print the current files each
-  thread was working on and how long they've been processing.
+  thread was working on and how long they've been processing. A warning will
+  be printed if any file takes more than five seconds to process.
   [#63](//github.com/greglook/cljstyle/issues/63)
 
 
