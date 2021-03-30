@@ -29,7 +29,7 @@
   (->> (z/edn* (parser/parse-string-all form-string)
                {:track-position? true})
        (iterate #(z/find-next % z/next* p?))
-       ;(iterate #(z/find-next-depth-first % p?))
+       #_(iterate #(z/find-next-depth-first % p?))
        (next)
        (take-while some?)
        (run! #(zl/zprn % :>>))))

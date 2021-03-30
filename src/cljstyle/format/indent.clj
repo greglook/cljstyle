@@ -21,12 +21,6 @@
 
 ;; ## Location Predicates
 
-(defn- line-break?
-  "True if the node at this location is a linebreak or a comment."
-  [zloc]
-  (or (z/linebreak? zloc) (zl/comment? zloc)))
-
-
 (defn- comment-next?
   "True if the next non-whitespace node after this location is a comment."
   [zloc]

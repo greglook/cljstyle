@@ -122,7 +122,6 @@
                      (assoc :meta ns-meta)))
          comments []
          zloc (-> zloc z/down z/right z/right*)]
-    ;(prn (z/string zloc))
     (if zloc
       (cond
         (z/whitespace? zloc)

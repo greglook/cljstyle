@@ -307,7 +307,6 @@
    {;; Files will be considered valid sources if their name ends in one of
     ;; these extensions _or_ if they match the pattern regex, if set.
     :extensions #{"clj" "cljs" "cljc" "cljx"}
-    ;:pattern nil
 
     ;; Files will be ignored if their name matches one of the given strings
     ;; or patterns.
