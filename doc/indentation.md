@@ -27,7 +27,7 @@ Will indent all elements inside a `foo` form by two spaces:
 (foo bar
   baz
   bang)
-  ```
+```
 
 While an indent rule like:
 

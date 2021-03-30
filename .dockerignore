@@ -1,14 +1,24 @@
-.circleci/
-.clj-kondo/
-.git/
+# version control
 .gitignore
+.git/
+!.git/HEAD
+!.git/refs/heads/*
+
+# docs
 doc/
+*.md
+*.txt
+
+# local development
+.clj-kondo/
+dev/
 test/
-target/
-CHANGELOG.md
-LICENSE.txt
-VERSION.txt
-README.md
 deps.edn
-Dockerfile
 tests.edn
+
+# build files
+.circleci/
+dist/
+target/
+Makefile
+cljstyle
