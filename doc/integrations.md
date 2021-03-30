@@ -69,14 +69,14 @@ running the main namespace:
 :profiles
 {:cljstyle
  {:dependencies
-  [[mvxcvi/cljstyle "0.14.0" :exclusions [org.clojure/clojure]]]}}
+  [[mvxcvi/cljstyle "0.15.0" :exclusions [org.clojure/clojure]]]}}
 ```
 
 Alternately, you can run it directly from the command line:
 
 ```shell
 lein update-in :dependencies \
-    conj '[mvxcvi/cljstyle "0.14.0" :exclusions [org.clojure/clojure]]' \
+    conj '[mvxcvi/cljstyle "0.15.0" :exclusions [org.clojure/clojure]]' \
     -- run -m cljstyle.main \
     check
 ```
@@ -88,7 +88,7 @@ If you would like to use `cljstyle` without installing the binary, you can run
 it directly with `clj`:
 
 ```shell
-clj -Sdeps '{:deps {mvxcvi/cljstyle {:git/url "https://github.com/greglook/cljstyle.git", :tag "0.14.0"}}}' \
+clj -Sdeps '{:deps {mvxcvi/cljstyle {:git/url "https://github.com/greglook/cljstyle.git", :tag "0.15.0"}}}' \
     -m cljstyle.main \
     check
 ```
@@ -107,7 +107,7 @@ style:
     - run:
         name: Install cljstyle
         environment:
-          CLJSTYLE_VERSION: 0.14.0
+          CLJSTYLE_VERSION: 0.15.0
         command: |
           wget https://github.com/greglook/cljstyle/releases/download/${CLJSTYLE_VERSION}/cljstyle_${CLJSTYLE_VERSION}_linux.tar.gz
           tar -xzf cljstyle_${CLJSTYLE_VERSION}_linux.tar.gz

@@ -1,4 +1,4 @@
-FROM clojure:lein-2.9.1
+FROM clojure:openjdk-11-lein-2.9.1
 
 # Install essential tooling
 RUN apt update

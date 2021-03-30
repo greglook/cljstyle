@@ -8,6 +8,17 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+...
+
+
+## [0.15.0] - 2021-03-30
+
+This release adds a major missing element to `cljstyle`'s formatting rules,
+covering comment indentation, padding, and prefixes. This version also sorts
+string libspecs (such as from `npm`) in a more widely-adopted way. As a result,
+this version is likely to result in a diff for files which passed the previous
+code.
+
 ### Changed
 - Javascript node libraries required with string names will always sort before
   symbol namespace requires, matching other tooling convention.
@@ -319,7 +330,8 @@ functionality.
 Legacy project release.
 
 
-[Unreleased]: https://github.com/greglook/cljstyle/compare/0.14.0...HEAD
+[Unreleased]: https://github.com/greglook/cljstyle/compare/0.15.0...HEAD
+[0.15.0]: https://github.com/greglook/cljstyle/compare/0.14.0...0.15.0
 [0.14.0]: https://github.com/greglook/cljstyle/compare/0.13.0...0.14.0
 [0.13.0]: https://github.com/greglook/cljstyle/compare/0.12.1...0.13.0
 [0.12.1]: https://github.com/greglook/cljstyle/compare/0.12.0...0.12.1
