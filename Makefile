@@ -108,11 +108,11 @@ target/package/linux/cljstyle: Dockerfile $(SRC)
 
 dist/$(release_linux_tgz): target/package/linux/cljstyle
 	@mkdir -p dist
-	tar -cvzf $@ $^
+	tar -cvzf $@ -C $(dir $<) $(notdir $<)
 
 dist/$(release_linux_zip): target/package/linux/cljstyle
 	@mkdir -p dist
-	zip $@ $^
+	cd $(dir $<); zip $(abspath $@) $(notdir $<)
 
 # Linux (static)
 target/package/linux-static/cljstyle: Dockerfile $(SRC)
@@ -120,7 +120,7 @@ target/package/linux-static/cljstyle: Dockerfile $(SRC)
 
 dist/$(release_linux_static_zip): target/package/linux-static/cljstyle
 	@mkdir -p dist
-	zip $@ $^
+	cd $(dir $<); zip $(abspath $@) $(notdir $<)
 
 # Metapackage
 ifeq ($(platform),macos)
