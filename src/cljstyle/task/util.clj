@@ -160,7 +160,7 @@
       (printerrf "Unknown stats file extension '%s' - ignoring!" ext))))
 
 
-(defn- duration-str
+(defn duration-str
   "Format a duration in milliseconds for human consumption."
   [elapsed]
   (cond

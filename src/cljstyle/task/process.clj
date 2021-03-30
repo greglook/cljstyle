@@ -14,6 +14,14 @@
       TimeUnit)))
 
 
+(defn- stopwatch
+  "Construct a delay which will yield the number of fractional milliseconds
+  between when it was created and when it was dereferenced."
+  []
+  (let [start (System/nanoTime)]
+    (delay (/ (- (System/nanoTime) start) 1e6))))
+
+
 (defn- relativize-path
   "Generate a canonical path to the given file from a relative root."
   [^File root ^File file]
@@ -27,19 +35,55 @@
             (.getPath (io/file root path)))))))
 
 
+(def ^:private thread-work-state
+  "Map of thread names to the path of the file they are processing."
+  (atom (sorted-map)))
+
+
+(defn- clear-work-state!
+  "Clear the current thread work state."
+  []
+  (swap! thread-work-state empty))
+
+
+(defn- work-on!
+  "Record that the current thread is processing the file at the given path. A
+  nil path indicates the thread is no longer doing work."
+  [path]
+  (let [tname (.getName (Thread/currentThread))]
+    (if path
+      (swap! thread-work-state assoc tname {:path path, :watch (stopwatch)})
+      (swap! thread-work-state dissoc tname))))
+
+
+(defn- print-working-paths
+  "Print which threads are currently working on which files."
+  []
+  (when-let [work-state (seq @thread-work-state)]
+    (println "Threads still working on files:")
+    (doseq [[tname {:keys [path watch]}] work-state]
+      (println tname \tab (u/duration-str @watch) \tab path))))
+
+
 (defn- print-thread-dump
   "Print the stack traces of all active threads."
   []
-  (doseq [[^Thread thread stack-trace] (Thread/getAllStackTraces)]
+  (doseq [[^Thread thread stack-trace] (sort-by #(.getId ^Thread (key %))
+                                                (Thread/getAllStackTraces))]
     (newline)
-    (printf "Thread #%d - %s (%s)\n"
+    (printf "Thread #%d - %s (%s)%s\n"
             (.getId thread)
             (.getName thread)
-            (.getState thread))
-    (doseq [element stack-trace]
-      (print "    ")
-      (cst/print-trace-element element)
-      (newline)))
+            (.getState thread)
+            (if-let [path (get-in @thread-work-state [(.getName thread) :path])]
+              (str " working on " path)
+              ""))
+    (when (or (not= Thread$State/WAITING (.getState thread))
+              (u/option :verbose))
+      (doseq [element stack-trace]
+        (print "    ")
+        (cst/print-trace-element element)
+        (newline))))
   (flush))
 
 
@@ -118,16 +162,21 @@
                :debug (str "Ignoring file " path)})
 
             (config/source-file? config file)
-            (try
-              (let [result (assoc (process! config path file)
-                                  :size (.length file))]
-                (report! result))
-              (catch Exception ex
-                (report!
-                  {:type :process-error
-                   :size (.length file)
-                   :warn (str "Error while processing file " path)
-                   :error ex})))
+            (let [watch (stopwatch)]
+              (try
+                (work-on! path)
+                (let [result (process! config path file)]
+                  (work-on! nil)
+                  (report! (assoc result
+                                  :size (.length file)
+                                  :elapsed @watch)))
+                (catch Exception ex
+                  (report!
+                    {:type :process-error
+                     :size (.length file)
+                     :warn (str "Error while processing file " path)
+                     :error ex
+                     :elapsed @watch}))))
 
             (config/directory? file)
             (try
@@ -157,10 +206,11 @@
   until all tasks complete and returns the result map, or throws an exception
   if the wait times out."
   [process! config+paths]
-  (let [start (System/nanoTime)
+  (let [elapsed (stopwatch)
         timeout (or (u/option :timeout) 300)
         pool (ForkJoinPool.)
         results (agent {})]
+    (clear-work-state!)
     (->>
       config+paths
       (map (fn make-task
@@ -179,14 +229,14 @@
                    (.getQueuedSubmissionCount pool))
       (when (or (u/option :timeout-trace)
                 (u/option :verbose))
+        (print-working-paths)
         (print-thread-dump))
       (.shutdownNow pool)
       (throw (ex-info "Timed out" {:type ::timeout})))
     (send results identity)
     (when-not (await-for 5000 results)
       (u/printerr "WARNING: Results not fully reported after 5 seconds"))
-    (let [elapsed (/ (- (System/nanoTime) start) 1e6)]
-      (assoc @results :elapsed elapsed))))
+    (assoc @results :elapsed @elapsed)))
 
 
 (defn process-files!

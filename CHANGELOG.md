@@ -47,6 +47,9 @@ This project adheres to [Semantic Versioning](http://semver.org/).
   differentiating between inline comments (`;`) and leading comments (`;;`).
   Prefixes are configurable.
   [#30](//github.com/greglook/cljstyle/issues/30)
+- When file processing times out, cljstyle will print the current files each
+  thread was working on and how long they've been processing.
+  [#63](//github.com/greglook/cljstyle/issues/63)
 
 
 ## [0.14.0] - 2020-11-07
