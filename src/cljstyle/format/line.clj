@@ -60,19 +60,25 @@
              next-zloc (z/skip z/right* z/whitespace? zloc)]
          (and prev-zloc
               next-zloc
+              ;; Allow comments to directly abut forms.
               (not (zl/comment? prev-zloc))
-              (not (zl/comment? next-zloc))
+              ;; One side must be multiline, which permits blocks of oneliners
+              ;; adjacent to each other.
               (or (zl/multiline? prev-zloc)
-                  (zl/multiline? next-zloc))))))
+                  (zl/multiline? next-zloc))
+              ;; Allow trailing inline comments without padding.
+              (not (zl/comment? (z/skip z/right* zl/space? zloc)))))))
 
 
-(defn- insert-padding-lines
+(defn- ensure-padding-lines
   "Edit the location to insert padding lines as needed."
   [zloc rule-config]
   (let [padding-lines (:padding-lines rule-config 2)]
-    (replace-with-blank-lines zloc padding-lines)))
+    (if (< (count-newlines zloc) (inc padding-lines))
+      (replace-with-blank-lines zloc padding-lines)
+      zloc)))
 
 
 (def insert-padding
   "Rule to ensure a minimum number of blank lines between top-level forms."
-  [:blank-lines :insert-padding padding-line-break? insert-padding-lines])
+  [:blank-lines :insert-padding padding-line-break? ensure-padding-lines])

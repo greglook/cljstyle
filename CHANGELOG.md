@@ -30,6 +30,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
   [#56](//github.com/greglook/cljstyle/issues/56)
 - Comments are now subject to indentation rules.
   [#30](//github.com/greglook/cljstyle/issues/30)
+- Comments no longer prevent padding lines from being enforced between
+  top-level forms.
 
 ### Added
 - Releases will now contain a `.zip` file in addition to the `.tar.gz` archive.

@@ -60,5 +60,13 @@
   (is (rule-reformatted?
         line/insert-padding {:padding-lines 2}
         "(foo 1 2 3)\n\n;; a comment\n(bar\n  :a\n  :b)"
-        "(foo 1 2 3)\n\n;; a comment\n(bar\n  :a\n  :b)")
-      "comments intercede"))
+        "(foo 1 2 3)\n\n\n;; a comment\n(bar\n  :a\n  :b)")
+      "comments work")
+  (is (rule-reformatted?
+        line/insert-padding {:padding-lines 2}
+        "(foo a b)  ; inline comment\n"
+        "(foo a b)  ; inline comment\n"))
+  (is (rule-reformatted?
+        line/insert-padding {:padding-lines 2}
+        "(do a\n    b)  ; inline comment\n"
+        "(do a\n    b)  ; inline comment\n")))
