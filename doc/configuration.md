@@ -150,6 +150,21 @@ This rule requires all files to end with a newline character. One will be added
 if it is not present. There is no configuration for this rule beyond the
 `:enabled?` state.
 
+### `:comments`
+
+This rule standardizes comment formatting by requiring that inline and leading
+comments have regular prefixes.
+
+* `:inline-prefix`
+
+  Prefix to use after the semicolon for inline comments. An inline comment
+  begins on the same line following another form.
+
+* `:leading-prefix`
+
+  Prefix to use after the semicolon for leading comments. A leading comment is
+  generally the first thing on its line.
+
 ### `:vars`
 
 This rule corrects formatting of var definition forms like `def`. There is no

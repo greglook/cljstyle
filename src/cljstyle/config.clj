@@ -158,6 +158,24 @@
   (s/keys :opt-un [:cljstyle.config.rules.global/enabled?]))
 
 
+;; #### Rule: Comments
+
+;; Prefix to use for comments on the same line after other forms.
+(s/def :cljstyle.config.rules.comments/inline-prefix
+  (s/and string? #(str/starts-with? % ";")))
+
+
+;; Prefix to use for comments on their own lines.
+(s/def :cljstyle.config.rules.comments/leading-prefix
+  (s/and string? #(str/starts-with? % ";")))
+
+
+(s/def :cljstyle.config.rules/comments
+  (s/keys :opt-un [:cljstyle.config.rules.global/enabled?
+                   :cljstyle.config.rules.comments/inline-prefix
+                   :cljstyle.config.rules.comments/leading-prefix]))
+
+
 ;; #### Rule: Vars
 
 (s/def :cljstyle.config.rules/vars
@@ -316,6 +334,11 @@
 
     :eof-newline
     {:enabled? true}
+
+    :comments
+    {:enabled? true
+     :inline-prefix " "
+     :leading-prefix "; "}
 
     :vars
     {:enabled? true}

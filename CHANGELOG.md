@@ -43,6 +43,10 @@ This project adheres to [Semantic Versioning](http://semver.org/).
   `:break-libs?` which controls whether requires and imports will start on a
   new line.
   [#35](//github.com/greglook/cljstyle/issues/35)
+- A new `:comments` formatting rule standardizes comment prefixes,
+  differentiating between inline comments (`;`) and leading comments (`;;`).
+  Prefixes are configurable.
+  [#30](//github.com/greglook/cljstyle/issues/30)
 
 
 ## [0.14.0] - 2020-11-07

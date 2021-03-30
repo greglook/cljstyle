@@ -129,52 +129,6 @@
           "#::foo{:x #::bar{}}"))))
 
 
-(deftest comment-handling
-  (testing "inline comments"
-    (is (reformatted?
-          fmt/reformat-form default-rules
-          "(let [;foo\n x (foo bar\n baz)]\n x)"
-          "(let [;foo\n      x (foo bar\n             baz)]\n  x)")))
-  (testing "leading comments"
-    (is (reformatted?
-          fmt/reformat-form default-rules
-          ";foo\n(def x 1)"
-          ";foo\n(def x 1)"))
-    (is (reformatted?
-          fmt/reformat-form default-rules
-          "(ns foo.core)\n\n;; foo\n(defn foo [x]\n(inc x))"
-          "(ns foo.core)\n\n;; foo\n(defn foo\n  [x]\n  (inc x))"))
-    (is (reformatted?
-          fmt/reformat-form default-rules
-          ";; foo\n(ns foo\n(:require bar))"
-          ";; foo\n(ns foo\n  (:require\n    [bar]))"))
-    (is (reformatted?
-          fmt/reformat-form default-rules
-          "(defn foo [x]\n  ;; +1\n(inc x))"
-          "(defn foo\n  [x]\n  ;; +1\n  (inc x))"))
-    (is (reformatted?
-          fmt/reformat-form default-rules
-          "(binding [x 1] ; foo\nx)"
-          "(binding [x 1] ; foo\n  x)")))
-  (testing "preceding closing delimiter"
-    (is (reformatted?
-          fmt/reformat-form default-rules
-          "(;a\n\n ;b\n )"
-          "(;a\n\n ;b\n )"))
-    (is (reformatted?
-          fmt/reformat-form default-rules
-          "(foo a ; b\nc ; d\n)"
-          "(foo a ; b\n     c ; d\n     )"))
-    (is (reformatted?
-          fmt/reformat-form default-rules
-          "(do\na ; b\nc ; d\n)"
-          "(do\n  a ; b\n  c ; d\n  )"))
-    (is (reformatted?
-          fmt/reformat-form default-rules
-          "(let [x [1 2 ;; test1\n2 3 ;; test2\n]])"
-          "(let [x [1 2 ;; test1\n         2 3 ;; test2\n         ]])"))))
-
-
 (deftest metadata-handling
   (is (reformatted?
         fmt/reformat-form default-rules
