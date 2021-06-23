@@ -11,6 +11,18 @@ naming it `_cljstyle`. This will complete the commands and tool options.
 
 ### Vim
 
+#### vim-codefmt
+
+`cljstyle` is supported by [vim-codefmt](https://github.com/google/vim-codefmt).
+Once you have vim-codefmt installed, you can set it to use `cljstyle` for Clojure
+code like this:
+
+```vim
+autocmd FileType clojure AutoFormatBuffer cljstyle
+```
+
+#### Manual
+
 For a simple vim integration you can use the following function to reformat the
 current buffer:
 
