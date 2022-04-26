@@ -11,7 +11,7 @@
   [[lein-cloverage "1.2.2"]]
 
   :dependencies
-  [[org.clojure/clojure "1.10.3"]
+  [[org.clojure/clojure "1.11.1"]
    [org.clojure/tools.cli "1.0.206"]
    [org.clojure/tools.reader "1.3.5"]
    [com.googlecode.java-diff-utils/diffutils "1.3.0"]
@@ -34,13 +34,13 @@
                "-XX:+UnlockDiagnosticVMOptions"
                "-XX:+DebugNonSafepoints"]
     :dependencies
-    [[com.clojure-goes-fast/clj-async-profiler "0.5.0"]
-     [org.clojure/tools.namespace "1.1.0"]]}
+    [[com.clojure-goes-fast/clj-async-profiler "0.5.1"]
+     [org.clojure/tools.namespace "1.2.0"]]}
 
    :kaocha
    {:dependencies
-    [[org.clojure/test.check "1.1.0"]
-     [lambdaisland/kaocha "1.0.829"]]}
+    [[org.clojure/test.check "1.1.1"]
+     [lambdaisland/kaocha "1.66.1034"]]}
 
    :uberjar
    {:target-path "target/uberjar"
