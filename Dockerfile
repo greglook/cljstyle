@@ -6,7 +6,7 @@ RUN apt install --no-install-recommends -yy curl unzip build-essential zlib1g-de
 
 # Download and configure GraalVM
 WORKDIR /opt
-ARG GRAAL_VERSION="21.0.0"
+ARG GRAAL_VERSION="22.1.0"
 ENV GRAAL_HOME="/opt/graalvm-ce-java11-$GRAAL_VERSION"
 RUN curl -sLO https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-$GRAAL_VERSION/graalvm-ce-java11-linux-amd64-$GRAAL_VERSION.tar.gz
 RUN tar -xzf graalvm-ce-java11-linux-amd64-$GRAAL_VERSION.tar.gz

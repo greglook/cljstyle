@@ -8,7 +8,7 @@ uberjar_path := target/uberjar/cljstyle.jar
 
 # Graal settings
 GRAAL_ROOT ?= /tmp/graal
-GRAAL_VERSION ?= 21.0.0
+GRAAL_VERSION ?= 22.1.0
 GRAAL_HOME ?= $(GRAAL_ROOT)/graalvm-ce-java11-$(GRAAL_VERSION)
 graal_archive := graalvm-ce-java11-$(platform)-amd64-$(GRAAL_VERSION).tar.gz
 
@@ -74,7 +74,6 @@ uberjar: $(uberjar_path)
 
 cljstyle: $(uberjar_path) $(GRAAL_HOME)/bin/native-image
 	GRAAL_HOME=$(GRAAL_HOME) script/compile
-
 
 
 #### Distribution Packaging ###
