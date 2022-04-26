@@ -148,6 +148,7 @@
 (defn- processing-action
   "Construct a `RecursiveAction` representing the work to process a subtree or
   source file `file`."
+  ^RecursiveAction
   [process! results config ^File root ^File file]
   (let [path (relativize-path root file)
 
@@ -185,12 +186,15 @@
 
             (config/directory? file)
             (try
+              (work-on! path)
               (let [config' (config/merge-settings config (config/dir-config file))
-                    subtasks (mapv (fn file-task
-                                     [child]
-                                     (processing-action process! results config' root child))
-                                   (.listFiles file))]
-                (ForkJoinTask/invokeAll ^java.util.Collection subtasks))
+                    children (.listFiles file)]
+                (work-on! nil)
+                (run! (fn file-task
+                        [child]
+                        (let [task (processing-action process! results config' root child)]
+                          (.fork task)))
+                      children))
               (catch Exception ex
                 (report!
                   {:type :search-error
@@ -216,22 +220,22 @@
         pool (ForkJoinPool.)
         results (agent {})]
     (clear-work-state!)
-    (->>
-      config+paths
-      (map (fn make-task
-             [[config root path]]
-             (processing-action
-               process! results config
-               (io/file root)
-               (io/file path))))
-      (run! #(.submit pool ^ForkJoinTask %)))
+    (run!
+      (fn start-task
+        [[config root path]]
+        (let [task (processing-action
+                     process! results config
+                     (io/file root)
+                     (io/file path))]
+          (.execute pool task)))
+      config+paths)
     (.shutdown pool)
     (when-not (.awaitTermination pool timeout TimeUnit/SECONDS)
-      (u/printerrf "ERROR: Processing timed out after %d seconds! There are still %d threads running with %d queued and %d submitted tasks."
+      (u/printerrf "ERROR: Processing timed out after %d seconds! There are still %d/%d threads running with %d queued tasks."
                    timeout
                    (.getRunningThreadCount pool)
-                   (.getQueuedTaskCount pool)
-                   (.getQueuedSubmissionCount pool))
+                   (.getPoolSize pool)
+                   (.getQueuedTaskCount pool))
       (when (or (u/option :timeout-trace)
                 (u/option :verbose))
         (print-working-paths)
