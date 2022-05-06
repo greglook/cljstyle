@@ -10,7 +10,8 @@
     [clojure.spec.alpha :as s]
     [clojure.string :as str])
   (:import
-    java.io.File))
+    java.io.File
+    java.nio.file.Paths))
 
 
 ;; ## Specs
@@ -498,11 +499,21 @@
               (re-seq pattern filename)))))))
 
 
+(defn- path-relative-to-user-dir
+  "Relativizes the canonical path of the given file against the JVM's working
+  dir (a.k.a. the user.dir System property)."
+  [file]
+  (let [canonical-path (.. file getCanonicalFile toPath)
+        working-path (Paths/get (System/getProperty "user.dir")
+                                (into-array String []))]
+    (str (.relativize working-path canonical-path))))
+
+
 (defn ignored?
   "True if the file should be ignored."
   [config ignores ^File file]
   (let [filename (.getName file)
-        canonical-path (.getCanonicalPath file)]
+        relative-path (path-relative-to-user-dir file)]
     (->>
       (get-in config [:files :ignore])
       (into (set ignores))
@@ -513,7 +524,7 @@
                 (= rule filename)
 
                 (pattern? rule)
-                (re-seq rule canonical-path))))
+                (re-seq rule relative-path))))
       (boolean))))
 
 
