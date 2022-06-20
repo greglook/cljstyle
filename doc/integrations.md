@@ -36,6 +36,9 @@ current buffer:
 "setlocal equalprg=cljstyle\ pipe
 "setlocal formatprg=cljstyle\ pipe
 
+" You can use this mapping to format a visual selection
+" vnoremap <leader>cs :! cljstyle pipe<CR>
+
 " This can also go in autoload/cljstyle.vim
 function cljstyle#fix()
     let cwd = getcwd()
