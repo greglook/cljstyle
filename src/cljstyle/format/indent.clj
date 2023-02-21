@@ -287,13 +287,15 @@
 (defn- stair-indent
   "Calculate how many spaces the node at this location should be indented as a
   conditional block. Returns nil if the rule does not apply."
-  [zloc rule-key idx]
+  [zloc rule-key idx list-indent-size]
   (when (indent-matches? rule-key (zl/form-symbol-full zloc))
     (let [zloc-idx (index-of zloc)
           leading-forms (if (some-> zloc (nth-form idx) first-form-in-line?)
                           0
                           idx)
-          indent (inner-indent zloc rule-key 0 nil)]
+          indent (if (zero? idx)
+                   (block-indent zloc rule-key idx list-indent-size (inc idx))
+                   (inner-indent zloc rule-key 0 nil))]
       (if (even? (- zloc-idx leading-forms))
         (+ indent indent-size)
         indent))))
@@ -322,7 +324,7 @@
     (let [[_ idx] rule]
       (fn stair-indenter
         [zloc]
-        (stair-indent zloc rule-key idx)))))
+        (stair-indent zloc rule-key idx list-indent-size)))))
 
 
 (defn- unindent-line
