@@ -142,6 +142,9 @@
           (is (config/ignored? config #{} (io/file test-dir "foo")))
           (is (config/ignored? config #{} (io/file test-dir "bar")))
           (is (config/ignored? {} #{"bar"} (io/file test-dir "bar")))))
+      (testing "ignored? + relative paths"
+        (let [config {:files {:ignore #{#"^target/test-config/predicates/bar"}}}]
+          (is (config/ignored? config #{} (io/file test-dir "bar")))))
       (finally
         (when (.exists foo-clj)
           (.delete foo-clj))))))
