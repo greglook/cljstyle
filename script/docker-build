@@ -85,7 +85,11 @@ fi
 CLJSTYLE_VERSION=$(grep defproject project.clj | cut -d ' ' -f 3 | tr -d \")
 
 msg "Building docker image $DOCKER_IMAGE_NAME at $CLJSTYLE_VERSION"
-docker build --build-arg GRAAL_STATIC=$GRAAL_STATIC -t $DOCKER_IMAGE_NAME:$CLJSTYLE_VERSION .
+docker build \
+    --platform linux/amd64 \
+    --build-arg GRAAL_STATIC=$GRAAL_STATIC \
+    -t $DOCKER_IMAGE_NAME:$CLJSTYLE_VERSION \
+    .
 
 DOCKER_CONTAINER_ID=$(docker create $DOCKER_IMAGE_NAME:$CLJSTYLE_VERSION)
 docker cp "${DOCKER_CONTAINER_ID}:/opt/cljstyle/cljstyle" "$CLJSTYLE_OUTPUT"

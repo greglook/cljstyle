@@ -26,7 +26,7 @@ COPY . .
 RUN ./script/uberjar
 
 # Build native-image
-ARG GRAAL_XMX="4500m"
+ARG GRAAL_XMX="6000m"
 ARG GRAAL_STATIC="false"
 ENV GRAAL_XMX="$GRAAL_XMX"
 ENV GRAAL_STATIC="$GRAAL_STATIC"

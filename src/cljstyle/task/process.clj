@@ -52,7 +52,7 @@
   [path]
   (let [tname (.getName (Thread/currentThread))]
     (if path
-      (swap! thread-work-state assoc tname {:path path, :watch (stopwatch)})
+      (swap! thread-work-state assoc tname {:path path, :start (System/nanoTime), :watch (stopwatch)})
       (swap! thread-work-state dissoc tname))))
 
 
@@ -218,7 +218,38 @@
   (let [elapsed (stopwatch)
         timeout (or (u/option :timeout) 300)
         pool (ForkJoinPool.)
-        results (agent {})]
+        results (agent {})
+        thread-reporter (doto (Thread.
+                                (fn tick
+                                  []
+                                  (try
+                                    (while (not (Thread/interrupted))
+                                      (Thread/sleep 5000)
+                                      (try
+                                        (binding [*out* *err*]
+                                          (printf "%d/%d threads running with %d queued and %d submitted tasks\n"
+                                                  (.getRunningThreadCount pool)
+                                                  (.getPoolSize pool)
+                                                  (.getQueuedTaskCount pool)
+                                                  (.getQueuedSubmissionCount pool))
+                                          (when-let [work-state (seq @thread-work-state)]
+                                            (doseq [[tname {:keys [path start]}] work-state]
+                                              (printf "  %-28s %9s %s\n"
+                                                      tname
+                                                      (u/duration-str (/ (- (System/nanoTime) start) 1e6))
+                                                      path)))
+                                          (newline)
+                                          (flush))
+                                        (catch InterruptedException ex
+                                          (throw ex))
+                                        (catch Exception ex
+                                          (u/printerrf "Error while running timer handler!\n%s"
+                                                       (ex-message ex)))))
+                                    (catch InterruptedException _
+                                      nil)))
+                                "thread-reporter")
+                          (.setDaemon true)
+                          (.start))]
     (clear-work-state!)
     (run!
       (fn start-task
@@ -242,6 +273,9 @@
         (print-thread-dump))
       (.shutdownNow pool)
       (throw (ex-info "Timed out" {:type ::timeout})))
+    (when (.isAlive thread-reporter)
+      (.interrupt thread-reporter)
+      (.join thread-reporter 1000))
     (send results identity)
     (when-not (await-for 5000 results)
       (u/printerr "WARNING: Results not fully reported after 5 seconds"))

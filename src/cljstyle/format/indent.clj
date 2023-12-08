@@ -152,6 +152,7 @@
     (str 2 rule-key)))
 
 
+;; TODO: memoize this
 (defn- indent-matches?
   "True if the rule key indicates that it should apply to this form symbol."
   [rule-key sym]
