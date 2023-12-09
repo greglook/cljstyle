@@ -146,9 +146,19 @@ This rule corrects the number of blank lines between top-level forms.
 
 ### `:eof-newline`
 
-This rule requires all files to end with a newline character. One will be added
-if it is not present. There is no configuration for this rule beyond the
-`:enabled?` state.
+This rule corrects the number of newline characters at the end of a file.
+
+* `enabled?`
+
+  Whether a file must end in at least one newline character. One will be added
+  if it is not present.
+
+* `trailing-blanks?`
+
+  Whether more newline characters besides the one covered by `enabled?` are
+  permitted. If `trailing-blanks?` is false and `enabled?` is false, no newline
+  characters are permitted at the end of a file. If `trailing-blanks?` is false
+  and `enabled?` is true, only one newline character is permitted.
 
 ### `:comments`
 

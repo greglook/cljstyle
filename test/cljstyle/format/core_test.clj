@@ -168,8 +168,16 @@
 
 (deftest eof-newlines
   (is (= ":x" (fmt/reformat-file ":x" (assoc-in default-rules [:eof-newline :enabled?] false))))
+  (is (= ":x\n\n\n" (fmt/reformat-file ":x\n\n\n" (assoc-in default-rules [:eof-newline :enabled?] false))))
   (is (= ":x\n" (fmt/reformat-file ":x" default-rules)))
-  (is (= ":x\n" (fmt/reformat-file ":x\n" default-rules))))
+  (is (= ":x\n" (fmt/reformat-file ":x\n" default-rules)))
+  (is (= ":x\n" (fmt/reformat-file ":x\n\n\n" (assoc-in default-rules [:eof-newline :trailing-blanks?] false))))
+  (is (= ":x"
+         (fmt/reformat-file
+           ":x\n\n\n"
+           (-> default-rules
+               (assoc-in [:eof-newline :enabled?] false)
+               (assoc-in [:eof-newline :trailing-blanks?] false))))))
 
 
 (deftest comma-placeholders

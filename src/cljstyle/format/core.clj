@@ -166,6 +166,25 @@
     [nil text]))
 
 
+(defn- trim-trailing-newlines
+  "Trims the appropriate number of newlines (either of all of them or all
+  except one) from the result of formatting a file."
+  [formatted-text rules-config]
+  (let [num-trailing-blanks
+        (-> formatted-text
+            (reverse)
+            (->> (map-indexed vector)
+                 (filter (fn [x] (not= \newline (second x)))))
+            (first)
+            (first)
+            (cond->
+              (get-in rules-config [:eof-newline :enabled?])
+              (dec)))]
+    (subs formatted-text
+          0
+          (- (count formatted-text) num-trailing-blanks))))
+
+
 (defn reformat-file*
   "Like `reformat-string*` but applies to an entire file. Will add a final
   newline if configured to do so. Returns a map with the revised text and other
@@ -179,7 +198,10 @@
 
       (and (get-in rules-config [:eof-newline :enabled?])
            (not (str/ends-with? (:formatted result) "\n")))
-      (update :formatted str "\n"))))
+      (update :formatted str "\n")
+
+      (not (get-in rules-config [:eof-newline :trailing-blanks?]))
+      (update :formatted trim-trailing-newlines rules-config))))
 
 
 (defn reformat-file
