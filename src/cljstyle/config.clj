@@ -144,6 +144,7 @@
 (s/def :cljstyle.config.rules.blank-lines/padding-lines
   nat-int?)
 
+
 ;; whether to permit additional newline characters at the end of files
 (s/def :cljstyle.config.rules.eof-newline/trailing-blanks?
   boolean?)
