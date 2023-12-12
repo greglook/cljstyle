@@ -4,31 +4,12 @@ version: 2.1
 executors:
   clojure:
     docker:
-      - image: circleci/clojure:lein-2.9.1
+      - image: cimg/clojure:1.11-openjdk-11.0
     working_directory: ~/repo
 
 
 # Job definitions
 jobs:
-  test:
-    executor: clojure
-    steps:
-      - checkout
-      - restore_cache:
-          keys:
-            - v1-test-{{ checksum "project.clj" }}
-            - v1-test-
-      - run:
-          command: lein deps
-      - run:
-          command: lein check
-      - run:
-          command: lein test
-      - save_cache:
-          key: v1-test-{{ checksum "project.clj" }}
-          paths:
-            - ~/.m2
-
   lint:
     executor: clojure
     steps:
@@ -36,13 +17,13 @@ jobs:
       - run:
           name: Install clj-kondo
           environment:
-            CLJ_KONDO_VERSION: 2019.12.14
+            CLJ_KONDO_VERSION: 2023.10.20
           command: |
             wget https://github.com/borkdude/clj-kondo/releases/download/v${CLJ_KONDO_VERSION}/clj-kondo-${CLJ_KONDO_VERSION}-linux-amd64.zip
             unzip clj-kondo-${CLJ_KONDO_VERSION}-linux-amd64.zip
       - run:
           name: Lint source code
-          command: "./clj-kondo --lint src test"
+          command: "./clj-kondo --lint src:test"
 
   style:
     executor: clojure
@@ -50,11 +31,26 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - v1-test-{{ checksum "project.clj" }}
-            - v1-test-
+            - v2-test-{{ checksum "deps.edn" }}
+            - v2-test-
       - run:
           name: Check formatting
-          command: lein run -- check
+          command: bin/run check
+
+  test:
+    executor: clojure
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v2-test-{{ checksum "deps.edn" }}
+            - v2-test-
+      - run: bin/test check
+      - run: bin/test unit
+      - save_cache:
+          key: v2-test-{{ checksum "deps.edn" }}
+          paths:
+            - ~/.m2
 
   coverage:
     executor: clojure
@@ -62,31 +58,42 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - v1-coverage-{{ checksum "project.clj" }}
-            - v1-coverage-
-            - v1-test-
+            - v2-coverage-{{ checksum "deps.edn" }}
+            - v2-coverage-
+            - v2-test-
       - run:
           name: Generate test coverage
-          command: lein cloverage --codecov
+          command: bin/test coverage --codecov
       - save_cache:
           paths:
             - ~/.m2
-          key: v1-coverage-{{ checksum "project.clj" }}
+          key: v2-coverage-{{ checksum "deps.edn" }}
       - store_artifacts:
           path: target/coverage
           destination: coverage
       - run:
-          name: Publish Coverage
-          command: 'bash <(curl -s https://codecov.io/bash) -f target/coverage/codecov.json'
+          name: Install codecov
+          command: |
+            sudo apt-get update && sudo apt-get install gpg
+            curl https://keybase.io/codecovsecurity/pgp_keys.asc | gpg --no-default-keyring --keyring trustedkeys.gpg --import
+            curl -Os https://uploader.codecov.io/latest/linux/codecov
+            curl -Os https://uploader.codecov.io/latest/linux/codecov.SHA256SUM
+            curl -Os https://uploader.codecov.io/latest/linux/codecov.SHA256SUM.sig
+            gpgv codecov.SHA256SUM.sig codecov.SHA256SUM
+            shasum -a 256 -c codecov.SHA256SUM
+            chmod +x codecov
+      - run:
+          name: Publish coverage report
+          command: './codecov -f target/coverage/codecov.json'
 
 
 # Workflow definitions
 workflows:
   version: 2
-  build:
+  test:
     jobs:
-      - test
       - lint
+      - test
       - style:
           requires:
             - test
