@@ -35,7 +35,7 @@ jobs:
             - v2-test-
       - run:
           name: Check formatting
-          command: bin/run check
+          command: lein run -- check
 
   test:
     executor: clojure
@@ -45,8 +45,8 @@ jobs:
           keys:
             - v2-test-{{ checksum "deps.edn" }}
             - v2-test-
-      - run: bin/test check
-      - run: bin/test unit
+      - run: lein check
+      - run: lein test
       - save_cache:
           key: v2-test-{{ checksum "deps.edn" }}
           paths:
@@ -63,7 +63,7 @@ jobs:
             - v2-test-
       - run:
           name: Generate test coverage
-          command: bin/test coverage --codecov
+          command: lein cloverage --codecov
       - save_cache:
           paths:
             - ~/.m2
