@@ -11,6 +11,18 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ...
 
 
+## [0.15.1] - 2023-12-12
+
+A handful of minor fixes in this release.
+
+- Fix file `:ignore` configuration to work correctly with relative paths.
+  [#91](https://github.com/greglook/cljstyle/pull/91)
+- Specify platform in `Dockerfile` so it works out-of-the-box on other architectures.
+  [#99](https://github.com/greglook/cljstyle/pull/99)
+- Update dependency versions, use new coordinates.
+  [#101](https://github.com/greglook/cljstyle/pull/101)
+
+
 ## [0.15.0] - 2021-03-30
 
 This release adds a major missing element to `cljstyle`'s formatting rules,
@@ -330,7 +342,8 @@ functionality.
 Legacy project release.
 
 
-[Unreleased]: https://github.com/greglook/cljstyle/compare/0.15.0...HEAD
+[Unreleased]: https://github.com/greglook/cljstyle/compare/0.15.1...HEAD
+[0.15.1]: https://github.com/greglook/cljstyle/compare/0.15.0...0.15.1
 [0.15.0]: https://github.com/greglook/cljstyle/compare/0.14.0...0.15.0
 [0.14.0]: https://github.com/greglook/cljstyle/compare/0.13.0...0.14.0
 [0.13.0]: https://github.com/greglook/cljstyle/compare/0.12.1...0.13.0
