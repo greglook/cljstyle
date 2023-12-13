@@ -1,14 +1,11 @@
-target
-classes
-checkouts
-pom.xml
-pom.xml.asc
-*.jar
-*.class
-.lein-*
-.nrepl-port
+# Development Tooling
 .clj-kondo/.cache
-/cljstyle
-/dist
+.cpcache
+.nrepl-*
+.idea
 *.iml
-/.idea
+
+# Build Artifacts
+/target
+/dist
+pom.xml

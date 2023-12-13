@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# vim: ft=bash
+
+set -e
+
+cd "$(dirname "${BASH_SOURCE[0]}")/.."
+
+if [[ $1 = clean ]]; then
+    rm -rf out target
+elif [[ $1 = hiera ]]; then
+    shift
+    exec clojure -X:hiera "$@"
+elif [[ $1 = deploy ]]; then
+    shift
+    if [[ -z $CLOJARS_USERNAME && -z $CLOJARS_PASSWORD && -f $HOME/.clojure/clojars.env ]]; then
+        source $HOME/.clojure/clojars.env
+    fi
+    if [[ -z $CLOJARS_USERNAME ]]; then
+        read -p "Clojars username: " CLOJARS_USERNAME
+        if [[ -z $CLOJARS_USERNAME ]]; then
+            echo "No username available, aborting" >&2
+            exit 1
+        fi
+    fi
+    if [[ -z $CLOJARS_PASSWORD ]]; then
+        read -p "Clojars deploy token: " CLOJARS_PASSWORD
+        if [[ -z $CLOJARS_PASSWORD ]]; then
+            echo "No deploy token available, aborting" >&2
+            exit 1
+        fi
+    fi
+    export CLOJARS_USERNAME CLOJARS_PASSWORD
+    exec clojure -T:build deploy "$@"
+else
+    exec clojure -T:build "$@"
+fi

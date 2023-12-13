@@ -1,6 +1,53 @@
 {:paths ["resources" "src"]
- :deps {org.clojure/clojure {:mvn/version "1.10.3"}
-        org.clojure/tools.cli {:mvn/version "1.0.219"}
-        org.clojure/tools.reader {:mvn/version "1.3.7"}
-        com.googlecode.java-diff-utils/diffutils {:mvn/version "1.3.0"}
-        rewrite-clj/rewrite-clj {:mvn/version "1.1.47"}}}
+
+ :deps
+ {org.clojure/clojure {:mvn/version "1.11.1"}
+  org.clojure/tools.cli {:mvn/version "1.0.219"}
+  org.clojure/tools.reader {:mvn/version "1.3.7"}
+  com.googlecode.java-diff-utils/diffutils {:mvn/version "1.3.0"}
+  rewrite-clj/rewrite-clj {:mvn/version "1.1.47"}}
+
+ :aliases
+ {:build
+  {:deps {org.clojure/clojure {:mvn/version "1.11.1"}
+          org.clojure/tools.build {:mvn/version "0.8.4"}}
+   :ns-default build}
+
+  :repl
+  {:extra-paths ["dev" "test"]
+   :extra-deps {org.clojure/tools.namespace {:mvn/version "1.4.4"}
+                com.clojure-goes-fast/clj-async-profiler {:mvn/version "1.1.1"}
+                mvxcvi/puget {:mvn/version "1.3.2"}}
+   :jvm-opts ["-XX:-OmitStackTraceInFastThrow"
+               "-XX:+UnlockDiagnosticVMOptions"
+               "-XX:+DebugNonSafepoints"]
+   :main-opts ["-e" "(require,'puget.printer)"
+               "-e" "(clojure.main/repl,:init,#(do,(require,'cljstyle.repl),(in-ns,'cljstyle.repl)),:print,puget.printer/cprint)"]}
+
+  :check
+  {:extra-deps {io.github.athos/clj-check {:git/sha "0ca84df1357d71429243b99908303f45a934654c"}}
+   :main-opts ["-m" "clj-check.check"]}
+
+  :test
+  {:extra-paths ["test"]
+   :extra-deps {lambdaisland/kaocha {:mvn/version "1.87.1366"}
+                org.clojure/test.check {:mvn/version "1.1.1"}}
+   :jvm-opts ["-XX:-OmitStackTraceInFastThrow"]
+   :main-opts ["-m" "kaocha.runner"]}
+
+  :coverage
+  {:extra-paths ["test"]
+   :extra-deps {cloverage/cloverage {:mvn/version "RELEASE"}}
+   :main-opts ["-m" "cloverage.coverage"
+               "--src-ns-path" "src"
+               "--test-ns-path" "test"
+               "--ns-exclude-regex" "cljstyle\\.main"]}
+
+  :hiera
+  {:deps {io.github.greglook/clj-hiera {:git/tag "2.0.0", :git/sha "b14e514"}}
+   :exec-fn hiera.main/graph
+   :exec-args {:cluster-depth 2
+               :vertical false}}
+
+  :run
+  {:main-opts ["-m" "cljstyle.main"]}}}
