@@ -29,7 +29,14 @@ elif [[ $1 = deploy ]]; then
             exit 1
         fi
     fi
-    export CLOJARS_USERNAME CLOJARS_PASSWORD
+    if [[ -z $CLOJARS_SIGNING_KEY ]]; then
+        read -p "Clojars signing key: " CLOJARS_SIGNING_KEY
+        if [[ -z $CLOJARS_SIGNING_KEY ]]; then
+            echo "No signing key specified, aborting" >&2
+            exit 1
+        fi
+    fi
+    export CLOJARS_USERNAME CLOJARS_PASSWORD CLOJARS_SIGNING_KEY
     exec clojure -T:build deploy "$@"
 else
     exec clojure -T:build "$@"

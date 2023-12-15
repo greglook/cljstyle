@@ -10,7 +10,8 @@
  :aliases
  {:build
   {:deps {org.clojure/clojure {:mvn/version "1.11.1"}
-          org.clojure/tools.build {:mvn/version "0.8.4"}}
+          org.clojure/tools.build {:mvn/version "0.9.2"}
+          slipset/deps-deploy {:mvn/version "0.2.1"}}
    :ns-default build}
 
   :repl
