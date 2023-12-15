@@ -3,12 +3,12 @@
 
   Different tasks accept different arguments, but some common ones are:
 
+  - `:force`
+    Perform actions without prompting for user input.
   - `:qualifier`
     Apply a qualifier to the release, such as 'rc1'.
   - `:snapshot`
-    If true, prepare a SNAPSHOT release.
-  - `:force`
-    Perform actions without prompting for user input."
+    If true, prepare a SNAPSHOT release."
   (:require
     [clojure.java.io :as io]
     [clojure.string :as str]
@@ -95,6 +95,7 @@
   (let [version (version-info opts true)
         tag (:tag version)]
     (update-changelog version)
+    (spit (io/file "VERSION.txt") tag)
     (b/git-process {:git-args ["commit" "-am" (str "Prepare release " tag)]})
     (b/git-process {:git-args ["tag" tag "-s" "-m" (str "Release " tag)]})
     (println "Prepared release for" tag)
@@ -117,7 +118,9 @@
        :src-pom "doc/pom.xml"
        :src-dirs [src-dir]
        :class-dir class-dir
-       :scm {:tag commit}})
+       :scm {:tag (if (or (:snapshot opts) (:qualifier opts))
+                    (:commit version)
+                    (:tag version))}})
     (assoc opts
            :version version
            :pom-file pom-file)))
@@ -148,10 +151,10 @@
     (b/install
       {:basis basis
        :lib lib-name
-       :version (:tag opts)
+       :version (:tag version)
        :jar-file (:jar-file opts)
        :class-dir class-dir})
-    (println "Installed version" (:tag opts) "to local repository")
+    (println "Installed version" (:tag version) "to local repository")
     opts))
 
 
