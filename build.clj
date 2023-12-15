@@ -45,7 +45,8 @@
   ([opts next?]
    {:tag (str major-version
               "."
-              (cond-> (b/git-count-revs nil) next? inc)
+              (cond-> (parse-long (b/git-count-revs nil))
+                next? inc)
               (when-let [qualifier (:qualifier opts)]
                 (str "-" qualifier))
               (when (:snapshot opts)
@@ -55,9 +56,7 @@
 
 
 (defn print-version
-  "Print the current version information. Accepts version options:
-
-  "
+  "Print the current version information."
   [opts]
   (let [{:keys [tag commit date] :as version} (version-info opts)]
     (printf "cljstyle %s (built from %s on %s)\n" tag commit date)
@@ -65,10 +64,28 @@
     (assoc opts :version version)))
 
 
+(defn- update-version
+  "Update version references in repository files."
+  [version]
+  (let [tag (:tag version)
+        version-file (io/file "VERSION.txt")
+        integrations-file (io/file "doc/integrations.md")]
+    (spit version-file tag)
+    (-> (slurp integrations-file)
+        (str/replace #"mvxcvi/cljstyle \"\S+\""
+                     (str "mvxcvi/cljstyle \"" tag "\""))
+        (str/replace #"CLJSTYLE_VERSION: \S+"
+                     (str "CLJSTYLE_VERSION: " tag))
+        (str/replace #"cljstyle.git\", :tag \"\S+\""
+                     (str "cljstyle.git\", :tag \"" tag "\""))
+        (->> (spit integrations-file)))))
+
+
 (defn- update-changelog
   "Stamp the CHANGELOG file with the new version."
-  [{:keys [tag date]}]
-  (let [file (io/file "CHANGELOG.md")
+  [version]
+  (let [{:keys [tag date]} version
+        file (io/file "CHANGELOG.md")
         changelog (slurp file)]
     (when (str/includes? changelog "## [Unreleased]\n\n...\n")
       (binding [*out* *err*]
@@ -94,8 +111,8 @@
         (System/exit 2))))
   (let [version (version-info opts true)
         tag (:tag version)]
+    (update-version version)
     (update-changelog version)
-    (spit (io/file "VERSION.txt") tag)
     (b/git-process {:git-args ["commit" "-am" (str "Prepare release " tag)]})
     (b/git-process {:git-args ["tag" tag "-s" "-m" (str "Release " tag)]})
     (println "Prepared release for" tag)
