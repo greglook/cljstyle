@@ -8,19 +8,19 @@
     java.util.Properties))
 
 
-(def version
-  "Project version string."
-  (if-let [props-file (io/resource "META-INF/maven/mvxcvi/cljstyle/pom.properties")]
-    (with-open [props-reader (io/reader props-file)]
-      (let [props (doto (Properties.)
-                    (.load props-reader))
-            {:strs [groupId artifactId version revision]} props]
-        (format "%s/%s %s (%s)"
-                groupId artifactId version
-                (if revision
-                  (str/trim-newline revision)
-                  "HEAD"))))
-    "HEAD"))
+(defn- get-version
+  "Return the project version string."
+  []
+  (let [manifest (Properties.)]
+    (try
+      (with-open [rdr (io/reader (io/resource "META-INF/MANIFEST.MF"))]
+        (.load manifest rdr))
+      (catch Exception _
+        _))
+    (let [version (.getProperty manifest "Implementation-Version" "dev")
+          commit (.getProperty manifest "Build-Commit" "HEAD")
+          date (.getProperty manifest "Build-Date" "now")]
+      (format "mvxcvi/cljstyle %s (built from %s on %s)" version commit date))))
 
 
 (defn print-usage
@@ -37,5 +37,5 @@
   (when (seq args)
     (u/printerr "cljstyle version command takes no arguments")
     (u/exit! 1))
-  (println version)
+  (println (get-version))
   (flush))

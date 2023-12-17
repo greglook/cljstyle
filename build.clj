@@ -306,8 +306,12 @@
         opts (uberjar (assoc opts :uber-file uber-file))
         args [(str (:graal-native-image opts))
               "-jar" uber-file
-              ;; "-march=x86-64-v2"
               (str "-H:Name=" image-file)
+              ;; "-march=x86-64-v2"
+              ;; "--native-image-info"
+              ;; "--verbose"
+
+              "-H:+UnlockExperimentalVMOptions"
               "-H:IncludeResources=^META-INF/MANIFEST.MF$"
               "-H:+ReportUnsupportedElementsAtRuntime"
               "-H:+ReportExceptionStackTraces"
@@ -320,10 +324,7 @@
 
               "--features=clj_easy.graal_build_time.InitClojureClasses"
               "--enable-preview"
-              "--no-fallback"
-              ;; "--native-image-info"
-              ;; "--verbose"
-              ,,,]
+              "--no-fallback"]
         result (b/process {:command-args args})]
     (when-not (zero? (:exit result))
       (binding [*out* *err*]
