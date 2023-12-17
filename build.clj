@@ -15,18 +15,22 @@
     [clojure.tools.build.api :as b]
     [deps-deploy.deps-deploy :as d])
   (:import
-    java.time.LocalDate))
+    java.io.File
+    (java.time
+      Instant
+      LocalDate)))
 
 
-(def basis (b/create-basis {:project "deps.edn"}))
+(def project-basis (b/create-basis {:project "deps.edn"}))
 
 (def lib-name 'mvxcvi/cljstyle)
 (def major-version "0.16")
 
 (def src-dir "src")
 (def class-dir "target/classes")
-(def uber-file "target/cljstyle.jar")
 
+
+;; ## Utilities
 
 (defn clean
   "Remove compiled artifacts."
@@ -34,6 +38,25 @@
   (b/delete {:path "target"})
   ;; TODO: clean up old poms?
   opts)
+
+
+(defn- last-modified
+  "Return the newest modification time in epoch milliseconds from all of the
+  files in the given file arguments. Directories are traversed recursively."
+  [& paths]
+  (reduce
+    (fn max-inst
+      [newest ^File file]
+      (if (.isFile file)
+        (let [candidate (.lastModified file)]
+          (if (< newest candidate)
+            candidate
+            newest))
+        newest))
+    0
+    (mapcat
+      (comp file-seq io/file)
+      paths)))
 
 
 ;; ## Version and Releases
@@ -129,7 +152,7 @@
                    {:class-dir class-dir
                     :lib lib-name})]
     (b/write-pom
-      {:basis basis
+      {:basis project-basis
        :lib lib-name
        :version (:tag version)
        :src-pom "doc/pom.xml"
@@ -166,7 +189,7 @@
   (let [opts (-> opts clean jar)
         version (:version opts)]
     (b/install
-      {:basis basis
+      {:basis project-basis
        :lib lib-name
        :version (:tag version)
        :jar-file (:jar-file opts)
@@ -212,26 +235,99 @@
 ;; ## Native Image Building
 
 (defn uberjar
+  "Compile the Clojure source files and package all dependencies into an uberjar."
   [opts]
-  (clean opts)
-  (b/copy-dir
-    {:src-dirs ["resources"]
-     :target-dir class-dir})
-  (b/compile-clj
-    {:basis basis
-     :src-dirs [src-dir]
-     :class-dir class-dir
-     :java-opts ["-Dclojure.spec.skip-macros=true"]
-     :compile-opts {:elide-meta [:doc :file :line :added]
-                    :direct-linking true}
-     :bindings {#'clojure.core/*assert* false}})
-  (let [{:keys [tag commit date]} (version-info)]
-    (b/uber
-      {:basis basis
-       :class-dir class-dir
-       :uber-file uber-file
-       :main 'cljstyle.main
-       :manifest {"Implementation-Title" (name lib-name)
-                  "Implementation-Version" tag
-                  "Build-Commit" commit
-                  "Build-Date" date}})))
+  (let [version (version-info opts)
+        uber-file (io/file (:uber-file opts "target/cljstyle.jar"))
+        basis (if (:graal-native-image opts)
+                (b/create-basis
+                  {:project "deps.edn"
+                   :aliases [:native-image]})
+                project-basis)]
+    (when (or (not (.exists uber-file))
+              (< (.lastModified uber-file)
+                 (last-modified "deps.edn" "resources" "src")))
+      (println "Building uberjar...")
+      (b/copy-dir
+        {:src-dirs ["resources"]
+         :target-dir class-dir})
+      (b/compile-clj
+        {:basis basis
+         :src-dirs [src-dir]
+         :class-dir class-dir
+         :java-opts ["-Dclojure.spec.skip-macros=true"]
+         :compile-opts {:elide-meta [:doc :file :line :added]
+                        :direct-linking true}
+         :bindings {#'clojure.core/*assert* false}})
+      (b/uber
+        {:basis basis
+         :class-dir class-dir
+         :uber-file (str uber-file)
+         :main 'cljstyle.main
+         :manifest {"Implementation-Title" (name lib-name)
+                    "Implementation-Version" (:tag version)
+                    "Build-Commit" (:commit version)
+                    "Build-Date" (:date version)}}))
+    (assoc opts
+           :version version
+           :uber-file uber-file)))
+
+
+(defn- check-graal
+  "Verify that the Oracle Graal runtime and native-image tool are available.
+  Returns the options updated with a `:graal-home` setting on success."
+  [opts]
+  (let [graal-root (io/file (System/getProperty "user.home") ".local/share/graalvm-ce")
+        graal-version (:graal-version opts "21.0.1")
+        graal-home (io/file (or (System/getenv "GRAAL_HOME")
+                                (:graal-home opts)
+                                (io/file graal-root "latest")))
+        native-image-cmd (io/file graal-home "bin/native-image")]
+    (when-not (.isDirectory graal-home)
+      (binding [*out* *err*]
+        (println "GraalVM directory not found at:" (str graal-home))
+        (println "Download from https://github.com/graalvm/graalvm-ce-builds/releases and set GRAAL_HOME")
+        (println "Set GRAAL_HOME env or :graal-home option pointing at install directory")
+        (System/exit 2)))
+    (when-not (.exists native-image-cmd)
+      (binding [*out* *err*]
+        (println "GraalVM native-image tool missing at:" (str native-image-cmd))
+        (println "If necessary, run:" (str graal-home "/bin/gu") "install native-image")
+        (System/exit 2)))
+    (assoc opts :graal-native-image native-image-cmd)))
+
+
+(defn native-image
+  "Compile the uberjar to a native image."
+  [opts]
+  (let [opts (check-graal opts)
+        uber-file "target/graal/cljstyle-uber.jar"
+        image-file "target/graal/cljstyle"
+        opts (uberjar (assoc opts :uber-file uber-file))
+        args [(str (:graal-native-image opts))
+              "-jar" uber-file
+              ;; "-march=x86-64-v2"
+              (str "-H:Name=" image-file)
+              "-H:IncludeResources=^META-INF/MANIFEST.MF$"
+              "-H:+ReportUnsupportedElementsAtRuntime"
+              "-H:+ReportExceptionStackTraces"
+
+              ;; "-R:MinHeapSize=5m"
+              ;; "-R:MaxHeapSize=128m"
+              ;; "-R:MaxNewSize=2m"
+              "-J-Xms3G"
+              "-J-Xmx3G"
+
+              "--features=clj_easy.graal_build_time.InitClojureClasses"
+              "--enable-preview"
+              "--no-fallback"
+              ;; "--native-image-info"
+              ;; "--verbose"
+              ,,,]
+        result (b/process {:command-args args})]
+    (when-not (zero? (:exit result))
+      (binding [*out* *err*]
+        (println "Building cljstyle native-image failed")
+        (prn result)
+        (System/exit 1)))
+    opts))

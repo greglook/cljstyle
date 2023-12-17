@@ -14,6 +14,9 @@
           slipset/deps-deploy {:mvn/version "0.2.2"}}
    :ns-default build}
 
+  :native-image
+  {:extra-deps {com.github.clj-easy/graal-build-time {:mvn/version "1.0.5"}}}
+
   :repl
   {:extra-paths ["dev" "test"]
    :extra-deps {org.clojure/tools.namespace {:mvn/version "1.4.4"}
