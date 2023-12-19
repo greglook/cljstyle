@@ -2,8 +2,7 @@
   "Task implementation for `cljstyle version`."
   (:require
     [cljstyle.task.util :as u]
-    [clojure.java.io :as io]
-    [clojure.string :as str])
+    [clojure.java.io :as io])
   (:import
     java.util.Properties))
 

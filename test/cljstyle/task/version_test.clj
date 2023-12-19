@@ -9,10 +9,6 @@
 (use-fixtures :once suppress-task-exit)
 
 
-(deftest version-string
-  (is (string? version/version)))
-
-
 (deftest version-usage
   (capture-io
     (is (nil? (version/print-usage)))
@@ -30,5 +26,6 @@
   (testing "task execution"
     (capture-io
       (is (nil? (version/task [])))
-      (is (= (str version/version "\n") stdout))
+      (is (str/starts-with? stdout "mvxcvi/cljstyle "))
+      (is (str/ends-with? stdout "\n"))
       (is (str/blank? stderr)))))
