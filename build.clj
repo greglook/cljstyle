@@ -40,6 +40,16 @@
   opts)
 
 
+(defn fetch-deps
+  "Simple no-op task to force all dependencies to be pulled."
+  [opts]
+  (b/create-basis
+    {:project "deps.edn"
+     :aliases [:native-image]})
+  (println "OK")
+  opts)
+
+
 (defn- last-modified
   "Return the newest modification time in epoch milliseconds from all of the
   files in the given file arguments. Directories are traversed recursively."
@@ -255,11 +265,7 @@
   [opts]
   (let [version (version-info opts)
         uber-file (io/file (:uber-file opts "target/cljstyle.jar"))
-        basis (if (:graal-native-image opts)
-                (b/create-basis
-                  {:project "deps.edn"
-                   :aliases [:native-image]})
-                project-basis)]
+        basis (:basis opts project-basis)]
     (when (or (not (.exists uber-file))
               (< (.lastModified uber-file)
                  (last-modified "deps.edn" "resources" "src")))
@@ -289,7 +295,19 @@
            :uber-file uber-file)))
 
 
-(defn- check-graal
+(defn graal-uberjar
+  "Compile the Clojure source files and package in preparation for creating a
+  GraalVM native image."
+  [opts]
+  (uberjar
+    (assoc opts
+           :uber-file "target/graal/uber.jar"
+           :basis (b/create-basis
+                    {:project "deps.edn"
+                     :aliases [:native-image]}))))
+
+
+(defn- graal-check
   "Verify that the Oracle Graal runtime and native-image tool are available.
   Returns the options updated with a `:graal-home` setting on success."
   [opts]
@@ -315,35 +333,33 @@
 (defn native-image
   "Compile the uberjar to a native image."
   [opts]
-  (let [opts (check-graal opts)
-        uber-file "target/graal/cljstyle-uber.jar"
+  (let [opts (-> opts graal-check graal-uberjar)
+        uber-file (:uber-file opts)
         image-file "target/graal/cljstyle"
-        opts (uberjar (assoc opts :uber-file uber-file))
         args [(str (:graal-native-image opts))
-              "-jar" uber-file
-              (str "-H:Name=" image-file)
+              "-jar" (str uber-file)
+              "-o" (str image-file)
+              ;; TODO: allow specifying 'march'?
+              ;; "-march=x86-64-v2"
+              ;; Include manifest for version injection, other common options.
+              "-H:+UnlockExperimentalVMOptions"
+              "-H:IncludeResources=^META-INF/MANIFEST.MF$"
+              "-H:+ReportExceptionStackTraces"
+              ;; Build-time resource controls.
+              "-J-Xms4G"
+              "-J-Xmx4G"
+              ;; Preinitialize Clojure namespaces with clj-easy.
+              "--features=clj_easy.graal_build_time.InitClojureClasses"
+              "--report-unsupported-elements-at-runtime"
+              "--enable-preview"
+              "--no-fallback"
               ;; Verbose output if enabled.
               (when (:verbose opts)
                 ["--native-image-info"
                  "--verbose"])
               ;; Static build flag
               (when (:graal-static opts)
-                "--static")
-              ;; Include manifest for version injection, other common options.
-              "-H:+UnlockExperimentalVMOptions"
-              "-H:IncludeResources=^META-INF/MANIFEST.MF$"
-              "-H:+ReportUnsupportedElementsAtRuntime"
-              "-H:+ReportExceptionStackTraces"
-              ;; Build and runtime resource controls.
-              "-J-Xms3G"
-              "-J-Xmx3G"
-              ;; "-R:MinHeapSize=5m"
-              ;; "-R:MaxHeapSize=128m"
-              ;; "-R:MaxNewSize=2m"
-              ;; Preinitialize Clojure namespaces with clj-easy.
-              "--features=clj_easy.graal_build_time.InitClojureClasses"
-              "--enable-preview"
-              "--no-fallback"]
+                "--static")]
         result (b/process {:command-args (remove nil? (flatten args))})]
     (when-not (zero? (:exit result))
       (binding [*out* *err*]
