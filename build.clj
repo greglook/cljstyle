@@ -142,7 +142,7 @@
     (assoc opts :version version)))
 
 
-;; ## Installation and Publishing
+;; ## Library Installation and Clojars Deployment
 
 (defn pom
   "Write out a pom.xml file for the project."
@@ -277,8 +277,7 @@
   "Verify that the Oracle Graal runtime and native-image tool are available.
   Returns the options updated with a `:graal-home` setting on success."
   [opts]
-  (let [graal-root (io/file (System/getProperty "user.home") ".local/share/graalvm-ce")
-        graal-version (:graal-version opts "21.0.1")
+  (let [graal-root (io/file (System/getProperty "user.home") ".local/share/graalvm")
         graal-home (io/file (or (System/getenv "GRAAL_HOME")
                                 (:graal-home opts)
                                 (io/file graal-root "latest")))
@@ -307,25 +306,29 @@
         args [(str (:graal-native-image opts))
               "-jar" uber-file
               (str "-H:Name=" image-file)
-              ;; "-march=x86-64-v2"
-              ;; "--native-image-info"
-              ;; "--verbose"
-
+              ;; Verbose output if enabled.
+              (when (:verbose opts)
+                ["--native-image-info"
+                 "--verbose"])
+              ;; Static build flag
+              (when (:graal-static opts)
+                "--static")
+              ;; Include manifest for version injection, other common options.
               "-H:+UnlockExperimentalVMOptions"
               "-H:IncludeResources=^META-INF/MANIFEST.MF$"
               "-H:+ReportUnsupportedElementsAtRuntime"
               "-H:+ReportExceptionStackTraces"
-
+              ;; Build and runtime resource controls.
+              "-J-Xms3G"
+              "-J-Xmx3G"
               ;; "-R:MinHeapSize=5m"
               ;; "-R:MaxHeapSize=128m"
               ;; "-R:MaxNewSize=2m"
-              "-J-Xms3G"
-              "-J-Xmx3G"
-
+              ;; Preinitialize Clojure namespaces with clj-easy.
               "--features=clj_easy.graal_build_time.InitClojureClasses"
               "--enable-preview"
               "--no-fallback"]
-        result (b/process {:command-args args})]
+        result (b/process {:command-args (remove nil? (flatten args))})]
     (when-not (zero? (:exit result))
       (binding [*out* *err*]
         (println "Building cljstyle native-image failed")
