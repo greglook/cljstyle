@@ -82,7 +82,7 @@
   "Print the current version information."
   [opts]
   (let [{:keys [tag commit date] :as version} (version-info opts)]
-    (printf "cljstyle %s (built from %s on %s)\n" tag commit date)
+    (printf "mvxcvi/cljstyle %s (built from %s on %s)\n" tag commit date)
     (flush)
     (assoc opts :version version)))
 
@@ -144,6 +144,22 @@
 
 ;; ## Library Installation and Clojars Deployment
 
+(defn- pom-template
+  "Generate template data for the Maven pom.xml file."
+  [version-tag]
+  [[:description "Clojure code style tool"]
+   [:url "https://github.com/greglook/cljstyle"]
+   [:licenses
+    [:license
+     [:name "Eclipse Public License v1.0"]
+     [:url "https://www.eclipse.org/legal/epl-v10.html"]]]
+   [:scm
+    [:url "https://github.com/greglook/cljstyle"]
+    [:connection "scm:git:https://github.com/greglook/cljstyle.git"]
+    [:developerConnection "scm:git:ssh://git@github.com/greglook/cljstyle.git"]
+    [:tag version-tag]]])
+
+
 (defn pom
   "Write out a pom.xml file for the project."
   [opts]
@@ -155,12 +171,12 @@
       {:basis project-basis
        :lib lib-name
        :version (:tag version)
-       :src-pom "doc/pom.xml"
        :src-dirs [src-dir]
        :class-dir class-dir
-       :scm {:tag (if (or (:snapshot opts) (:qualifier opts))
-                    (:commit version)
-                    (:tag version))}})
+       :pom-data (pom-template
+                   (if (or (:snapshot opts) (:qualifier opts))
+                     (:commit version)
+                     (:tag version)))})
     (assoc opts
            :version version
            :pom-file pom-file)))
