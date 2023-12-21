@@ -8,7 +8,9 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
-...
+### Changed
+- Switched from a hodgepodge of Leiningen/Make/Bash to a `tools.deps` and
+  `tools.build` build chain.
 
 
 ## [0.15.1] - 2023-12-12

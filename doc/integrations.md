@@ -120,9 +120,10 @@ style:
         name: Install cljstyle
         environment:
           CLJSTYLE_VERSION: 0.15.0
+          CLJSTYLE_PLATFORM: linux_amd64
         command: |
-          wget https://github.com/greglook/cljstyle/releases/download/${CLJSTYLE_VERSION}/cljstyle_${CLJSTYLE_VERSION}_linux.tar.gz
-          tar -xzf cljstyle_${CLJSTYLE_VERSION}_linux.tar.gz
+          wget https://github.com/greglook/cljstyle/releases/download/${CLJSTYLE_VERSION}/cljstyle_${CLJSTYLE_VERSION}_${CLJSTYLE_PLATFORM}.zip
+          unzip cljstyle_${CLJSTYLE_VERSION}_${CLJSTYLE_PLATFORM}.zip
     - run:
         name: Check style
         command: "./cljstyle check --report"
