@@ -502,7 +502,7 @@
 (defn- path-relative-to-user-dir
   "Relativizes the canonical path of the given file against the JVM's working
   dir (a.k.a. the user.dir System property)."
-  [file]
+  [^File file]
   (let [canonical-path (.. file getCanonicalFile toPath)
         working-path (Paths/get (System/getProperty "user.dir")
                                 (into-array String []))]

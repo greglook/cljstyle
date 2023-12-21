@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 clojure:openjdk-11-lein-2.9.1
+FROM --platform=linux/amd64 clojure:tools-deps
 
 # Install essential tooling
 RUN apt update
@@ -6,32 +6,35 @@ RUN apt install --no-install-recommends -yy curl unzip build-essential zlib1g-de
 
 # Download and configure GraalVM
 WORKDIR /opt
-ARG GRAAL_VERSION="21.0.0"
-ENV GRAAL_HOME="/opt/graalvm-ce-java11-$GRAAL_VERSION"
-RUN curl -sLO https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-$GRAAL_VERSION/graalvm-ce-java11-linux-amd64-$GRAAL_VERSION.tar.gz
-RUN tar -xzf graalvm-ce-java11-linux-amd64-$GRAAL_VERSION.tar.gz
-RUN $GRAAL_HOME/bin/gu install native-image
+ARG GRAAL_VERSION="21.0.1"
+ENV GRAAL_HOME="/opt/graalvm"
+# TODO: do this in one step to save image layers?
+RUN \
+    curl \
+        --silent \
+        --location \
+        --output /tmp/graalvm-ce.tar.gz \
+        https://github.com/graalvm/graalvm-ce-builds/releases/download/jdk-${GRAAL_VERSION}/graalvm-community-jdk-${GRAAL_VERSION}_linux-x64_bin.tar.gz \
+    && tar -xzf /tmp/graalvm-ce.tar.gz \
+    && mv /opt/graalvm-community-* $GRAAL_HOME \
+    && rm /tmp/graalvm-ce.tar.gz
 
+WORKDIR /opt/cljstyle
 ENV JAVA_HOME="$GRAAL_HOME/bin"
 ENV PATH="$JAVA_HOME:$PATH"
 
-WORKDIR /opt/cljstyle
-
 # Prefetch project dependencies
-COPY project.clj .
-RUN lein deps
+COPY deps.edn build.clj .
+RUN clojure -T:build fetch-deps
 
 # Build uberjar
 COPY . .
-RUN ./script/uberjar
+RUN ./bin/build graal-uberjar
 
 # Build native-image
-ARG GRAAL_XMX="4500m"
 ARG GRAAL_STATIC="false"
-ENV GRAAL_XMX="$GRAAL_XMX"
-ENV GRAAL_STATIC="$GRAAL_STATIC"
-RUN ./script/compile
+RUN ./bin/build native-image :graal-static $GRAAL_STATIC
 
 # Install tool
-RUN mkdir -p /usr/local/bin && cp cljstyle /usr/local/bin/cljstyle
+RUN mkdir -p /usr/local/bin && cp target/graal/cljstyle /usr/local/bin/cljstyle
 CMD ["cljstyle"]

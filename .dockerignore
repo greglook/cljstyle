@@ -1,24 +1,18 @@
-# version control
-.gitignore
-.git/
-!.git/HEAD
-!.git/refs/heads/*
-
 # docs
 doc/
 *.md
 *.txt
 
-# local development
+# development files
+.circleci/
 .clj-kondo/
+.cpcache/
+.gitignore
 dev/
+script/
 test/
-deps.edn
 tests.edn
 
-# build files
-.circleci/
-dist/
+# build artifacts
 target/
-Makefile
-cljstyle
+dist/
