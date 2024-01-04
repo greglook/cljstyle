@@ -9,9 +9,6 @@
     java.io.File
     (java.util.concurrent
       ArrayBlockingQueue
-      ForkJoinPool
-      ForkJoinTask
-      RecursiveAction
       RejectedExecutionHandler
       ThreadFactory
       ThreadPoolExecutor
@@ -115,7 +112,7 @@
                                   "")))))
                   (newline)
                   (flush)
-                  (catch InterruptedException ex
+                  (catch InterruptedException _
                     (vreset! running? false))
                   (catch Exception ex
                     (u/printerr "Error while watching processing threads:"
