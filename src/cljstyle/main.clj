@@ -21,6 +21,15 @@
     :default-desc ""
     :parse-fn re-pattern
     :assoc-fn (fn [m k v] (update m k conj v))]
+   [nil  "--min-threads N" "Minimum number of threads to use to process files."
+    :parse-fn #(Integer/parseInt %)
+    :validate [pos? "Must be a positive number"]]
+   [nil  "--max-threads N" "Maximum number of threads to use to process files."
+    :parse-fn #(Integer/parseInt %)
+    :validate [pos? "Must be a positive number"]]
+   [nil  "--watch-threads MILLIS" "Print a report about worker thread activity periodically."
+    :parse-fn #(Integer/parseInt %)
+    :validate [pos? "Must be a positive number"]]
    [nil  "--timeout SEC" "Maximum time to allow the process to run for."
     :default 300
     :parse-fn #(Integer/parseInt %)
