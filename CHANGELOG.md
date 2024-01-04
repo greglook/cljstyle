@@ -12,6 +12,11 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - Switched from a hodgepodge of Leiningen/Make/Bash to a `tools.deps` and
   `tools.build` build chain.
 
+### Added
+- The tool looks for `.cljstyle.clj` and `.cljstyle.edn` as additional options
+  for style configuration.
+  [#95](https://github.com/greglook/cljstyle/issues/95)
+
 
 ## [0.15.1] - 2023-12-12
 

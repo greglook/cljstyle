@@ -531,11 +531,6 @@
 
 ;; ## Configuration Files
 
-(def ^:const file-name
-  "Name which indicates a cljstyle configuration file."
-  ".cljstyle")
-
-
 (def legacy-files
   "A set of legacy files observed during config reading."
   (atom (sorted-set)))
@@ -580,9 +575,14 @@
   if it exists and is readable. Returns nil if the configuration is not present
   or is invalid."
   [^File dir]
-  (let [file (io/file dir file-name)]
-    (when (and (file? file) (readable? file))
-      (read-config file))))
+  (letfn [(try-config
+            [fname]
+            (let [file (io/file dir fname)]
+              (when (and (file? file) (readable? file))
+                (read-config file))))]
+    (or (try-config ".cljstyle")
+        (try-config ".cljstyle.clj")
+        (try-config ".cljstyle.edn"))))
 
 
 (defn find-up

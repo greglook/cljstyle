@@ -199,17 +199,17 @@
 ;; ├── .cljstyle
 ;; └── b
 ;;     ├── c
-;;     │   ├── .cljstyle
+;;     │   ├── .cljstyle.edn
 ;;     │   └── foo.clj
 ;;     └── d
-;;         ├── .cljstyle
+;;         ├── .cljstyle.clj
 ;;         └── e
 ;;             └── bar.clj
 (deftest config-hierarchy
   (with-files [test-dir "target/test-config/hierarchy"
                a-config ["a/.cljstyle" (prn-str {:rules {:blank-lines {:padding-lines 8}}})]
-               _abc-config ["a/b/c/.cljstyle" (prn-str {:rules {:blank-lines {:padding-lines 4}}})]
-               abd-config ["a/b/d/.cljstyle" (prn-str {:files {:ignore #{"f"}}})]
+               _abc-config ["a/b/c/.cljstyle.edn" (prn-str {:rules {:blank-lines {:padding-lines 4}}})]
+               abd-config ["a/b/d/.cljstyle.clj" (prn-str {:files {:ignore #{"f"}}})]
                foo-clj ["a/b/c/foo.clj" "; foo"]
                bar-clj ["a/b/d/e/bar.clj" "; bar"]]
     (testing "read-config"

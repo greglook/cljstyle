@@ -12,6 +12,10 @@ settings to use:
  :rules {:blank-lines {:max-consecutive 3}}}
 ```
 
+You can also use `.cljstyle.clj` or `.cljstyle.edn` as the configuration
+filename if the extension is helpful for your editor. Don't mix multiple
+extensions in the same directory! Only one will be loaded.
+
 
 ## Configuration Layout
 
