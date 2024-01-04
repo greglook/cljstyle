@@ -344,6 +344,7 @@
         results (agent {})]
     (try
       (clear-work-state!)
+      (.prestartCoreThread workers)
       ;; Walk the filesystem and produce tasks to execute. Runs in this thread.
       (produce-tasks config+paths workers process! results)
       ;; Inform pool no more tasks are coming, await processing.
