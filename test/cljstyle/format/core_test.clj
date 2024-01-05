@@ -172,7 +172,7 @@
   (is (= ":x\n" (fmt/reformat-file ":x" default-rules)))
   (is (= ":x\n" (fmt/reformat-file ":x\n" default-rules)))
   (is (= ":x\n" (fmt/reformat-file ":x\n\n\n" (assoc-in default-rules [:eof-newline :trailing-blanks?] false))))
-  (is (= ":x"
+  (is (= ":x\n\n\n"
          (fmt/reformat-file
            ":x\n\n\n"
            (-> default-rules
