@@ -105,8 +105,8 @@ If you would like to use `cljstyle` without installing the binary, you can run
 it directly with `clj`:
 
 ```shell
-clj -Sdeps '{:deps {mvxcvi/cljstyle {:git/url "https://github.com/greglook/cljstyle.git", :tag "0.15.0"}}}' \
-    -m cljstyle.main \
+clj -Sdeps '{:deps {mvxcvi/cljstyle {:mvn/version "0.15.0"}}}' \
+    -M -m cljstyle.main \
     check
 ```
 

@@ -21,6 +21,8 @@ accordingly.
 ### Fixed
 - Fixed slightly-broken neovim autoload integration doc.
   [#74](https://github.com/greglook/cljstyle/issues/74)
+- Fixed broken `tools.deps` usage instructions.
+  [#87](https://github.com/greglook/cljstyle/issues/87)
 
 ### Added
 - Added link to example GitHub Action.

@@ -105,12 +105,12 @@
         integrations-file (io/file "doc/integrations.md")]
     (spit version-file tag)
     (-> (slurp integrations-file)
-        (str/replace #"mvxcvi/cljstyle \"\S+\""
-                     (str "mvxcvi/cljstyle \"" tag "\""))
         (str/replace #"CLJSTYLE_VERSION: \S+"
-                     (str "CLJSTYLE_VERSION: " tag))
-        (str/replace #"cljstyle.git\", :tag \"\S+\""
-                     (str "cljstyle.git\", :tag \"" tag "\""))
+                     (format "CLJSTYLE_VERSION: %s" tag))
+        (str/replace #"mvxcvi/cljstyle \"\S+\""
+                     (format "mvxcvi/cljstyle \"%s\"" tag))
+        (str/replace #"mvxcvi/cljstyle \{:mvn/version \"\S+\"\}"
+                     (format "mvxcvi/cljstyle {:mvn/version \"%s\"}" tag))
         (->> (spit integrations-file)))))
 
 
