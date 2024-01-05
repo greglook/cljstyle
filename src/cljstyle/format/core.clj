@@ -177,9 +177,13 @@
       shebang
       (update :formatted (partial str shebang))
 
-      (and (get-in rules-config [:eof-newline :enabled?])
-           (not (str/ends-with? (:formatted result) "\n")))
-      (update :formatted str "\n"))))
+      (get-in rules-config [:eof-newline :enabled?])
+      (as-> result
+        (if (get-in rules-config [:eof-newline :trailing-blanks?])
+          (if (not (str/ends-with? (:formatted result) "\n"))
+            (update result :formatted str "\n")
+            result)
+          (update result :formatted str/replace-first #"\n*\z" "\n"))))))
 
 
 (defn reformat-file

@@ -155,8 +155,15 @@
 
 ;; #### Rule: EOF Newline
 
+;; whether to permit additional newline characters at the end of files
+(s/def :cljstyle.config.rules.eof-newline/trailing-blanks?
+  boolean?)
+
+
 (s/def :cljstyle.config.rules/eof-newline
-  (s/keys :opt-un [:cljstyle.config.rules.global/enabled?]))
+  (s/keys :opt-un [:cljstyle.config.rules.global/enabled?
+                   :cljstyle.config.rules.eof-newline/trailing-blanks?]))
+
 
 
 ;; #### Rule: Comments
@@ -333,7 +340,8 @@
      :padding-lines 2}
 
     :eof-newline
-    {:enabled? true}
+    {:enabled? true
+     :trailing-blanks? false}
 
     :comments
     {:enabled? true
