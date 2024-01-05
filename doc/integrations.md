@@ -37,8 +37,7 @@ current buffer:
 "setlocal equalprg=cljstyle\ pipe
 "setlocal formatprg=cljstyle\ pipe
 
-" This can also go in autoload/cljstyle.vim
-function cljstyle#fix()
+function CljstyleFix()
     let cwd = getcwd()
     let winsave = winsaveview()
     execute "cd" . expand('%:p:h')
@@ -50,8 +49,11 @@ function cljstyle#fix()
 endfunction
 
 " Example shortcut to fix the current file
-nnoremap <leader>cs :call cljstyle#fix()<cr>
+nnoremap <leader>cs :call CljstyleFix()<cr>
 ```
+
+You can also put the function in `autoload/cljstyle.vim` and name it
+`cljstyle#fix()` if you prefer lazy-loading behavior.
 
 
 ### Emacs
