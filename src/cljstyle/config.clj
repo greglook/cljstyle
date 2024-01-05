@@ -145,11 +145,6 @@
   nat-int?)
 
 
-;; whether to permit additional newline characters at the end of files
-(s/def :cljstyle.config.rules.eof-newline/trailing-blanks?
-  boolean?)
-
-
 (s/def :cljstyle.config.rules/blank-lines
   (s/keys :opt-un [:cljstyle.config.rules.global/enabled?
                    :cljstyle.config.rules.blank-lines/trim-consecutive?
@@ -163,6 +158,11 @@
 (s/def :cljstyle.config.rules/eof-newline
   (s/keys :opt-un [:cljstyle.config.rules.global/enabled?
                    :cljstyle.config.rules.eof-newline/trailing-blanks?]))
+
+
+;; whether to permit additional newline characters at the end of files
+(s/def :cljstyle.config.rules.eof-newline/trailing-blanks?
+  boolean?)
 
 
 ;; #### Rule: Comments
