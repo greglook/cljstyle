@@ -17,6 +17,10 @@ accordingly.
   `tools.build` build chain.
 - Stop publishing tarball artifacts.
   [#75](https://github.com/greglook/cljstyle/issues/75)
+- The `eof-newlines` rule will now remove additional trailing blank lines by
+  default. This can be controlled with the `:trailing-blanks?` option.
+  [#88](https://github.com/greglook/cljstyle/issues/88)
+  [#102](https://github.com/greglook/cljstyle/pull/102)
 
 ### Fixed
 - Fixed slightly-broken neovim autoload integration doc.
@@ -34,8 +38,10 @@ accordingly.
 
 ## [0.15.1] - 2023-12-12
 
-A handful of minor fixes in this release.
+A handful of minor fixes in this release. No new native binaries, just a
+Clojars update.
 
+### Fixed
 - Fix file `:ignore` configuration to work correctly with relative paths.
   [#91](https://github.com/greglook/cljstyle/pull/91)
 - Specify platform in `Dockerfile` so it works out-of-the-box on other architectures.
