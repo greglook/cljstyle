@@ -2,6 +2,7 @@
 
 `cljstyle` can be integrated into a number of different tools.
 
+
 ### ZSH
 
 If you use `zsh` as your shell, you can add completion for `cljstyle` by
@@ -72,6 +73,7 @@ Clojure formatter with `cljstyle`:
 (set-formatter! 'cljstyle "cljstyle pipe" :modes '(clojure-mode))
 ```
 
+
 ### Leiningen
 
 Cljstyle may be used from Leiningen by adding `cljstyle` as a dependency and
@@ -133,3 +135,9 @@ style:
 ```
 
 This assumes you have defined a common executor configuration named `clojure`.
+
+
+### GitHub Actions
+
+An example action is available at [0918nobita/setup-cljstyle](https://github.com/0918nobita/setup-cljstyle)
+for using `cljstyle` in a GitHub workflow.
