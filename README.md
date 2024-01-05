@@ -63,19 +63,21 @@ your path.
 
 ### Installation script (macOS and Linux)
 
-This installation script works for linux and MacOS and can be used for quickly installing or upgrading to the newest cljstyle without a package manager. It will install to /usr/local/bin by default.
+This installation script works for linux and MacOS and can be used for quickly
+installing or upgrading to the newest cljstyle without a package manager. It
+will install to `/usr/local/bin` by default.
 
 To download and execute the script:
 
 ```
-curl -sLO https://raw.githubusercontent.com/greglook/cljstyle/main/script/install-cljstyle
+curl -sLO https://raw.githubusercontent.com/greglook/cljstyle/main/util/install-cljstyle
 chmod +x install-cljstyle
 ./install-cljstyle
 ```
 
-To install to a different directory, append the option --dir <dir> to the above command. To download to a different directory, append the option --download-dir <dir>. To install a specific version, use --version <x.y.z>.
-
-To upgrade, just run the script again.
+The script accepts several options to control the installation directory,
+download directory, version, and architecture. Run with `--help` to see all
+options. To upgrade, just run the script again.
 
 ### macOS via Homebrew
 

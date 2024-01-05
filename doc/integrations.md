@@ -5,8 +5,9 @@
 ### ZSH
 
 If you use `zsh` as your shell, you can add completion for `cljstyle` by
-placing the [completion file](completion.zsh) somewhere on your `$fpath` and
-naming it `_cljstyle`. This will complete the commands and tool options.
+placing the [completion file](../util/completion.zsh) somewhere on your
+`$fpath` and naming it `_cljstyle`. This will complete the commands and tool
+options.
 
 
 ### Vim
