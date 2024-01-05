@@ -156,9 +156,9 @@ This rule corrects the number of newline characters at the end of a file.
 * `trailing-blanks?`
 
   Whether more newline characters besides the one covered by `enabled?` are
-  permitted. If `trailing-blanks?` is false and `enabled?` is false, no newline
-  characters are permitted at the end of a file. If `trailing-blanks?` is false
-  and `enabled?` is true, only one newline character is permitted.
+  permitted. If `enabled?` is false, `trailing-blanks?` has no effect. If
+  `enabled?` is true and `trailing-blanks?` is false, only one newline
+  character is permitted at the end of files.
 
 ### `:comments`
 
