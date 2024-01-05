@@ -8,11 +8,23 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+**WARNING:** this release formally deprecates the `.tar.gz` artifacts in favor
+of `.zip` files. Make sure you update any [integrations](doc/integrations.md)
+accordingly.
+
 ### Changed
 - Switched from a hodgepodge of Leiningen/Make/Bash to a `tools.deps` and
   `tools.build` build chain.
+- Stop publishing tarball artifacts.
+  [#75](https://github.com/greglook/cljstyle/issues/75)
+
+### Fixed
+- Fixed slightly-broken neovim autoload integration doc.
+  [#74](https://github.com/greglook/cljstyle/issues/74)
 
 ### Added
+- Added link to example GitHub Action.
+  [#83](https://github.com/greglook/cljstyle/issues/83)
 - The tool looks for `.cljstyle.clj` and `.cljstyle.edn` as additional options
   for style configuration.
   [#95](https://github.com/greglook/cljstyle/issues/95)
