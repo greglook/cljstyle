@@ -133,6 +133,8 @@
         (vary-meta assoc ::durations (into {} durations)))))
 
 
+;; ## String Formatting
+
 (defn reformat-string*
   "Transform a string by parsing it, formatting it, then rendering it. Returns
   a map with the revised string under `:formatted` and a map of the durations
@@ -153,6 +155,8 @@
   (:formatted (reformat-string* form-string rules-config)))
 
 
+;; ## File Formatting
+
 (defn- split-shebang
   "Separate out a shebang line if it the first text present in the string.
   Returns a vector with two entries, the potential shebang (or nil, if not
@@ -166,24 +170,35 @@
     [nil text]))
 
 
+(defn- fix-eof-newlines
+  "Change to the formatted string so it has the correct number of newlines at
+  the end. Returns the updated string, or the original if the rule is not
+  enabled."
+  [string rule]
+  (if (:enabled? rule)
+    (if (:trailing-blanks? rule)
+      ;; Any number of newlines are allowed, so ensure there is at least one.
+      (if-not (str/ends-with? string "\n")
+        (str string "\n")
+        string)
+      ;; Exactly one newline is allowed, clobber any.
+      (str/replace-first string #"\n*\z" "\n"))
+    ;; Rule disabled.
+    string))
+
+
 (defn reformat-file*
   "Like `reformat-string*` but applies to an entire file. Will add a final
   newline if configured to do so. Returns a map with the revised text and other
   information."
   [file-text rules-config]
-  (let [[shebang text] (split-shebang file-text)
-        result (reformat-string* text rules-config)]
-    (cond-> result
-      shebang
-      (update :formatted (partial str shebang))
-
-      (get-in rules-config [:eof-newline :enabled?])
-      (as-> result
-        (if (get-in rules-config [:eof-newline :trailing-blanks?])
-          (if (not (str/ends-with? (:formatted result) "\n"))
-            (update result :formatted str "\n")
-            result)
-          (update result :formatted str/replace-first #"\n*\z" "\n"))))))
+  (let [[shebang text] (split-shebang file-text)]
+    (->
+      (reformat-string* text rules-config)
+      (update :formatted fix-eof-newlines (:eof-newline rules-config))
+      (cond->
+        shebang
+        (update :formatted (partial str shebang))))))
 
 
 (defn reformat-file

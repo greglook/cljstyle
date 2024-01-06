@@ -82,3 +82,33 @@
             (is (str/blank? stdout))
             (is (str/blank? stderr))
             (is (.exists stats-file))))))))
+
+
+(deftest diff-output
+  (testing "with changed content"
+    (is (= (str "--- a/path/to/file.txt\n"
+                "+++ b/path/to/file.txt\n"
+                "@@ -1,4 +1,4 @@\n"
+                " 1\n"
+                "-2\n"
+                "+two\n"
+                "+e\n"
+                " 3\n"
+                "-4")
+           (check/unified-diff "path/to/file.txt" "1\n2\n3\n4\n" "1\ntwo\ne\n3\n"))))
+  (testing "with missing eof newline"
+    (is (= (str "--- a/path/to/file.txt\n"
+                "+++ b/path/to/file.txt\n"
+                "@@ -1,1 +1,2 @@\n"
+                "-content\n"
+                "+content\n"
+                "\\ No newline at end of file")
+           (check/unified-diff "path/to/file.txt" "content" "content\n"))))
+  (testing "with trimmed eof newlines"
+    (is (= (str "--- a/path/to/file.txt\n"
+                "+++ b/path/to/file.txt\n"
+                "@@ -1,1 +1,2 @@\n"
+                " content\n"
+                "-\n"
+                "-")
+           (check/unified-diff "path/to/file.txt" "content\n\n\n" "content\n")))))

@@ -20,12 +20,25 @@
     path))
 
 
+(defn- chomp-blank-tail
+  "Remove all trailing newlines from the string."
+  [text]
+  (str/replace-first text #"\n+\z" ""))
+
+
+(defn- blank-tail-diff?
+  "True if the two strings only differ by the number of newlines at the end."
+  [original revised]
+  (and (not= original revised)
+       (= (chomp-blank-tail original)
+          (chomp-blank-tail revised))))
+
+
 (defn- diff-lines
   "Compare the two strings and return a diff from `DiffUtils`."
   [path original revised]
   (let [original-lines (str/split original #"\n")
-        revised-lines (str/split revised #"\n")
-        path (chomp-preslash path)]
+        revised-lines (str/split revised #"\n")]
     (str/join
       "\n"
       (DiffUtils/generateUnifiedDiff
@@ -36,26 +49,39 @@
         3))))
 
 
+(defn- diff-blank-tail
+  "Special-case diff construction when dealing with two strings which only
+  differ by a 'tail' of blank lines."
+  [path original revised]
+  (let [diff (diff-lines path original (str revised "x"))
+        lines (butlast (str/split diff #"\n"))
+        header (str/join "\n" (butlast lines))
+        last-line (last lines)
+        delta (- (count revised) (count original))]
+    (if (= 1 delta)
+      ;; Special case where we added a newline to the end of the text.
+      (str header "\n"
+           "-" (subs last-line 1) "\n"
+           "+" (subs last-line 1)
+           "\n\\ No newline at end of file")
+      ;; Some number of removed or added newlines
+      (str header "\n"
+           last-line "\n"
+           (if (neg? delta)
+             (str/join "\n" (repeat (- (count original) (count revised)) "-"))
+             (str/join "\n" (repeat (- (count revised) (count original)) "+")))))))
+
+
 (defn unified-diff
   "Produce a unified diff string comparing the original and revised texts."
   [path original revised]
   (let [path (chomp-preslash path)]
     ;; DiffUtils does not render anything in the case where the only difference
-    ;; is a trailing newline. Handle this case specially. Note that one
+    ;; is trailing newlines. Handle this case specially. Note that one
     ;; limitation of this approach is that if there are other errors _and_ a
     ;; missing EOF newline, this won't show the newline error in the diff.
-    (if (and (= (count revised) (inc (count original)))
-             (= revised (str original "\n")))
-      ;; Special-case newline diff.
-      (let [diff (diff-lines path original (str revised "x"))
-            lines (butlast (str/split diff #"\n"))
-            header (str/join "\n" (butlast lines))
-            last-line (last lines)]
-        (str header "\n"
-             "-" (subs last-line 1) "\n"
-             "+" (subs last-line 1) "\n"
-             "\\ No newline at end of file"))
-      ;; Standard diff.
+    (if (blank-tail-diff? original revised)
+      (diff-blank-tail path original revised)
       (diff-lines path original revised))))
 
 
