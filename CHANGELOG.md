@@ -8,6 +8,11 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+...
+
+
+## [0.16.626] - 2024-01-06
+
 **WARNING:** this release formally deprecates the `.tar.gz` artifacts in favor
 of `.zip` files. Make sure you update any [integrations](doc/integrations.md)
 accordingly.
@@ -369,7 +374,8 @@ functionality.
 Legacy project release.
 
 
-[Unreleased]: https://github.com/greglook/cljstyle/compare/0.15.1...HEAD
+[Unreleased]: https://github.com/greglook/cljstyle/compare/0.16.626...HEAD
+[0.16.626]: https://github.com/greglook/cljstyle/compare/0.15.1...0.16.626
 [0.15.1]: https://github.com/greglook/cljstyle/compare/0.15.0...0.15.1
 [0.15.0]: https://github.com/greglook/cljstyle/compare/0.14.0...0.15.0
 [0.14.0]: https://github.com/greglook/cljstyle/compare/0.13.0...0.14.0
