@@ -5,6 +5,40 @@ set -e
 
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
+DIST_CLEAN=false
+DIST_TARGET=all
+
+
+usage() {
+    echo "bin/package [--clean] [--target TARGET]" >&2
+    echo >&2
+    echo "Targets: jar, macos, linux, linux-static" >&2
+}
+
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -h|--help)
+            usage
+            exit
+            ;;
+        --clean)
+            DIST_CLEAN=true
+            shift
+            ;;
+        --target)
+            DIST_TARGET="$2"
+            shift
+            shift
+            ;;
+        *)
+            usage
+            exit 1
+            ;;
+    esac
+done
+
+
 CLJSTYLE_VERSION="$(clojure -T:build print-version | cut -d ' ' -f 2)"
 # TODO: check that we're on main branch
 # TODO: check for dirty git state?
@@ -12,91 +46,99 @@ CLJSTYLE_VERSION="$(clojure -T:build print-version | cut -d ' ' -f 2)"
 
 echo "Preparing full release distribution for $CLJSTYLE_VERSION"
 
-if [[ $1 = --clean ]]; then
-    rm -rf dist target
+if [[ $DIST_CLEAN == true ]]; then
+  rm -rf dist target
 fi
 
 mkdir -p dist
 echo
 
 # Java uberjar artifact
-CLJSTYLE_JAR_ARTIFACT="dist/cljstyle-${CLJSTYLE_VERSION}.jar"
-if [[ ! -f $CLJSTYLE_JAR_ARTIFACT ]]; then
-    echo "Building uberjar with $(java -version 2>&1 | head -n 1)"
-    clojure -T:build uberjar
-    cp target/cljstyle.jar "dist/cljstyle-${CLJSTYLE_VERSION}.jar"
-    echo
+if [[ $DIST_TARGET == all || $DIST_TARGET == jar ]]; then
+    CLJSTYLE_JAR_ARTIFACT="dist/cljstyle-${CLJSTYLE_VERSION}.jar"
+    if [[ ! -f $CLJSTYLE_JAR_ARTIFACT ]]; then
+        echo "Building uberjar with $(java -version 2>&1 | head -n 1)"
+        clojure -T:build uberjar
+        cp target/cljstyle.jar "dist/cljstyle-${CLJSTYLE_VERSION}.jar"
+        echo
+    fi
 fi
 
 # MacOS native image
-CLJSTYLE_MACOS_ARTIFACT="dist/cljstyle_${CLJSTYLE_VERSION}_macos_$(uname -m).zip"
-if [[ ! -f $CLJSTYLE_MACOS_ARTIFACT ]]; then
-    if [[ $(uname -s) = Darwin ]]; then
-        echo "Building MacOS $(uname -m) binary"
-        (
-            # TODO: better graal detection here
-            export GRAAL_HOME="$HOME/.local/share/graalvm/latest"
-            export JAVA_HOME="$GRAAL_HOME/bin"
-            export PATH="$JAVA_HOME:$PATH"
-            clojure -T:build native-image
-        )
-        if [[ ! -f target/graal/cljstyle ]]; then
+if [[ $DIST_TARGET == all || $DIST_TARGET == macos ]]; then
+    CLJSTYLE_MACOS_ARTIFACT="dist/cljstyle_${CLJSTYLE_VERSION}_macos_$(uname -m).zip"
+    if [[ ! -f $CLJSTYLE_MACOS_ARTIFACT ]]; then
+        if [[ $(uname -s) = Darwin ]]; then
+            echo "Building MacOS $(uname -m) binary"
+            (
+                # TODO: better graal detection here
+                export GRAAL_HOME="$HOME/.local/share/graalvm/latest"
+                export JAVA_HOME="$GRAAL_HOME/bin"
+                export PATH="$JAVA_HOME:$PATH"
+                clojure -T:build native-image
+            )
+            if [[ ! -f target/graal/cljstyle ]]; then
+                echo "Packaging step did not produce an executable!" >&2
+                exit 1
+            fi
+            (
+                cd target/graal
+                zip cljstyle.zip cljstyle
+            )
+            mv target/graal/cljstyle.zip $CLJSTYLE_MACOS_ARTIFACT
+        else
+            echo "Skipping MacOS binary, must build on a Darwin platform"
+        fi
+        echo
+    fi
+fi
+
+# Linux native image
+if [[ $DIST_TARGET == all || $DIST_TARGET == linux ]]; then
+    CLJSTYLE_LINUX_ARTIFACT="dist/cljstyle_${CLJSTYLE_VERSION}_linux_amd64.zip"
+    if [[ ! -f $CLJSTYLE_LINUX_ARTIFACT ]]; then
+        echo "Building Linux binary"
+        rm -rf target/dist/linux
+        mkdir -p target/dist/linux
+        docker build -t cljstyle-builder:$CLJSTYLE_VERSION .
+        DOCKER_CONTAINER_ID=$(docker create cljstyle-builder:$CLJSTYLE_VERSION)
+        docker cp "${DOCKER_CONTAINER_ID}:/usr/local/bin/cljstyle" target/dist/linux/cljstyle
+        docker container rm $DOCKER_CONTAINER_ID
+        if [[ ! -f target/dist/linux/cljstyle ]]; then
             echo "Packaging step did not produce an executable!" >&2
             exit 1
         fi
         (
-            cd target/graal
+            cd target/dist/linux
             zip cljstyle.zip cljstyle
         )
-        mv target/graal/cljstyle.zip $CLJSTYLE_MACOS_ARTIFACT
-    else
-        echo "Skipping MacOS binary, must build on a Darwin platform"
+        mv target/dist/linux/cljstyle.zip $CLJSTYLE_LINUX_ARTIFACT
+        echo
     fi
-    echo
-fi
-
-# Linux native image
-CLJSTYLE_LINUX_ARTIFACT="dist/cljstyle_${CLJSTYLE_VERSION}_linux_amd64.zip"
-if [[ ! -f $CLJSTYLE_LINUX_ARTIFACT ]]; then
-    echo "Building Linux binary"
-    rm -rf target/dist/linux
-    mkdir -p target/dist/linux
-    docker build -t cljstyle-builder:$CLJSTYLE_VERSION .
-    DOCKER_CONTAINER_ID=$(docker create cljstyle-builder:$CLJSTYLE_VERSION)
-    docker cp "${DOCKER_CONTAINER_ID}:/usr/local/bin/cljstyle" target/dist/linux/cljstyle
-    docker container rm $DOCKER_CONTAINER_ID
-    if [[ ! -f target/dist/linux/cljstyle ]]; then
-        echo "Packaging step did not produce an executable!" >&2
-        exit 1
-    fi
-    (
-        cd target/dist/linux
-        zip cljstyle.zip cljstyle
-    )
-    mv target/dist/linux/cljstyle.zip $CLJSTYLE_LINUX_ARTIFACT
-    echo
 fi
 
 # Linux static native image
-CLJSTYLE_LINUX_STATIC_ARTIFACT="dist/cljstyle_${CLJSTYLE_VERSION}_linux_amd64_static.zip"
-if [[ ! -f $CLJSTYLE_LINUX_STATIC_ARTIFACT ]]; then
-    echo "Building Linux static binary"
-    rm -rf target/dist/linux-static
-    mkdir -p target/dist/linux-static
-    docker build --build-arg GRAAL_STATIC=true -t cljstyle-static-builder:$CLJSTYLE_VERSION .
-    DOCKER_CONTAINER_ID=$(docker create cljstyle-static-builder:$CLJSTYLE_VERSION)
-    docker cp "${DOCKER_CONTAINER_ID}:/usr/local/bin/cljstyle" target/dist/linux-static/cljstyle
-    docker container rm $DOCKER_CONTAINER_ID
-    if [[ ! -f target/dist/linux-static/cljstyle ]]; then
-        echo "Packaging step did not produce an executable!" >&2
-        exit 1
+if [[ $DIST_TARGET == all || $DIST_TARGET == linux-static ]]; then
+    CLJSTYLE_LINUX_STATIC_ARTIFACT="dist/cljstyle_${CLJSTYLE_VERSION}_linux_amd64_static.zip"
+    if [[ ! -f $CLJSTYLE_LINUX_STATIC_ARTIFACT ]]; then
+        echo "Building Linux static binary"
+        rm -rf target/dist/linux-static
+        mkdir -p target/dist/linux-static
+        docker build --build-arg GRAAL_STATIC=true -t cljstyle-static-builder:$CLJSTYLE_VERSION .
+        DOCKER_CONTAINER_ID=$(docker create cljstyle-static-builder:$CLJSTYLE_VERSION)
+        docker cp "${DOCKER_CONTAINER_ID}:/usr/local/bin/cljstyle" target/dist/linux-static/cljstyle
+        docker container rm $DOCKER_CONTAINER_ID
+        if [[ ! -f target/dist/linux-static/cljstyle ]]; then
+            echo "Packaging step did not produce an executable!" >&2
+            exit 1
+        fi
+        (
+            cd target/dist/linux-static
+            zip cljstyle.zip cljstyle
+        )
+        mv target/dist/linux-static/cljstyle.zip $CLJSTYLE_LINUX_STATIC_ARTIFACT
+        echo
     fi
-    (
-        cd target/dist/linux-static
-        zip cljstyle.zip cljstyle
-    )
-    mv target/dist/linux-static/cljstyle.zip $CLJSTYLE_LINUX_STATIC_ARTIFACT
-    echo
 fi
 
 # Done
