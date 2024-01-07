@@ -10,8 +10,17 @@ default_install_dir="/usr/local/bin"
 install_dir=$default_install_dir
 default_download_dir="/tmp"
 download_dir=$default_download_dir
-architecture="$(uname -m)"
 version=""
+
+case "$(uname -s)" in
+    Linux*)  platform=linux ;;
+    Darwin*) platform=macos ;;
+esac
+
+case "$(uname -m)" in
+    arm64|aarch64) architecture=arm64 ;;
+    *)             architecture=amd64 ;;
+esac
 
 print_help() {
     echo "Installs latest version of cljstyle."
@@ -68,11 +77,6 @@ done
 if [[ "$version" == "" ]]; then
   version="$(curl -s https://raw.githubusercontent.com/greglook/cljstyle/main/VERSION.txt)"
 fi
-
-case "$(uname -s)" in
-    Linux*)     platform=linux;;
-    Darwin*)    platform=macos;;
-esac
 
 archive_file="cljstyle_${version}_${platform}_${architecture}.zip"
 download_url="https://github.com/greglook/cljstyle/releases/download/${version}/${archive_file}"
