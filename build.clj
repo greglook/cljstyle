@@ -205,7 +205,8 @@
        :target-dir class-dir})
     (b/jar
       {:class-dir class-dir
-       :jar-file jar-file})
+       :jar-file jar-file
+       :main 'cljstyle.main})
     (assoc opts :jar-file jar-file)))
 
 
