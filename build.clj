@@ -27,6 +27,7 @@
 (def major-version "0.16")
 
 (def src-dir "src")
+(def resource-dir "resources")
 (def class-dir "target/classes")
 
 
@@ -201,7 +202,7 @@
                          (name lib-name)
                          (:tag version))]
     (b/copy-dir
-      {:src-dirs [src-dir]
+      {:src-dirs [resource-dir src-dir]
        :target-dir class-dir})
     (b/jar
       {:class-dir class-dir
@@ -269,10 +270,10 @@
         basis (:basis opts project-basis)]
     (when (or (not (.exists uber-file))
               (< (.lastModified uber-file)
-                 (last-modified "deps.edn" "resources" "src")))
+                 (last-modified "deps.edn" resource-dir src-dir)))
       (println "Building uberjar...")
       (b/copy-dir
-        {:src-dirs ["resources"]
+        {:src-dirs [resource-dir]
          :target-dir class-dir})
       (b/compile-clj
         {:basis basis
