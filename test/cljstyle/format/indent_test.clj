@@ -61,6 +61,12 @@
           "(assoc {}\n  :foo bar\n  :foo2 bar2)"))))
 
 
+(defn space
+  "A string with n spaces"
+  [n]
+  (apply str (repeat n " ")))
+
+
 (deftest stair-indentation
   (let [indents {'cond [[:stair 0]]
                  'condp [[:stair 2]]
@@ -70,6 +76,14 @@
           indent/reindent-lines {:indents indents}
           "(cond\na? a\n   b? b)"
           "(cond\n  a? a\n  b? b)"))
+    (is (rule-reformatted?
+          indent/reindent-lines {:indents indents}
+          "(cond a? a\n   b? b)"
+          (str "(cond a? a\n" (space 6) "b? b)")))
+    (is (rule-reformatted?
+          indent/reindent-lines {:indents indents}
+          "(cond a?\n a\n   b?\n b)"
+          (str "(cond a?\n" (space 8) "a\n" (space 6) "b?\n" (space 8) "b)")))
     (is (rule-reformatted?
           indent/reindent-lines {:indents indents}
           "(cond\na?\n a\nb?\n  b)"
