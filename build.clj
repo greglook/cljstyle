@@ -90,13 +90,28 @@
     :date (str (LocalDate/now))}))
 
 
+(defn- format-version
+  "Format the version string from the `version-info` map."
+  [version]
+  (let [{:keys [tag commit date]} version]
+    (format "mvxcvi/cljstyle %s (built from %s on %s)" tag commit date)))
+
+
 (defn print-version
   "Print the current version information."
   [opts]
-  (let [{:keys [tag commit date] :as version} (version-info opts)]
-    (printf "mvxcvi/cljstyle %s (built from %s on %s)\n" tag commit date)
-    (flush)
+  (let [version (version-info opts)]
+    (println (format-version version))
     (assoc opts :version version)))
+
+
+(defn- write-version-resource
+  "Write the current version string to a resource file for building into a
+  release artifact."
+  [version]
+  (let [version-file (io/file class-dir "cljstyle" "version.txt")]
+    (io/make-parents version-file)
+    (spit version-file (str (format-version version) "\n"))))
 
 
 (defn- update-version
@@ -202,6 +217,7 @@
         jar-file (format "target/%s-%s.jar"
                          (name lib-name)
                          (:tag version))]
+    (write-version-resource version)
     (b/copy-dir
       {:src-dirs [resource-dir src-dir]
        :target-dir class-dir})
@@ -273,6 +289,7 @@
               (< (.lastModified uber-file)
                  (last-modified "deps.edn" resource-dir src-dir)))
       (println "Building uberjar...")
+      (write-version-resource version)
       (b/copy-dir
         {:src-dirs [resource-dir]
          :target-dir class-dir})

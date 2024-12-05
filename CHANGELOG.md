@@ -8,7 +8,9 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
-...
+### Changed
+- The `version` task uses a new `cljstyle/version.txt` resource instead of the
+  jar manifest, as it gets overridden when building a native executable.
 
 
 ## [0.16.626] - 2024-01-06
