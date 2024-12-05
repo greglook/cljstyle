@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 clojure:tools-deps
+FROM clojure:tools-deps
 
 # Install essential tooling
 RUN apt update
@@ -19,7 +19,7 @@ RUN \
     && rm /tmp/graalvm-ce.tar.gz
 
 WORKDIR /opt/cljstyle
-ENV JAVA_HOME="$GRAAL_HOME/bin"
+ENV JAVA_HOME="$GRAAL_HOME"
 ENV PATH="$JAVA_HOME:$PATH"
 
 # Prefetch project dependencies

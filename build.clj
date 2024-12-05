@@ -329,22 +329,26 @@
 
 (defn- graal-check
   "Verify that the Oracle Graal runtime and native-image tool are available.
-  Returns the options updated with a `:graal-home` setting on success."
+  Returns the options updated with a `:graal-native-image` setting on success."
   [opts]
-  (let [graal-root (io/file (System/getProperty "user.home") ".local/share/graalvm")
-        graal-home (io/file (or (System/getenv "GRAAL_HOME")
-                                (:graal-home opts)
-                                (io/file graal-root "latest")))
-        native-image-cmd (io/file graal-home "bin/native-image")]
-    (when-not (.isDirectory graal-home)
+  ;; Check vendor and version strings for GraalVM
+  (let [vendor (System/getProperty "java.vendor")
+        version (System/getProperty "java.version")
+        major (when version
+                (parse-long (first (str/split version #"\."))))]
+    (when-not (and vendor (str/starts-with? vendor "GraalVM")
+                   major (<= 21 major))
       (binding [*out* *err*]
-        (println "GraalVM directory not found at:" (str graal-home))
-        (println "Download from https://github.com/graalvm/graalvm-ce-builds/releases and set GRAAL_HOME")
-        (println "Set GRAAL_HOME env or :graal-home option pointing at install directory")
-        (System/exit 2)))
+        (println "Compile the native-image with GraalVM 21 or higher - current JDK:"
+                 (or (System/getProperty "java.vm.version") version))
+        (println "Download from https://github.com/graalvm/graalvm-ce-builds/releases")
+        (System/exit 2))))
+  ;; We can now assume java.home is $GRAAL_HOME, check for the native-image tool
+  (let [graal-home (io/file (System/getProperty "java.home"))
+        native-image-cmd (io/file graal-home "bin/native-image")]
     (when-not (.exists native-image-cmd)
       (binding [*out* *err*]
-        (println "GraalVM native-image tool missing at:" (str native-image-cmd))
+        (println "GraalVM native-image tool not found at" (str native-image-cmd))
         (println "If necessary, run:" (str graal-home "/bin/gu") "install native-image")
         (System/exit 2)))
     (assoc opts :graal-native-image native-image-cmd)))
@@ -354,28 +358,12 @@
   "Compile the uberjar to a native image."
   [opts]
   (let [opts (-> opts graal-check graal-uberjar)
-        uber-file (:uber-file opts)
-        image-file "target/graal/cljstyle"
         args [(str (:graal-native-image opts))
-              "-jar" (str uber-file)
-              "-o" (str image-file)
+              "-jar" (str (:uber-file opts))
+              "-o" "target/graal/cljstyle"
               "-march=compatibility"
-              ;; Include manifest for version injection, other common options.
-              "-H:+UnlockExperimentalVMOptions"
-              "-H:IncludeResources=^META-INF/MANIFEST.MF$"
-              "-H:+ReportExceptionStackTraces"
-              ;; Build-time resource controls.
-              "-J-Xms4G"
-              "-J-Xmx4G"
-              ;; Force UTF-8 encoding.
-              "-J-Dfile.encoding=UTF-8"
-              "-J-Dsun.stdout.encoding=UTF-8"
-              "-J-Dsun.stderr.encoding=UTF-8"
-              ;; Preinitialize Clojure namespaces with clj-easy.
-              "--features=clj_easy.graal_build_time.InitClojureClasses"
-              "--report-unsupported-elements-at-runtime"
-              "--enable-preview"
               "--no-fallback"
+              "--color=always"
               ;; Verbose output if enabled.
               (when (:verbose opts)
                 ["--native-image-info"
@@ -388,5 +376,5 @@
       (binding [*out* *err*]
         (println "Building cljstyle native-image failed")
         (prn result)
-        (System/exit 1)))
+        (System/exit 3)))
     opts))

@@ -5,12 +5,13 @@ set -e
 
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
+DIST_FORCE=false
 DIST_CLEAN=false
 DIST_TARGET=all
 
 
 usage() {
-    echo "bin/package [--clean] [--target TARGET]" >&2
+    echo "bin/package [--clean] [--force] [--target TARGET]" >&2
     echo >&2
     echo "Targets: jar, macos, linux, linux-static" >&2
 }
@@ -26,6 +27,10 @@ while [[ $# -gt 0 ]]; do
             DIST_CLEAN=true
             shift
             ;;
+        --force)
+            DIST_FORCE=true
+            shift
+            ;;
         --target)
             DIST_TARGET="$2"
             shift
@@ -39,12 +44,32 @@ while [[ $# -gt 0 ]]; do
 done
 
 
-CLJSTYLE_VERSION="$(clojure -T:build print-version | cut -d ' ' -f 2)"
-# TODO: check that we're on main branch
-# TODO: check for dirty git state?
-# TODO: check that VERSION.txt matches?
+readonly CLJSTYLE_VERSION="$(clojure -T:build print-version | cut -d ' ' -f 2)"
+readonly GIT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+readonly GIT_STATUS="$(git status --porcelain --untracked-files=no)"
 
-echo "Preparing full release distribution for $CLJSTYLE_VERSION"
+if [[ $GIT_BRANCH != main ]]; then
+    if [[ $DIST_FORCE != true ]]; then
+        echo -e "\033[0;31mAborting packaging from non-main branch $GIT_BRANCH\033[0m" >&2
+        exit 1
+    else
+        echo -e "\033[0;31mWARNING: packaging from non-main branch $GIT_BRANCH\033[0m" >&2
+    fi
+fi
+
+if [[ -n $GIT_STATUS ]]; then
+    if [[ $DIST_FORCE != true ]]; then
+        echo -e "\033[0;31mAborting packaging with uncommitted changes:\033[0m" >&2
+        echo "$GIT_STATUS" >&2
+        exit 1
+    else
+        echo -e "\033[0;31mWARNING: packaging with uncommitted changes:\033[0m" >&2
+        echo "$GIT_STATUS" >&2
+    fi
+fi
+
+
+echo "Preparing release distribution for $CLJSTYLE_VERSION"
 
 if [[ $DIST_CLEAN == true ]]; then
   rm -rf dist target
@@ -100,8 +125,11 @@ if [[ $DIST_TARGET == all || $DIST_TARGET == linux ]]; then
         echo "Building Linux binary"
         rm -rf target/dist/linux
         mkdir -p target/dist/linux
-        docker build -t "cljstyle-builder:$CLJSTYLE_VERSION" .
-        DOCKER_CONTAINER_ID=$(docker create "cljstyle-builder:$CLJSTYLE_VERSION")
+        docker build \
+            --platform linux/amd64 \
+            -t "cljstyle-builder:$CLJSTYLE_VERSION" \
+            .
+        DOCKER_CONTAINER_ID=$(docker create --platform linux/amd64 "cljstyle-builder:$CLJSTYLE_VERSION")
         docker cp "${DOCKER_CONTAINER_ID}:/usr/local/bin/cljstyle" target/dist/linux/cljstyle
         docker container rm "$DOCKER_CONTAINER_ID"
         if [[ ! -f target/dist/linux/cljstyle ]]; then
@@ -124,8 +152,12 @@ if [[ $DIST_TARGET == all || $DIST_TARGET == linux-static ]]; then
         echo "Building Linux static binary"
         rm -rf target/dist/linux-static
         mkdir -p target/dist/linux-static
-        docker build --build-arg GRAAL_STATIC=true -t "cljstyle-static-builder:$CLJSTYLE_VERSION" .
-        DOCKER_CONTAINER_ID=$(docker create "cljstyle-static-builder:$CLJSTYLE_VERSION")
+        docker build \
+            --platform linux/amd64 \
+            --build-arg GRAAL_STATIC=true \
+            -t "cljstyle-static-builder:$CLJSTYLE_VERSION" \
+            .
+        DOCKER_CONTAINER_ID=$(docker create --platform linux/amd64 "cljstyle-static-builder:$CLJSTYLE_VERSION")
         docker cp "${DOCKER_CONTAINER_ID}:/usr/local/bin/cljstyle" target/dist/linux-static/cljstyle
         docker container rm "$DOCKER_CONTAINER_ID"
         if [[ ! -f target/dist/linux-static/cljstyle ]]; then

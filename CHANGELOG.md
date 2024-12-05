@@ -9,8 +9,19 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 
 ### Changed
+- Revamp how native-image executables are built to follow modern GraalVM
+  recommended practices.
 - The `version` task uses a new `cljstyle/version.txt` resource instead of the
-  jar manifest, as it gets overridden when building a native executable.
+  jar manifest, as it gets overridden when building a native-image.
+
+### Fixed
+- Build native-image with `-march=compatibility` to avoid CPU feature support
+  issues.
+  [#106](https://github.com/greglook/cljstyle/issues/106)
+- Set explicit UTF-8 encoding properties when building native-image binary to
+  prevent garbling unicode characters.
+  [#108](https://github.com/greglook/cljstyle/issues/108)
+  [#110](https://github.com/greglook/cljstyle/issues/110)
 
 
 ## [0.16.626] - 2024-01-06

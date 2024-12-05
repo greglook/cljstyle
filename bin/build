@@ -11,6 +11,39 @@ if [[ $1 = clean ]]; then
 elif [[ $1 = hiera ]]; then
     shift
     exec clojure -X:hiera "$@"
+
+elif [[ $1 = native-image ]]; then
+    shift
+    GRAAL_ROOT="${GRAAL_ROOT:-$HOME/.local/share/graalvm}"
+
+    # Look for GraalVM location if not set ahead of time
+    if [[ -z $GRAAL_HOME ]]; then
+        if [[ ! -d $GRAAL_ROOT ]]; then
+            echo "GRAAL_ROOT is not a valid directory: $GRAAL_ROOT" >&2
+            exit 2
+        fi
+        GRAAL_HOME="$(for dir in "$GRAAL_ROOT"/graalvm-*; do echo "$dir"; done | sort | tail -n 1)"
+        # Special case for the MacOS version
+        if [[ -n $GRAAL_HOME && -d "${GRAAL_HOME}/Contents/Home" ]]; then
+            GRAAL_HOME="${GRAAL_HOME}/Contents/Home"
+        fi
+    fi
+
+    # Make sure we found something to use
+    if [[ -z $GRAAL_HOME || ! -d $GRAAL_HOME ]]; then
+        echo "GraalVM directory not found under $GRAAL_ROOT" >&2
+        echo "Download from https://github.com/graalvm/graalvm-ce-builds/releases and and extract there" >&2
+        echo "Alternately, set GRAAL_HOME pointing at the install directory" >&2
+        exit 2
+    fi
+
+    # Switch to GraalVM SDK
+    echo "Using GraalVM from $GRAAL_HOME"
+    export JAVA_HOME="${GRAAL_HOME}"
+    export PATH="${JAVA_HOME}/bin:${PATH}"
+
+    exec clojure -T:build native-image "$@"
+
 elif [[ $1 = deploy ]]; then
     shift
     if [[ -z $CLOJARS_USERNAME && -z $CLOJARS_PASSWORD && -f $HOME/.clojure/clojars.env ]]; then

@@ -1,0 +1,9 @@
+{
+  "resources": {
+    "includes": [
+      {"pattern": "^cljstyle/version.txt$"}
+    ],
+    "excludes": [
+    ]
+  }
+}
