@@ -341,8 +341,7 @@
         args [(str (:graal-native-image opts))
               "-jar" (str uber-file)
               "-o" (str image-file)
-              ;; TODO: allow specifying 'march'?
-              ;; "-march=x86-64-v2"
+              "-march=compatibility"
               ;; Include manifest for version injection, other common options.
               "-H:+UnlockExperimentalVMOptions"
               "-H:IncludeResources=^META-INF/MANIFEST.MF$"

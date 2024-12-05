@@ -6,9 +6,8 @@ RUN apt install --no-install-recommends -yy curl unzip build-essential zlib1g-de
 
 # Download and configure GraalVM
 WORKDIR /opt
-ARG GRAAL_VERSION="21.0.1"
+ARG GRAAL_VERSION="23.0.1"
 ENV GRAAL_HOME="/opt/graalvm"
-# TODO: do this in one step to save image layers?
 RUN \
     curl \
         --silent \
