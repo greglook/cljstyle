@@ -24,7 +24,7 @@
 (def project-basis (b/create-basis {:project "deps.edn"}))
 
 (def lib-name 'mvxcvi/cljstyle)
-(def major-version "0.16")
+(def major-version "0.17")
 
 (def src-dir "src")
 (def resource-dir "resources")
@@ -55,19 +55,20 @@
   "Return the newest modification time in epoch milliseconds from all of the
   files in the given file arguments. Directories are traversed recursively."
   [& paths]
-  (reduce
+  (transduce
+    (mapcat (comp file-seq io/file))
     (fn max-inst
-      [newest ^File file]
-      (if (.isFile file)
-        (let [candidate (.lastModified file)]
-          (if (< newest candidate)
-            candidate
-            newest))
-        newest))
+      ([newest]
+       newest)
+      ([newest ^File file]
+       (if (.isFile file)
+         (let [candidate (.lastModified file)]
+           (if (< newest candidate)
+             candidate
+             newest))
+         newest)))
     0
-    (mapcat
-      (comp file-seq io/file)
-      paths)))
+    paths))
 
 
 ;; ## Version and Releases
