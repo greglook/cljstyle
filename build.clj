@@ -350,6 +350,10 @@
               ;; Build-time resource controls.
               "-J-Xms4G"
               "-J-Xmx4G"
+              ;; Force UTF-8 encoding.
+              "-J-Dfile.encoding=UTF-8"
+              "-J-Dsun.stdout.encoding=UTF-8"
+              "-J-Dsun.stderr.encoding=UTF-8"
               ;; Preinitialize Clojure namespaces with clj-easy.
               "--features=clj_easy.graal_build_time.InitClojureClasses"
               "--report-unsupported-elements-at-runtime"
