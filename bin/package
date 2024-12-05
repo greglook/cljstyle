@@ -85,7 +85,7 @@ if [[ $DIST_TARGET == all || $DIST_TARGET == macos ]]; then
                 cd target/graal
                 zip cljstyle.zip cljstyle
             )
-            mv target/graal/cljstyle.zip $CLJSTYLE_MACOS_ARTIFACT
+            mv target/graal/cljstyle.zip "$CLJSTYLE_MACOS_ARTIFACT"
         else
             echo "Skipping MacOS binary, must build on a Darwin platform"
         fi
@@ -100,10 +100,10 @@ if [[ $DIST_TARGET == all || $DIST_TARGET == linux ]]; then
         echo "Building Linux binary"
         rm -rf target/dist/linux
         mkdir -p target/dist/linux
-        docker build -t cljstyle-builder:$CLJSTYLE_VERSION .
-        DOCKER_CONTAINER_ID=$(docker create cljstyle-builder:$CLJSTYLE_VERSION)
+        docker build -t "cljstyle-builder:$CLJSTYLE_VERSION" .
+        DOCKER_CONTAINER_ID=$(docker create "cljstyle-builder:$CLJSTYLE_VERSION")
         docker cp "${DOCKER_CONTAINER_ID}:/usr/local/bin/cljstyle" target/dist/linux/cljstyle
-        docker container rm $DOCKER_CONTAINER_ID
+        docker container rm "$DOCKER_CONTAINER_ID"
         if [[ ! -f target/dist/linux/cljstyle ]]; then
             echo "Packaging step did not produce an executable!" >&2
             exit 1
@@ -112,7 +112,7 @@ if [[ $DIST_TARGET == all || $DIST_TARGET == linux ]]; then
             cd target/dist/linux
             zip cljstyle.zip cljstyle
         )
-        mv target/dist/linux/cljstyle.zip $CLJSTYLE_LINUX_ARTIFACT
+        mv target/dist/linux/cljstyle.zip "$CLJSTYLE_LINUX_ARTIFACT"
         echo
     fi
 fi
@@ -124,10 +124,10 @@ if [[ $DIST_TARGET == all || $DIST_TARGET == linux-static ]]; then
         echo "Building Linux static binary"
         rm -rf target/dist/linux-static
         mkdir -p target/dist/linux-static
-        docker build --build-arg GRAAL_STATIC=true -t cljstyle-static-builder:$CLJSTYLE_VERSION .
-        DOCKER_CONTAINER_ID=$(docker create cljstyle-static-builder:$CLJSTYLE_VERSION)
+        docker build --build-arg GRAAL_STATIC=true -t "cljstyle-static-builder:$CLJSTYLE_VERSION" .
+        DOCKER_CONTAINER_ID=$(docker create "cljstyle-static-builder:$CLJSTYLE_VERSION")
         docker cp "${DOCKER_CONTAINER_ID}:/usr/local/bin/cljstyle" target/dist/linux-static/cljstyle
-        docker container rm $DOCKER_CONTAINER_ID
+        docker container rm "$DOCKER_CONTAINER_ID"
         if [[ ! -f target/dist/linux-static/cljstyle ]]; then
             echo "Packaging step did not produce an executable!" >&2
             exit 1
@@ -136,7 +136,7 @@ if [[ $DIST_TARGET == all || $DIST_TARGET == linux-static ]]; then
             cd target/dist/linux-static
             zip cljstyle.zip cljstyle
         )
-        mv target/dist/linux-static/cljstyle.zip $CLJSTYLE_LINUX_STATIC_ARTIFACT
+        mv target/dist/linux-static/cljstyle.zip "$CLJSTYLE_LINUX_STATIC_ARTIFACT"
         echo
     fi
 fi

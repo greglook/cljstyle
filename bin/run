@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # vim: ft=bash
 
+set -e
+
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
 exec clojure -M:run "$@"
