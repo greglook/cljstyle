@@ -20,7 +20,7 @@ RUN \
 
 WORKDIR /opt/cljstyle
 ENV JAVA_HOME="$GRAAL_HOME"
-ENV PATH="$JAVA_HOME:$PATH"
+ENV PATH="$JAVA_HOME/bin:$PATH"
 
 # Prefetch project dependencies
 COPY deps.edn build.clj .

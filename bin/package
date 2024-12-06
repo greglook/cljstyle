@@ -9,14 +9,13 @@ DIST_FORCE=false
 DIST_CLEAN=false
 DIST_TARGET=all
 
-
 usage() {
     echo "bin/package [--clean] [--force] [--target TARGET]" >&2
     echo >&2
     echo "Targets: jar, macos, linux, linux-static" >&2
 }
 
-
+# Parse command-line options
 while [[ $# -gt 0 ]]; do
     case "$1" in
         -h|--help)
@@ -43,8 +42,11 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-
+# Determine version, print header
 readonly CLJSTYLE_VERSION="$(clojure -T:build print-version | cut -d ' ' -f 2)"
+echo -e "\033[0;33mPreparing release distribution for \033[1;33m$CLJSTYLE_VERSION\033[0m"
+
+# Check local repository state
 readonly GIT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
 readonly GIT_STATUS="$(git status --porcelain --untracked-files=no)"
 
@@ -68,9 +70,7 @@ if [[ -n $GIT_STATUS ]]; then
     fi
 fi
 
-
-echo "Preparing release distribution for $CLJSTYLE_VERSION"
-
+# Clean artifacts if requested
 if [[ $DIST_CLEAN == true ]]; then
   rm -rf dist target
 fi
@@ -82,8 +82,8 @@ echo
 if [[ $DIST_TARGET == all || $DIST_TARGET == jar ]]; then
     CLJSTYLE_JAR_ARTIFACT="dist/cljstyle-${CLJSTYLE_VERSION}.jar"
     if [[ ! -f $CLJSTYLE_JAR_ARTIFACT ]]; then
-        echo "Building uberjar with $(java -version 2>&1 | head -n 1)"
-        clojure -T:build uberjar
+        echo -e "\033[0;36mBuilding uberjar with $(java -version 2>&1 | head -n 1)\033[0m"
+        bin/build uberjar
         cp target/cljstyle.jar "dist/cljstyle-${CLJSTYLE_VERSION}.jar"
         echo
     fi
@@ -94,16 +94,10 @@ if [[ $DIST_TARGET == all || $DIST_TARGET == macos ]]; then
     CLJSTYLE_MACOS_ARTIFACT="dist/cljstyle_${CLJSTYLE_VERSION}_macos_$(uname -m).zip"
     if [[ ! -f $CLJSTYLE_MACOS_ARTIFACT ]]; then
         if [[ $(uname -s) = Darwin ]]; then
-            echo "Building MacOS $(uname -m) binary"
-            (
-                # TODO: better graal detection here
-                export GRAAL_HOME="$HOME/.local/share/graalvm/latest"
-                export JAVA_HOME="$GRAAL_HOME/bin"
-                export PATH="$JAVA_HOME:$PATH"
-                clojure -T:build native-image
-            )
+            echo -e "\033[0;36mBuilding MacOS $(uname -m) binary\033[0m"
+            bin/build native-image
             if [[ ! -f target/graal/cljstyle ]]; then
-                echo "Packaging step did not produce an executable!" >&2
+                echo -e "\033[0;31mPackaging step did not produce an executable!\033[0m" >&2
                 exit 1
             fi
             (
@@ -112,7 +106,7 @@ if [[ $DIST_TARGET == all || $DIST_TARGET == macos ]]; then
             )
             mv target/graal/cljstyle.zip "$CLJSTYLE_MACOS_ARTIFACT"
         else
-            echo "Skipping MacOS binary, must build on a Darwin platform"
+            echo -e "\033[0;31mWARNING: Skipping MacOS binary, must build on a Darwin platform\033[0m"
         fi
         echo
     fi
@@ -122,7 +116,7 @@ fi
 if [[ $DIST_TARGET == all || $DIST_TARGET == linux ]]; then
     CLJSTYLE_LINUX_ARTIFACT="dist/cljstyle_${CLJSTYLE_VERSION}_linux_amd64.zip"
     if [[ ! -f $CLJSTYLE_LINUX_ARTIFACT ]]; then
-        echo "Building Linux binary"
+        echo -e "\033[0;36mBuilding Linux amd64 binary\033[0m"
         rm -rf target/dist/linux
         mkdir -p target/dist/linux
         docker build \
@@ -133,7 +127,7 @@ if [[ $DIST_TARGET == all || $DIST_TARGET == linux ]]; then
         docker cp "${DOCKER_CONTAINER_ID}:/usr/local/bin/cljstyle" target/dist/linux/cljstyle
         docker container rm "$DOCKER_CONTAINER_ID"
         if [[ ! -f target/dist/linux/cljstyle ]]; then
-            echo "Packaging step did not produce an executable!" >&2
+            echo -e "\033[0;31mPackaging step did not produce an executable!\033[0m" >&2
             exit 1
         fi
         (
@@ -149,7 +143,7 @@ fi
 if [[ $DIST_TARGET == all || $DIST_TARGET == linux-static ]]; then
     CLJSTYLE_LINUX_STATIC_ARTIFACT="dist/cljstyle_${CLJSTYLE_VERSION}_linux_amd64_static.zip"
     if [[ ! -f $CLJSTYLE_LINUX_STATIC_ARTIFACT ]]; then
-        echo "Building Linux static binary"
+        echo -e "\033[0;36mBuilding Linux amd64 static binary\033[0m"
         rm -rf target/dist/linux-static
         mkdir -p target/dist/linux-static
         docker build \
@@ -161,7 +155,7 @@ if [[ $DIST_TARGET == all || $DIST_TARGET == linux-static ]]; then
         docker cp "${DOCKER_CONTAINER_ID}:/usr/local/bin/cljstyle" target/dist/linux-static/cljstyle
         docker container rm "$DOCKER_CONTAINER_ID"
         if [[ ! -f target/dist/linux-static/cljstyle ]]; then
-            echo "Packaging step did not produce an executable!" >&2
+            echo -e "\033[0;31mPackaging step did not produce an executable!\033[0m" >&2
             exit 1
         fi
         (
