@@ -4,7 +4,7 @@ version: 2.1
 executors:
   clojure:
     docker:
-      - image: cimg/clojure:1.11-openjdk-11.0
+      - image: clojure:temurin-21-tools-deps-1.12.0.1479
     working_directory: ~/repo
 
 
@@ -17,7 +17,7 @@ jobs:
       - run:
           name: Install clj-kondo
           environment:
-            CLJ_KONDO_VERSION: 2023.10.20
+            CLJ_KONDO_VERSION: 2024.11.14
           command: |
             wget https://github.com/borkdude/clj-kondo/releases/download/v${CLJ_KONDO_VERSION}/clj-kondo-${CLJ_KONDO_VERSION}-linux-amd64.zip
             unzip clj-kondo-${CLJ_KONDO_VERSION}-linux-amd64.zip

@@ -148,6 +148,32 @@
         "^:a\n:bcd")))
 
 
+(deftest qualified-methods
+  (is (reformatted?
+        fmt/reformat-form default-rules
+        "( map Integer/parseInt coll   )"
+        "(map Integer/parseInt coll)"))
+  (is (reformatted?
+        fmt/reformat-form default-rules
+        "(let [open ^[File] java.io.FileInputStream/new]\n(open file) \n )"
+        "(let [open ^[File] java.io.FileInputStream/new]\n  (open file))"))
+  (is (reformatted?
+        fmt/reformat-form default-rules
+        "(let [   epoch-ms java.time.Instant/.toEpochMilli]\n(mapv epoch-ms times  )\n )"
+        "(let [epoch-ms java.time.Instant/.toEpochMilli]\n  (mapv epoch-ms times))")))
+
+
+(deftest array-classes
+  (is (reformatted?
+        fmt/reformat-form default-rules
+        "(fn [^byte/1 arr]\n(count arr))"
+        "(fn [^byte/1 arr]\n  (count arr))"))
+  (is (reformatted?
+        fmt/reformat-form default-rules
+        "(let [grid ^Object/2 arg]\n    (foo grid )  )"
+        "(let [grid ^Object/2 arg]\n  (foo grid))")))
+
+
 (deftest ignored-forms
   (is (reformatted?
         fmt/reformat-form default-rules
