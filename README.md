@@ -1,7 +1,7 @@
 cljstyle
 ========
 
-[![CircleCI](https://circleci.com/gh/greglook/cljstyle.svg?style=shield&circle-token=9576040ebe39e81406823481c98dc55a39d03c4d)](https://circleci.com/gh/greglook/cljstyle)
+[![CircleCI](https://dl.circleci.com/status-badge/img/gh/greglook/cljstyle/tree/main.svg?style=shield)](https://dl.circleci.com/status-badge/redirect/gh/greglook/cljstyle/tree/main)
 [![codecov](https://codecov.io/gh/greglook/cljstyle/branch/main/graph/badge.svg)](https://codecov.io/gh/greglook/cljstyle)
 
 `cljstyle` is a tool for formatting Clojure code. It can take something messy

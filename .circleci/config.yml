@@ -4,7 +4,7 @@ version: 2.1
 executors:
   clojure:
     docker:
-      - image: clojure:temurin-21-tools-deps-1.12.0.1479
+      - image: clojure:tools-deps
     working_directory: ~/repo
 
 
@@ -19,8 +19,9 @@ jobs:
           environment:
             CLJ_KONDO_VERSION: 2024.11.14
           command: |
-            wget https://github.com/borkdude/clj-kondo/releases/download/v${CLJ_KONDO_VERSION}/clj-kondo-${CLJ_KONDO_VERSION}-linux-amd64.zip
-            unzip clj-kondo-${CLJ_KONDO_VERSION}-linux-amd64.zip
+            apt update && apt install -yy curl unzip
+            curl -L https://github.com/borkdude/clj-kondo/releases/download/v${CLJ_KONDO_VERSION}/clj-kondo-${CLJ_KONDO_VERSION}-linux-amd64.zip -o clj-kondo.zip
+            unzip clj-kondo.zip
       - run:
           name: Lint source code
           command: "./clj-kondo --lint src:test"
@@ -74,7 +75,7 @@ jobs:
       - run:
           name: Install codecov
           command: |
-            sudo apt-get update && sudo apt-get install gpg
+            apt update && apt install -yy curl gpg
             curl https://keybase.io/codecovsecurity/pgp_keys.asc | gpg --no-default-keyring --keyring trustedkeys.gpg --import
             curl -Os https://uploader.codecov.io/latest/linux/codecov
             curl -Os https://uploader.codecov.io/latest/linux/codecov.SHA256SUM
