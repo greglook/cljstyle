@@ -18,16 +18,18 @@ This project adheres to [Semantic Versioning](http://semver.org/).
   recommended practices.
 - The `version` task uses a new `cljstyle/version.txt` resource instead of the
   jar manifest, as it gets overridden when building a native-image.
+- Change static builds to use musl.
 
 ### Fixed
 - Build native-image with `-march=compatibility` to avoid CPU feature support
-  issues.
+  issues, particularly in emulation scenarios.
   [#106](https://github.com/greglook/cljstyle/issues/106)
 - Set explicit UTF-8 encoding properties when building native-image binary to
   prevent garbling unicode characters.
   [#108](https://github.com/greglook/cljstyle/issues/108)
   [#110](https://github.com/greglook/cljstyle/issues/110)
-- Fix static builds by switching to musl.
+- Update `rewrite-clj` to support new qualified method and array class syntax in Clojure 1.12.
+  [#109](https://github.com/greglook/cljstyle/issues/109)
 
 
 ## [0.16.626] - 2024-01-06
