@@ -12,6 +12,19 @@ elif [[ $1 = hiera ]]; then
     shift
     exec clojure -X:hiera "$@"
 
+elif [[ $1 = setup-musl ]]; then
+    # This should only really run in the context of the Docker image builder for static binaries
+    apt install -y musl-tools
+    ZLIB_VERSION="1.2.13"
+    curl -sLO --fail --show-error "https://zlib.net/fossils/zlib-${ZLIB_VERSION}.tar.gz"
+    tar xf "zlib-${ZLIB_VERSION}.tar.gz"
+    cd "zlib-${ZLIB_VERSION}"
+    CC=musl-gcc ./configure --static --prefix=/usr/local
+    make CC=musl-gcc
+    make install
+    cd ..
+    install -Dm644 /usr/local/lib/libz.a /usr/lib/x86_64-linux-musl/libz.a
+
 elif [[ $1 = native-image ]]; then
     shift
     GRAAL_ROOT="${GRAAL_ROOT:-$HOME/.local/share/graalvm}"

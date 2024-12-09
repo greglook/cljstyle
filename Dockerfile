@@ -30,8 +30,11 @@ RUN clojure -T:build fetch-deps
 COPY . .
 RUN ./bin/build graal-uberjar
 
-# Build native-image
+# Setup musl compiler if building a static binary
 ARG GRAAL_STATIC="false"
+RUN if [ "$GRAAL_STATIC" = true ]; then ./bin/build setup-musl; fi
+
+# Build native-image
 RUN ./bin/build native-image :graal-static $GRAAL_STATIC
 
 # Install tool

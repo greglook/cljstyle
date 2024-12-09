@@ -370,7 +370,10 @@
                  "--verbose"])
               ;; Static build flag
               (when (:graal-static opts)
-                "--static")]
+                ["--libc=musl"
+                 ;; see https://github.com/oracle/graal/issues/3398
+                 "-H:CCompilerOption=-Wl,-z,stack-size=2097152"
+                 "--static"])]
         result (b/process {:command-args (remove nil? (flatten args))})]
     (when-not (zero? (:exit result))
       (binding [*out* *err*]

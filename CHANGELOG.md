@@ -22,6 +22,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
   prevent garbling unicode characters.
   [#108](https://github.com/greglook/cljstyle/issues/108)
   [#110](https://github.com/greglook/cljstyle/issues/110)
+- Fix static builds by switching to musl.
 
 
 ## [0.16.626] - 2024-01-06
