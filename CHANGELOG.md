@@ -8,6 +8,11 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+...
+
+
+## [0.17.642] - 2024-12-08
+
 ### Changed
 - Revamp how native-image executables are built to follow modern GraalVM
   recommended practices.
@@ -388,7 +393,8 @@ functionality.
 Legacy project release.
 
 
-[Unreleased]: https://github.com/greglook/cljstyle/compare/0.16.626...HEAD
+[Unreleased]: https://github.com/greglook/cljstyle/compare/0.17.642...HEAD
+[0.17.642]: https://github.com/greglook/cljstyle/compare/0.16.626...0.17.642
 [0.16.626]: https://github.com/greglook/cljstyle/compare/0.15.1...0.16.626
 [0.15.1]: https://github.com/greglook/cljstyle/compare/0.15.0...0.15.1
 [0.15.0]: https://github.com/greglook/cljstyle/compare/0.14.0...0.15.0
