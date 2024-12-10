@@ -3,6 +3,7 @@ cljstyle
 
 [![CircleCI](https://dl.circleci.com/status-badge/img/gh/greglook/cljstyle/tree/main.svg?style=shield)](https://dl.circleci.com/status-badge/redirect/gh/greglook/cljstyle/tree/main)
 [![codecov](https://codecov.io/gh/greglook/cljstyle/branch/main/graph/badge.svg)](https://codecov.io/gh/greglook/cljstyle)
+[![Clojars](https://img.shields.io/clojars/v/mvxcvi/cljstyle.svg)](https://clojars.org/mvxcvi/cljstyle)
 
 `cljstyle` is a tool for formatting Clojure code. It can take something messy
 like this:
@@ -94,10 +95,9 @@ xattr -d com.apple.quarantine $(which cljstyle)
 ```
 
 ### Clojars
-Releases are also published to Clojars. To use the latest version, add the
-following dependency to your project:
-
-[![Clojars Project](http://clojars.org/mvxcvi/cljstyle/latest-version.svg)](http://clojars.org/mvxcvi/cljstyle)
+Releases are also published to Clojars, so it can be used with any Maven-compatible
+tool. See the [integration docs](doc/integrations.md) for instructions on invoking
+from Leiningen and tools.deps.
 
 
 ## Usage
