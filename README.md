@@ -87,6 +87,12 @@ options. To upgrade, just run the script again.
 brew install --cask cljstyle
 ```
 
+The `cljstyle` binary is not code-signed, so you may also need to explicitly unquarantine it by running:
+
+```bash
+xattr -d com.apple.quarantine $(which cljstyle)
+```
+
 ### Clojars
 Releases are also published to Clojars. To use the latest version, add the
 following dependency to your project:
