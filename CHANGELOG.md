@@ -8,7 +8,10 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
-...
+### Added
+- The `install-cljstyle` script accepts a `--static` option to download the
+  static version of the tool, if available.
+  [#104](https://github.com/greglook/cljstyle/issues/104)
 
 
 ## [0.17.642] - 2024-12-08
